@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:json_annotation/json_annotation.dart';
 
 part 'epiuom.g.dart';
@@ -6,19 +8,20 @@ part 'epiuom.g.dart';
 class EpiUOM {
   EpiUOM({
     this.token,
-    this.uomcode,
-    this.uomdesc,
+    required this.uomcode,
+    required this.uomdesc,
   });
 
+  @JsonKey(name: 'UOMCode')
   final String uomcode;
 
+  @JsonKey(name: 'UOMDescription')
   final String uomdesc;
 
   @JsonKey(nullable: true)
-  String token;
+  String? token;
 
-  factory EpiUOM.fromJson(Map<String, dynamic> json) =>
-      _$EpiUOMFromJson(json);
+  factory EpiUOM.fromJson(Map<String, dynamic> json) => _$EpiUOMFromJson(json);
 
   Map<String, dynamic> toJson() => _$EpiUOMToJson(this);
 
@@ -32,16 +35,16 @@ class EpiUOMList {
   final List<EpiUOM> epiuomlist;
 
   EpiUOMList({
-    this.epiuomlist,
+    required this.epiuomlist,
   });
 
   factory EpiUOMList.fromJson(List<dynamic> json) {
-    List<EpiUOM> epiuomlist = new List<EpiUOM>();
+    List<EpiUOM> epiuomlist = List<EpiUOM>.empty(growable: true);
 
-   for (var i = 0; i < json.length; i++) {
-    epiuomlist = json.map((i) => EpiUOM.fromJson(i)).toList();
-  }
-  return new EpiUOMList(
+    for (var i = 0; i < json.length; i++) {
+      epiuomlist = json.map((i) => EpiUOM.fromJson(i)).toList();
+    }
+    return new EpiUOMList(
       epiuomlist: epiuomlist,
     );
   }

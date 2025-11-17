@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter_epihhinventory/constants.dart';
 import 'package:flutter_epihhinventory/data/models/auth.dart';
@@ -18,17 +20,17 @@ class AppDrawer extends StatelessWidget {
           children: <Widget>[
             ListTile(
               leading: Icon(Icons.account_circle),
-              title: _auth?.user?.epicuserid == null
+              title: _auth.user?.epicuserid == null
                   ? null
                   : Text(
-                      _auth.user.epicuserid + " " + _auth.user.epicusername,
+                      _auth.user!.epicuserid + " " + _auth.user!.epicusername,
                       textScaleFactor: textScaleFactor,
                       maxLines: 1,
                     ),
-              subtitle: _auth?.user?.epicuserid == null
+              subtitle: _auth.user?.epicuserid == null
                   ? null
                   : Text(
-                      _auth.user.epicuserid.toString(),
+                      _auth.user!.epicuserid.toString(),
                       textScaleFactor: textScaleFactor,
                       maxLines: 1,
                     ),
@@ -353,6 +355,31 @@ class AppDrawer extends StatelessWidget {
               ),
             ),
             Visibility(
+              visible: _globals.epiisenablesitereceipt,
+              child: Divider(),
+            ),
+            Visibility(
+              visible: _globals.epiisenablesitereceipt,
+              child: ListTile(
+                leading: Icon(Icons.shopping_bag),
+                title: Text(
+                  'Site Receipt',
+                  textScaleFactor: textScaleFactor,
+                ),
+                onTap: () {
+                  if (_globals.epiCompanyId == '' || _globals.epiSiteId == '') {
+                    showAlertPopup(context, 'Warning',
+                        'Please select the Company or Site.');
+                  } else if (_globals.epiisenableporeceipt == false) {
+                    showAlertPopup(context, 'Warning',
+                        'You do not have permission to access.');
+                  } else {
+                    Navigator.of(context).popAndPushNamed("/sitereceipt");
+                  }
+                },
+              ),
+            ),
+            Visibility(
               visible: _globals.epiisenablesplitmergeuom,
               child: Divider(),
             ),
@@ -398,6 +425,57 @@ class AppDrawer extends StatelessWidget {
                         'You do not have permission to access.');
                   } else {
                     Navigator.of(context).popAndPushNamed("/deliverytracking");
+                  }
+                },
+              ),
+            ),
+            Visibility(
+              visible: _globals.epiisenablematerialpicking,
+              child: Divider(),
+            ),
+            Visibility(
+              visible: _globals.epiisenablematerialpicking,
+              child: ListTile(
+                leading: Icon(Icons.shopping_bag),
+                title: Text(
+                  'Material Picking',
+                  textScaleFactor: textScaleFactor,
+                ),
+                onTap: () {
+                  if (_globals.epiCompanyId == '' || _globals.epiSiteId == '') {
+                    showAlertPopup(context, 'Warning',
+                        'Please select the Company or Site.');
+                  } else if (_globals.epiisenablematerialpicking == false) {
+                    showAlertPopup(context, 'Warning',
+                        'You do not have permission to access.');
+                  } else {
+                    Navigator.of(context).popAndPushNamed("/materiallist");
+                  }
+                },
+              ),
+            ),
+            Visibility(
+              visible: _globals.epiisenablematerialloading,
+              child: Divider(),
+            ),
+            Visibility(
+              visible: _globals.epiisenablematerialloading,
+              child: ListTile(
+                leading: Icon(Icons.shopping_bag),
+                title: Text(
+                  'Material Loading',
+                  textScaleFactor: textScaleFactor,
+                ),
+                onTap: () {
+                  if (_globals.epiCompanyId == '' || _globals.epiSiteId == '') {
+                    showAlertPopup(context, 'Warning',
+                        'Please select the Company or Site.');
+                  } else if (_globals.epiisenablematerialloading == false) {
+                    showAlertPopup(context, 'Warning',
+                        'You do not have permission to access.');
+                  } else {
+                    Navigator.of(context)
+                        .popAndPushNamed("/materialloadinglist");
                   }
                 },
               ),

@@ -1,12 +1,14 @@
-import 'package:barcode_scan/barcode_scan.dart';
+// ignore_for_file: deprecated_member_use
+
+import 'package:barcode_scan2/model/scan_result.dart';
+import 'package:barcode_scan2/platform_wrapper.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_epihhinventory/data/classes/epidocustinfo.dart';
 import 'package:flutter_epihhinventory/utils/getepidata.dart';
 import 'package:flutter_epihhinventory/utils/popUp.dart';
 import 'package:flutter_epihhinventory/utils/postepidata.dart';
-import 'package:modal_progress_hud/modal_progress_hud.dart';
-import 'package:native_widgets/native_widgets.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
 import '../../constants.dart';
 
@@ -27,7 +29,7 @@ class DeliveryTrackingState extends State<DeliveryTracking> {
 
   FocusNode _textFocusDONo = new FocusNode();
 
-  EpiDOCustInfo _doCustInfo;
+  EpiDOCustInfo? _doCustInfo;
 
   String _oldDONo = '';
 
@@ -104,12 +106,17 @@ class DeliveryTrackingState extends State<DeliveryTracking> {
                     SizedBox(width: 10),
                     SizedBox(
                       width: 54,
-                      child: RaisedButton(
-                        // Job No.
-                        child: Icon(Icons.camera_alt),
+                      child: ElevatedButton(
                         onPressed: barcodeScanningDONo,
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                        ),
+                        child: const Icon(Icons.camera_alt),
                       ),
                     ),
+                    SizedBox(
+                      width: 10,
+                    )
                   ],
                 ),
                 Expanded(
@@ -119,36 +126,42 @@ class DeliveryTrackingState extends State<DeliveryTracking> {
                   children: <Widget>[
                     Expanded(
                       child: ListTile(
-                        title: NativeButton(
-                          padding: EdgeInsets.zero,
-                          child: Text(
-                            'Cancel',
-                            textScaleFactor: textScaleFactor,
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          color: Colors.blue,
-                          disabledColor: Colors.grey,
+                        title: ElevatedButton(
                           onPressed: () async {
                             Navigator.pop(context, true);
                           },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue, // Button color
+                            disabledBackgroundColor:
+                                Colors.grey, // Disabled button color
+                            padding: EdgeInsets.zero, // Removes extra padding
+                          ),
+                          child: Text(
+                            'Cancel',
+                            textScaleFactor: textScaleFactor,
+                            style: const TextStyle(color: Colors.white),
+                          ),
                         ),
                       ),
                     ),
                     SizedBox(width: 0),
                     Expanded(
                       child: ListTile(
-                        title: NativeButton(
-                          padding: EdgeInsets.zero,
-                          child: Text(
-                            'Ok',
-                            textScaleFactor: textScaleFactor,
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          color: Colors.blue,
-                          disabledColor: Colors.grey,
+                        title: ElevatedButton(
                           onPressed: () {
                             showConfirmationDialog(context);
                           },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue, // Button color
+                            disabledBackgroundColor:
+                                Colors.grey, // Disabled button color
+                            padding: EdgeInsets.zero, // Removes extra padding
+                          ),
+                          child: Text(
+                            'Ok',
+                            textScaleFactor: textScaleFactor,
+                            style: const TextStyle(color: Colors.white),
+                          ),
                         ),
                       ),
                     ),
@@ -178,8 +191,8 @@ class DeliveryTrackingState extends State<DeliveryTracking> {
     String _custAddress = '';
 
     if (_doCustInfo != null) {
-      _custName = _doCustInfo.custname ?? '';
-      _custAddress = _doCustInfo.custaddress ?? '';
+      _custName = _doCustInfo?.custname ?? '';
+      _custAddress = _doCustInfo?.custaddress ?? '';
     }
 
     if (_custName != '') {
@@ -235,13 +248,13 @@ class DeliveryTrackingState extends State<DeliveryTracking> {
   Future barcodeScanningDONo() async {
     _barcodeError = '';
     try {
-      String barcode = await BarcodeScanner.scan();
+      ScanResult barcode = await BarcodeScanner.scan();
       setState(() {
-        txtDONo.text = barcode;
+        txtDONo.text = barcode.rawContent;
         getDOCustInfo();
       });
     } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
         setState(() {
           _barcodeError = 'No camera permission!';
         });
@@ -258,18 +271,19 @@ class DeliveryTrackingState extends State<DeliveryTracking> {
 
   void showConfirmationDialog(BuildContext context) {
     // set up the buttons
-    Widget cancelButton = FlatButton(
-      child: Text("Cancel"),
+    Widget cancelButton = TextButton(
       onPressed: () {
         Navigator.of(context).pop();
       },
+      child: const Text("Cancel"),
     );
-    Widget continueButton = FlatButton(
-      child: Text("Confirm"),
+
+    Widget continueButton = TextButton(
       onPressed: () {
         Navigator.of(context).pop();
         submitData();
       },
+      child: const Text("Confirm"),
     );
 
     // set up the AlertDialog

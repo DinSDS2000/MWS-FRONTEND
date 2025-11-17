@@ -1,4 +1,6 @@
-import 'package:barcode_scan/barcode_scan.dart';
+// ignore_for_file: deprecated_member_use, unnecessary_null_comparison
+
+import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_epihhinventory/data/classes/epiporeceipt.dart';
@@ -6,8 +8,7 @@ import 'package:flutter_epihhinventory/data/classes/epiporeceiptdtl.dart';
 import 'package:flutter_epihhinventory/ui/epipages/poreceiptdtl.dart';
 import 'package:flutter_epihhinventory/utils/getepidata.dart';
 import 'package:flutter_epihhinventory/utils/popUp.dart';
-import 'package:modal_progress_hud/modal_progress_hud.dart';
-import 'package:native_widgets/native_widgets.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
 import '../../constants.dart';
 
@@ -26,11 +27,13 @@ class POReceiptListState extends State<POReceiptList> {
   String _oldLegalNo = '';
   bool _saving = false;
 
-  EpiPOReceiptDtlList _listPO;
+  late EpiPOReceiptDtlList _listPO =
+      EpiPOReceiptDtlList(epiporeceiptdtllist: []);
 
   var txtPONo = new TextEditingController();
   var txtLegalNo = new TextEditingController();
   var txtPackNo = new TextEditingController();
+  var txtVendorId = new TextEditingController();
 
   FocusNode _textFocusPONo = new FocusNode();
   FocusNode _textFocusLegalNo = new FocusNode();
@@ -51,11 +54,9 @@ class POReceiptListState extends State<POReceiptList> {
       _oldPONo = txtPONo.text;
     } else {
       if (_oldPONo != txtPONo.text) {
-        if (_listPO != null) {
-          setState(() {
-            _listPO.epiporeceiptdtllist.clear();
-          });
-        }
+        setState(() {
+          _listPO.epiporeceiptdtllist.clear();
+        });
         txtLegalNo.text = "";
 
         getPO(txtPONo.text, "");
@@ -68,13 +69,11 @@ class POReceiptListState extends State<POReceiptList> {
       _oldLegalNo = txtLegalNo.text;
     } else {
       if (_oldLegalNo != txtLegalNo.text) {
-        if (_listPO != null) {
-          setState(() {
-            _listPO.epiporeceiptdtllist.clear();
-          });
-        }
+        setState(() {
+          _listPO.epiporeceiptdtllist.clear();
+        });
         txtPONo.text = "";
-        getPO("", txtLegalNo.text);
+        // getPO("", txtLegalNo.text);
       }
     }
   }
@@ -131,7 +130,10 @@ class POReceiptListState extends State<POReceiptList> {
                     SizedBox(width: 10),
                     SizedBox(
                       width: 54,
-                      child: RaisedButton(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                        ),
                         // Job No.
                         child: Icon(Icons.camera_alt),
                         onPressed: barcodeScanningPONo,
@@ -156,7 +158,10 @@ class POReceiptListState extends State<POReceiptList> {
                     SizedBox(width: 10),
                     SizedBox(
                       width: 54,
-                      child: RaisedButton(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                        ),
                         // Job No.
                         child: Icon(Icons.camera_alt),
                         onPressed: barcodeScanningLegalNo,
@@ -180,7 +185,10 @@ class POReceiptListState extends State<POReceiptList> {
                     SizedBox(width: 10),
                     SizedBox(
                       width: 54,
-                      child: RaisedButton(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                        ),
                         // Job No.
                         child: Icon(Icons.camera_alt),
                         onPressed: barcodeScanningPackNo,
@@ -188,61 +196,90 @@ class POReceiptListState extends State<POReceiptList> {
                     ),
                   ],
                 ),
+                // Row(
+                //   children: <Widget>[
+                //     Expanded(
+                //       child: ListTile(
+                //         title: TextFormField(
+                //           decoration: InputDecoration(labelText: 'Supplier.'),
+                //           obscureText: false,
+                //           keyboardType: TextInputType.text,
+                //           autocorrect: false,
+                //           controller: txtVendorId,
+                //         ),
+                //       ),
+                //     ),
+                //     SizedBox(width: 10),
+                //     SizedBox(
+                //       width: 54,
+                //       child: ElevatedButton(
+                //         style: ElevatedButton.styleFrom(
+                //           padding: EdgeInsets.zero,
+                //         ),
+                //         // Job No.
+                //         child: Icon(Icons.camera_alt),
+                //         onPressed: barcodeScanningPackNo,
+                //       ),
+                //     ),
+                //   ],
+                // ),
                 Row(
                   children: <Widget>[
                     Expanded(
                       child: ListTile(
-                        title: NativeButton(
-                          padding: EdgeInsets.zero,
+                        title: ElevatedButton(
+                          onPressed: () async {
+                            Navigator.pop(context, true);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue, // Button color
+                            disabledBackgroundColor:
+                                Colors.grey, // Disabled button color
+                            padding: EdgeInsets.zero,
+                          ),
                           child: Text(
                             'Cancel',
                             textScaleFactor: textScaleFactor,
                             style: TextStyle(color: Colors.white),
-                            //overflow: TextOverflow.ellipsis,
                           ),
-                          color: Colors.blue,
-                          disabledColor: Colors.grey,
-                          onPressed: () async {
-                            Navigator.pop(context, true);
-                          },
                         ),
                       ),
                     ),
                     SizedBox(width: 0),
                     Expanded(
                       child: ListTile(
-                        title: NativeButton(
-                          padding: EdgeInsets.zero,
+                        title: ElevatedButton(
+                          onPressed: () async {
+                            setState(() {
+                              _saving = true;
+                            });
+
+                            List<dynamic> _result =
+                                await getEpiPOReceiptDtlList(txtPONo.text,
+                                    txtLegalNo.text, txtVendorId.text);
+                            if (_result[0] == false) {
+                              _listPO = _result[1];
+                            } else {
+                              showAlertPopup(context, 'Error',
+                                  'PO Receipt List: ' + _result[1]);
+                            }
+
+                            setState(() {
+                              _saving = false;
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue, // Button color
+                            disabledBackgroundColor:
+                                Colors.grey, // Disabled button color
+                            padding: EdgeInsets.zero,
+                          ),
                           child: Text(
                             'Retrieve',
                             textAlign: TextAlign.center,
                             textScaleFactor: textScaleFactor,
                             style: TextStyle(color: Colors.white),
-                            //overflow: TextOverflow.ellipsis,
                           ),
-                          color: Colors.blue,
-                          disabledColor: Colors.grey,
-                          onPressed: () async {
-                            if (txtPONo.text != '') {
-                              setState(() {
-                                _saving = true;
-                              });
-
-                              List<dynamic> _result;
-
-                              _result = await getEpiPOReceiptDtlList(
-                                  txtPONo.text, txtLegalNo.text);
-                              if (_result[0] == false) {
-                                _listPO = _result[1];
-                              } else {
-                                showAlertPopup(context, 'Error',
-                                    'PO Receipt List : ' + _result[1]);
-                              }
-                              setState(() {
-                                _saving = false;
-                              });
-                            }
-                          },
                         ),
                       ),
                     ),
@@ -262,9 +299,7 @@ class POReceiptListState extends State<POReceiptList> {
 
   populatePOReceiptList(BuildContext context) {
     int _rowCnt = 0;
-    if (_listPO != null) {
-      _rowCnt = _listPO.epiporeceiptdtllist.length;
-    }
+    _rowCnt = _listPO.epiporeceiptdtllist.length;
     return ListView.builder(
       itemCount: _rowCnt,
       itemBuilder: _getPOReceiptDtlListValue,
@@ -283,23 +318,15 @@ class POReceiptListState extends State<POReceiptList> {
     String _listBin = '';
     String _listLot = '';
 
-    if (_listPO != null) {
-      _listPOLine = _listPO.epiporeceiptdtllist[index].poline.toString();
-      _listPOLineRel = _listPO.epiporeceiptdtllist[index].polinerel.toString();
-      _listPartNum = _listPO.epiporeceiptdtllist[index].partnum;
-      _listPartDesc = _listPO.epiporeceiptdtllist[index].partdesc;
-      _listPORelQty = _listPO.epiporeceiptdtllist[index].dporelqty.toString();
-      _listVendorId = _listPO.epiporeceiptdtllist[index].vendorid;
-      _listWhse = _listPO.epiporeceiptdtllist[index].whse == null
-          ? ' '
-          : _listPO.epiporeceiptdtllist[index].whse;
-      _listBin = _listPO.epiporeceiptdtllist[index].bin == null
-          ? ' '
-          : _listPO.epiporeceiptdtllist[index].bin;
-      _listLot = _listPO.epiporeceiptdtllist[index].lotnum == null
-          ? ' '
-          : _listPO.epiporeceiptdtllist[index].lotnum;
-    }
+    _listPOLine = _listPO.epiporeceiptdtllist[index].poline.toString();
+    _listPOLineRel = _listPO.epiporeceiptdtllist[index].polinerel.toString();
+    _listPartNum = _listPO.epiporeceiptdtllist[index].partnum;
+    _listPartDesc = _listPO.epiporeceiptdtllist[index].partdesc;
+    _listPORelQty = _listPO.epiporeceiptdtllist[index].porelqty.toString();
+    _listVendorId = _listPO.epiporeceiptdtllist[index].vendorid;
+    _listWhse = _listPO.epiporeceiptdtllist[index].whse ?? ' ';
+    _listBin = _listPO.epiporeceiptdtllist[index].bin ?? ' ';
+    _listLot = _listPO.epiporeceiptdtllist[index].lotnum ?? ' ';
     return new Card(
       elevation: 8.0,
       margin: new EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
@@ -384,13 +411,13 @@ class POReceiptListState extends State<POReceiptList> {
   Future barcodeScanningPONo() async {
     _barcodeError = '';
     try {
-      String barcode = await BarcodeScanner.scan();
+      ScanResult barcode = await BarcodeScanner.scan();
       setState(() {
-        txtPONo.text = barcode;
+        txtPONo.text = barcode.rawContent;
         getPO(txtPONo.text, "");
       });
     } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
         setState(() {
           _barcodeError = 'No camera permission!';
         });
@@ -408,13 +435,13 @@ class POReceiptListState extends State<POReceiptList> {
   Future barcodeScanningLegalNo() async {
     _barcodeError = '';
     try {
-      String barcode = await BarcodeScanner.scan();
+      ScanResult barcode = await BarcodeScanner.scan();
       setState(() {
-        txtLegalNo.text = barcode;
+        txtLegalNo.text = barcode.rawContent;
         getPO("", txtLegalNo.text);
       });
     } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
         setState(() {
           _barcodeError = 'No camera permission!';
         });
@@ -432,12 +459,35 @@ class POReceiptListState extends State<POReceiptList> {
   Future barcodeScanningPackNo() async {
     _barcodeError = '';
     try {
-      String barcode = await BarcodeScanner.scan();
+      ScanResult barcode = await BarcodeScanner.scan();
       setState(() {
-        txtPackNo.text = barcode;
+        txtPackNo.text = barcode.rawContent;
       });
     } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
+        setState(() {
+          _barcodeError = 'No camera permission!';
+        });
+      } else {
+        setState(() => _barcodeError = 'Unknown error: $e');
+      }
+    } on FormatException {
+      setState(() => _barcodeError = 'Nothing captured.');
+    } catch (e) {
+      setState(() => _barcodeError = 'Unknown error: $e');
+    }
+    if (_barcodeError != '') showAlertPopup(context, 'Error', _barcodeError);
+  }
+
+  Future barcodeScanningVendorId() async {
+    _barcodeError = '';
+    try {
+      ScanResult barcode = await BarcodeScanner.scan();
+      setState(() {
+        txtVendorId.text = barcode.rawContent;
+      });
+    } on PlatformException catch (e) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
         setState(() {
           _barcodeError = 'No camera permission!';
         });

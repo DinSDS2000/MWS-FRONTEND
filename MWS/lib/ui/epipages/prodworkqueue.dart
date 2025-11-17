@@ -1,10 +1,10 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_epihhinventory/data/classes/epiworkqueue.dart';
 import 'package:flutter_epihhinventory/utils/popUp.dart';
 import 'package:flutter_epihhinventory/utils/postepidata.dart';
-import 'package:native_widgets/native_widgets.dart';
-import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
 import '../../constants.dart';
 import '../../utils/globals.dart' as _globals;
@@ -259,33 +259,36 @@ class ProdWorkQueueState extends State<ProdWorkQueue> {
                     Row(children: <Widget>[
                       Expanded(
                         child: ListTile(
-                          title: NativeButton(
+                          title:ElevatedButton(
+                          onPressed: () => Navigator.pop(context, 'C'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue, // Button color
                             padding: EdgeInsets.zero,
-                            child: Text(
-                              'Cancel',
-                              textScaleFactor: textScaleFactor,
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            color: Colors.blue,
-                            disabledColor: Colors.grey,
-                            onPressed: () => {Navigator.pop(context, 'C')},
                           ),
+                          child: Text(
+                            'Cancel',
+                            textScaleFactor: textScaleFactor,
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
                         ),
                       ),
                       SizedBox(width: 0),
                       Expanded(
                         child: ListTile(
-                          title: NativeButton(
+                          title: ElevatedButton(
+                          onPressed: submitData,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue, // Button color
                             padding: EdgeInsets.zero,
-                            child: Text(
-                              'End Operation',
-                              textScaleFactor: textScaleFactor,
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            color: Colors.blue,
-                            disabledColor: Colors.grey,
-                            onPressed: submitData,
                           ),
+                          child: Text(
+                            'End Operation',
+                            textScaleFactor: textScaleFactor,
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+
                         ),
                       )
                     ])

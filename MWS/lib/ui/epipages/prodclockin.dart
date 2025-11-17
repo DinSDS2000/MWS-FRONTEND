@@ -1,13 +1,13 @@
-import 'dart:async';
+// ignore_for_file: deprecated_member_use
 
-import 'package:barcode_scan/barcode_scan.dart';
+import 'dart:async';
+import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_epihhinventory/utils/popUp.dart';
 import 'package:flutter_epihhinventory/utils/postepidata.dart';
 import 'package:intl/intl.dart';
-import 'package:native_widgets/native_widgets.dart';
-import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
 import '../../constants.dart';
 
@@ -89,12 +89,18 @@ class ProdClockInState extends State<ProdClockIn> {
                         SizedBox(width: 10),
                         SizedBox(
                           width: 54,
-                          child: RaisedButton(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                            ),
                             // Part
                             child: Icon(Icons.camera_alt),
                             onPressed: barcodeScanningName,
                           ),
                         ),
+                        SizedBox(
+                          width: 10,
+                        )
                       ],
                     ),
                     Row(
@@ -113,12 +119,18 @@ class ProdClockInState extends State<ProdClockIn> {
                         SizedBox(width: 10),
                         SizedBox(
                           width: 54,
-                          child: RaisedButton(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                            ),
                             // Part
                             child: Icon(Icons.camera_alt),
                             onPressed: barcodeScanningShift,
                           ),
                         ),
+                        SizedBox(
+                          width: 10,
+                        )
                       ],
                     ),
                     Row(
@@ -158,47 +170,53 @@ class ProdClockInState extends State<ProdClockIn> {
                     Row(children: <Widget>[
                       Expanded(
                         child: ListTile(
-                          title: NativeButton(
-                            padding: EdgeInsets.zero,
+                          title: ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context, true);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue, // Button color
+                              padding: EdgeInsets.zero,
+                            ),
                             child: Text(
                               'Cancel',
                               textScaleFactor: textScaleFactor,
                               style: TextStyle(color: Colors.white),
                             ),
-                            color: Colors.blue,
-                            onPressed: () => {Navigator.pop(context, true)},
                           ),
                         ),
                       ),
                       SizedBox(width: 8),
                       Expanded(
                         child: ListTile(
-                          title: NativeButton(
-                            padding: EdgeInsets.zero,
+                          title: ElevatedButton(
+                            onPressed: submitClockIn,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue, // Button color
+                              padding: EdgeInsets.zero,
+                            ),
                             child: Text(
                               'Clock In',
                               textScaleFactor: textScaleFactor,
                               style: TextStyle(color: Colors.white),
                             ),
-                            color: Colors.blue,
-                            disabledColor: Colors.grey,
-                            onPressed: submitClockIn,
                           ),
                         ),
                       ),
                       SizedBox(width: 0),
                       Expanded(
                         child: ListTile(
-                          title: NativeButton(
-                            padding: EdgeInsets.zero,
+                          title: ElevatedButton(
+                            onPressed: submitClockOut,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue, // Button color
+                              padding: EdgeInsets.zero,
+                            ),
                             child: Text(
                               'Clock Out',
                               textScaleFactor: textScaleFactor,
                               style: TextStyle(color: Colors.white),
                             ),
-                            color: Colors.blue,
-                            disabledColor: Colors.grey,
-                            onPressed: submitClockOut,
                           ),
                         ),
                       )
@@ -264,13 +282,13 @@ class ProdClockInState extends State<ProdClockIn> {
   Future barcodeScanningName() async {
     _barcodeError = '';
     try {
-      String barcode = await BarcodeScanner.scan();
+      ScanResult barcode = await BarcodeScanner.scan();
 
       setState(() {
-        txtEmpName.text = barcode;
+        txtEmpName.text = barcode.rawContent;
       });
     } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
         setState(() {
           _barcodeError = 'No camera permission!';
         });
@@ -288,13 +306,13 @@ class ProdClockInState extends State<ProdClockIn> {
   Future barcodeScanningShift() async {
     _barcodeError = '';
     try {
-      String barcode = await BarcodeScanner.scan();
+      ScanResult barcode = await BarcodeScanner.scan();
 
       setState(() {
-        txtEmpName.text = barcode;
+        txtEmpName.text = barcode.rawContent;
       });
     } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
         setState(() {
           _barcodeError = 'No camera permission!';
         });

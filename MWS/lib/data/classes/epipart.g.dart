@@ -6,8 +6,8 @@ part of 'epipart.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-EpiPart _$EpiPartFromJson(Map<String, dynamic> json) {
-  return EpiPart(
+EpiPart _$EpiPartFromJson(Map<String, dynamic> json) => EpiPart(
+      token: json['Token'] as String?,
       partdescription: json['PartDescription'] as String,
       ium: json['IUM'] as String,
       tracklots: json['TrackLots'] as bool,
@@ -19,9 +19,8 @@ EpiPart _$EpiPartFromJson(Map<String, dynamic> json) {
       attbeforedt: json['AttBeforeDt'] as String,
       attmfgdt: json['AttMfgDt'] as String,
       attcuredt: json['AttCureDt'] as String,
-      attexpdt: json['AttExpDt'] as String
-  );      
-}
+      attexpdt: json['AttExpDt'] as String,
+    );
 
 Map<String, dynamic> _$EpiPartToJson(EpiPart instance) => <String, dynamic>{
       'PartDescription': instance.partdescription,
@@ -35,5 +34,6 @@ Map<String, dynamic> _$EpiPartToJson(EpiPart instance) => <String, dynamic>{
       'AttBeforeDt': instance.attbeforedt,
       'AttMfgDt': instance.attmfgdt,
       'AttCureDt': instance.attcuredt,
-      'AttExpDt': instance.attexpdt
+      'AttExpDt': instance.attexpdt,
+      'Token': instance.token,
     };

@@ -1,12 +1,13 @@
-import 'package:barcode_scan/barcode_scan.dart';
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_epihhinventory/data/classes/epimoveinvreq.dart';
 import 'package:flutter_epihhinventory/ui/epipages/acceptinventoryrequest.dart';
 import 'package:flutter_epihhinventory/utils/getepidata.dart';
 import 'package:flutter_epihhinventory/utils/popUp.dart';
-import 'package:modal_progress_hud/modal_progress_hud.dart';
-import 'package:native_widgets/native_widgets.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
+import 'package:barcode_scan2/barcode_scan2.dart';
 
 import '../../constants.dart';
 import '../../utils/globals.dart' as _globals;
@@ -25,7 +26,7 @@ class AcceptInventoryRequestListState
 
   String _barcodeError = "";
   bool _saving = false;
-  EpiMoveInvReqList _listReq;
+  late EpiMoveInvReqList _listReq;
 
   var txtToWhse = new TextEditingController();
   var txtToBin = new TextEditingController();
@@ -35,6 +36,7 @@ class AcceptInventoryRequestListState
   @override
   void initState() {
     txtToWhse.addListener(onChangeToWhse);
+    _listReq = EpiMoveInvReqList(epimoveinvreqlist: []);
     _textFocusToWhse.addListener(onChangeToWhse);
 
     super.initState();
@@ -98,10 +100,12 @@ class AcceptInventoryRequestListState
                     SizedBox(width: 10),
                     SizedBox(
                       width: 54,
-                      child: RaisedButton(
-                        // To Warehouse
-                        child: Icon(Icons.camera_alt),
+                      child: ElevatedButton(
                         onPressed: barcodeScanningToWhse,
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                        ),
+                        child: const Icon(Icons.camera_alt),
                       ),
                     ),
                   ],
@@ -122,10 +126,12 @@ class AcceptInventoryRequestListState
                     SizedBox(width: 10),
                     SizedBox(
                       width: 54,
-                      child: RaisedButton(
-                        // To Bin
-                        child: Icon(Icons.camera_alt),
+                      child: ElevatedButton(
                         onPressed: barcodeScanningToBin,
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                        ),
+                        child: const Icon(Icons.camera_alt),
                       ),
                     ),
                   ],
@@ -134,53 +140,60 @@ class AcceptInventoryRequestListState
                   children: <Widget>[
                     Expanded(
                       child: ListTile(
-                        title: NativeButton(
-                          padding: EdgeInsets.zero,
-                          child: Text(
-                            'Cancel',
-                            textScaleFactor: textScaleFactor,
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          color: Colors.blue,
-                          disabledColor: Colors.grey,
+                        title: ElevatedButton(
                           onPressed: () async {
                             Navigator.pop(context, true);
                           },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue, // Button color
+                            disabledBackgroundColor:
+                                Colors.grey, // Disabled button color
+                            padding: EdgeInsets.zero, // Removes extra padding
+                          ),
+                          child: Text(
+                            'Cancel',
+                            textScaleFactor: textScaleFactor,
+                            style: const TextStyle(color: Colors.white),
+                          ),
                         ),
                       ),
                     ),
                     SizedBox(width: 0),
                     Expanded(
                       child: ListTile(
-                        title: NativeButton(
-                          padding: EdgeInsets.zero,
-                          child: Text(
-                            'Retrieve',
-                            textScaleFactor: textScaleFactor,
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          color: Colors.blue,
-                          disabledColor: Colors.grey,
+                        title: ElevatedButton(
                           onPressed: () async {
                             setState(() {
                               _saving = true;
                             });
 
-                            _listReq = null;
+                            _listReq = EpiMoveInvReqList(epimoveinvreqlist: []);
                             List<dynamic> _result;
                             _result = await getEpiMoveInvReqList(
                                 txtToWhse.text, txtToBin.text);
+
                             if (_result[0] == false) {
                               _listReq = _result[1];
-                              //print(_listReq.epimoveinvreqlist[1].reqnum);
                             } else {
                               showAlertPopup(context, 'Error',
                                   'Inventory Request List : ' + _result[1]);
                             }
+
                             setState(() {
                               _saving = false;
                             });
                           },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue, // Button color
+                            disabledBackgroundColor:
+                                Colors.grey, // Disabled button color
+                            padding: EdgeInsets.zero, // Removes extra padding
+                          ),
+                          child: Text(
+                            'Retrieve',
+                            textScaleFactor: textScaleFactor,
+                            style: const TextStyle(color: Colors.white),
+                          ),
                         ),
                       ),
                     ),
@@ -200,9 +213,7 @@ class AcceptInventoryRequestListState
 
   populateReqList(BuildContext context) {
     int _rowCnt = 0;
-    if (_listReq != null) {
-      _rowCnt = _listReq.epimoveinvreqlist.length;
-    }
+    _rowCnt = _listReq.epimoveinvreqlist.length;
     return ListView.builder(
       itemCount: _rowCnt,
       itemBuilder: _getReqListValue,
@@ -223,19 +234,17 @@ class AcceptInventoryRequestListState
     String _listToLot = '';
     // String _listLabelCount = '';
 
-    if (_listReq != null) {
-      _listReqNum = _listReq.epimoveinvreqlist[index].reqnum;
-      _listPartNum = _listReq.epimoveinvreqlist[index].partnum;
-      _listPartDesc = _listReq.epimoveinvreqlist[index].partdesc;
-      _listQty = _listReq.epimoveinvreqlist[index].dtranqty.toString();
-      _listFrWhse = _listReq.epimoveinvreqlist[index].frwhse;
-      _listFrBin = _listReq.epimoveinvreqlist[index].frbin;
-      _listFrLot = _listReq.epimoveinvreqlist[index].frlotnum;
-      _listToWhse = _listReq.epimoveinvreqlist[index].towhse;
-      _listToBin = _listReq.epimoveinvreqlist[index].tobin;
-      _listToLot = _listReq.epimoveinvreqlist[index].tolotnum;
-      // _listLabelCount = _listReq.epimoveinvreqlist[index].labelcount.toString();
-    }
+    _listReqNum = _listReq.epimoveinvreqlist[index].reqnum;
+    _listPartNum = _listReq.epimoveinvreqlist[index].partnum;
+    _listPartDesc = _listReq.epimoveinvreqlist[index].partdesc;
+    _listQty = _listReq.epimoveinvreqlist[index].dtranqty.toString();
+    _listFrWhse = _listReq.epimoveinvreqlist[index].frwhse;
+    _listFrBin = _listReq.epimoveinvreqlist[index].frbin;
+    _listFrLot = _listReq.epimoveinvreqlist[index].frlotnum;
+    _listToWhse = _listReq.epimoveinvreqlist[index].towhse;
+    _listToBin = _listReq.epimoveinvreqlist[index].tobin;
+    _listToLot = _listReq.epimoveinvreqlist[index].tolotnum;
+    // _listLabelCount = _listReq.epimoveinvreqlist[index].labelcount.toString();
     return new Card(
       elevation: 8.0,
       margin: new EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
@@ -321,14 +330,14 @@ class AcceptInventoryRequestListState
   Future barcodeScanningToWhse() async {
     _barcodeError = '';
     try {
-      String barcode = await BarcodeScanner.scan();
+      ScanResult barcode = await BarcodeScanner.scan();
       setState(() {
-        if (splitToWhse(barcode) == false) {
-          txtToWhse.text = barcode;
+        if (splitToWhse(barcode.rawContent) == false) {
+          txtToWhse.text = barcode.rawContent;
         }
       });
     } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
         setState(() {
           _barcodeError = 'No camera permission!';
         });
@@ -346,12 +355,12 @@ class AcceptInventoryRequestListState
   Future barcodeScanningToBin() async {
     _barcodeError = '';
     try {
-      String barcode = await BarcodeScanner.scan();
+      ScanResult barcode = await BarcodeScanner.scan();
       setState(() {
-        txtToBin.text = barcode;
+        txtToBin.text = barcode.rawContent;
       });
     } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
         setState(() {
           _barcodeError = 'No camera permission!';
         });

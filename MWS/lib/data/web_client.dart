@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:core';
 import 'dart:io';
@@ -17,8 +16,7 @@ class WebClient {
   final User auth;
 
   Future<dynamic> get(String url) async {
-    if (auth == null) throw ('Auth Model Required');
-    final String _token = auth?.token ?? "";
+    final String _token = auth.token;
     final http.Response response = await getHttpReponse(
       url,
       headers: {
@@ -27,15 +25,13 @@ class WebClient {
       method: HttpMethod.get,
     );
 
-    if (response?.statusCode == 401) return response.statusCode;
-
-    if (response?.body == null) return null;
+    if (response.statusCode == 401) return response.statusCode;
 
     return json.decode(response.body);
   }
 
   Future<dynamic> delete(String url) async {
-    final String _token = auth?.token ?? "";
+    final String _token = auth.token;
     http.Response response = await getHttpReponse(
       url,
       headers: {
@@ -48,14 +44,13 @@ class WebClient {
   }
 
   Future<dynamic> post(String url, dynamic data,
-      {String bodyContentType}) async {
-    if (auth == null) throw ('Auth Model Required');
-    final String _token = auth?.token ?? "";
+      {required String bodyContentType}) async {
+    final String _token = auth.token;
     final http.Response response = await getHttpReponse(
       url,
       body: data,
       headers: {
-        HttpHeaders.contentTypeHeader: bodyContentType ?? 'application/json',
+        HttpHeaders.contentTypeHeader: bodyContentType,
         HttpHeaders.authorizationHeader: "Bearer $_token",
       },
       method: HttpMethod.post,
@@ -71,7 +66,7 @@ class WebClient {
   }
 
   Future<dynamic> put(String url, dynamic data) async {
-    final String _token = auth?.token ?? "";
+    final String _token = auth.token;
     final http.Response response = await getHttpReponse(
       url,
       body: data,
@@ -103,36 +98,36 @@ class WebClient {
   Future<http.Response> getHttpReponse(
     String url, {
     dynamic body,
-    Map<String, String> headers,
+    required Map<String, String> headers,
     HttpMethod method = HttpMethod.get,
   }) async {
     final inner.IOClient _client = getClient();
-    http.Response response;
+    http.Response response = http.Response('', 500);
     try {
       switch (method) {
         case HttpMethod.post:
           response = await _client.post(
-            url,
+            Uri.parse(url),
             body: body,
             headers: headers,
           );
           break;
         case HttpMethod.put:
           response = await _client.put(
-            url,
+            Uri.parse(url),
             body: body,
             headers: headers,
           );
           break;
         case HttpMethod.delete:
           response = await _client.delete(
-            url,
+            Uri.parse(url),
             headers: headers,
           );
           break;
         case HttpMethod.get:
           response = await _client.get(
-            url,
+            Uri.parse(url),
             headers: headers,
           );
       }
@@ -145,20 +140,18 @@ class WebClient {
       if (response.statusCode >= 400) {
         // if (response.statusCode == 404) return response.body; // Not Found Message
         if (response.statusCode == 401) {
-          if (auth != null) {
-            // Todo: Refresh Token !
-            // await auth.refreshToken();
-            /* final String _token = auth?.token ?? "";
-            print(" Second Token => $_token");
-            // Retry Request
-            response = await getHttpReponse(
-              url,
-              headers: {
-                HttpHeaders.authorizationHeader: "Bearer $_token",
-              },
-            ); */
-          }
-        } // Not Authorized
+          // Todo: Refresh Token !
+          // await auth.refreshToken();
+          /* final String _token = auth?.token ?? "";
+          print(" Second Token => $_token");
+          // Retry Request
+          response = await getHttpReponse(
+            url,
+            headers: {
+              HttpHeaders.authorizationHeader: "Bearer $_token",
+            },
+          ); */
+                } // Not Authorized
         if (devMode) throw ('An error occurred: ' + response.body);
       }
     } catch (e) {

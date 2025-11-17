@@ -1,13 +1,14 @@
+// ignore_for_file: deprecated_member_use
+
+import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
-import 'package:barcode_scan/barcode_scan.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_epihhinventory/data/classes/epiemployee.dart';
 import 'package:flutter_epihhinventory/data/classes/epijoboprresource.dart';
 import 'package:flutter_epihhinventory/utils/getepidata.dart';
 import 'package:flutter_epihhinventory/utils/popUp.dart';
 import 'package:flutter_epihhinventory/utils/postepidata.dart';
-import 'package:native_widgets/native_widgets.dart';
-import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
 import '../../constants.dart';
 import '../../utils/globals.dart' as _globals;
@@ -22,7 +23,7 @@ class ProdStartOperationState extends State<ProdStartOperation> {
   final formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  List<Employee> _emps = new List<Employee>();
+  List<Employee> _emps = List<Employee>.empty(growable: true);
 
   String _barcodeError = '';
   String _oldEmpId = '';
@@ -69,6 +70,7 @@ class ProdStartOperationState extends State<ProdStartOperation> {
     } else {
       if (_oldEmpId != txtEmpId.text) {
         if (txtEmpId.text != '') {
+          print("printing");
           getClockedInEmployee();
         }
       }
@@ -123,19 +125,36 @@ class ProdStartOperationState extends State<ProdStartOperation> {
     EpiJobOprResource _data = await getEpiJobOprResourceById(
         txtJobNo.text, txtAsmNo.text, txtOprNo.text, txtResId.text);
 
-    if (_data.resourceid != null) {
-      txtOpCode.text = _data.opcode;
-      txtResGroup.text = _data.resourcegrpid;
-      txtResId.text = _data.resourceid;
-    }
+    txtOpCode.text = _data.opcode;
+    txtResGroup.text = _data.resourcegrpid;
+    txtResId.text = _data.resourceid;
   }
 
   Future getClockedInEmployee() async {
     EpiEmployee _data = await getEpiActiveEmployeeById(txtEmpId.text);
+    print("Laborhed seq: ${_data}");
+    _laborHedSeq = _data.empLaborHedSeq;
+  }
 
-    if (_data.empId != null) {
-      _laborHedSeq = _data.empLaborHedSeq;
+  Future<bool> splitAsmNo(String txt) async {
+    bool result = false;
+    var strSplit = txt.split(_globals.epibarcodeseperator);
+
+    if (strSplit.length == 2) {
+      txtAsmNo.text = strSplit[0];
+      txtOprNo.text = strSplit[1];
+      result = true;
+    } else {
+      var strSplit2 = txt.split(_globals.epibarcodeseperator2);
+      if (strSplit2.length == 2) {
+        txtAsmNo.text = strSplit[0];
+        txtOprNo.text = strSplit[1];
+        result = true;
+      } else {
+        return false;
+      }
     }
+    return result;
   }
 
   bool splitJobNo(String txt) {
@@ -178,9 +197,9 @@ class ProdStartOperationState extends State<ProdStartOperation> {
             content: DropdownButton<Employee>(
               isExpanded: true,
               value: _emps[0],
-              onChanged: (Employee _newValue) {
+              onChanged: (Employee? _newValue) {
                 setState(() {
-                  if (_newValue.id != '0') {
+                  if (_newValue!.id != '0') {
                     txtEmpId.text = _newValue.id;
                     _laborHedSeq = _newValue.laborhedseq;
                   }
@@ -198,7 +217,7 @@ class ProdStartOperationState extends State<ProdStartOperation> {
               }).toList(),
             ),
             actions: <Widget>[
-              new FlatButton(
+              new TextButton(
                 child: new Text('Cancel'),
                 onPressed: () {
                   Navigator.of(context).pop();
@@ -242,11 +261,17 @@ class ProdStartOperationState extends State<ProdStartOperation> {
                         ),
                         SizedBox(
                           width: 54,
-                          child: RaisedButton(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                            ),
                             child: Icon(Icons.search),
                             onPressed: triggerEmpDropDown,
                           ),
                         ),
+                        SizedBox(
+                          width: 10,
+                        )
                       ],
                     ),
                     Row(
@@ -266,12 +291,18 @@ class ProdStartOperationState extends State<ProdStartOperation> {
                         SizedBox(width: 10),
                         SizedBox(
                           width: 54,
-                          child: RaisedButton(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                            ),
                             // Job No.
                             child: Icon(Icons.camera_alt),
                             onPressed: barcodeScanningJobNo,
                           ),
                         ),
+                        SizedBox(
+                          width: 10,
+                        )
                       ],
                     ),
                     Row(
@@ -291,12 +322,18 @@ class ProdStartOperationState extends State<ProdStartOperation> {
                         SizedBox(width: 10),
                         SizedBox(
                           width: 54,
-                          child: RaisedButton(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                            ),
                             // Asm No.
                             child: Icon(Icons.camera_alt),
                             onPressed: barcodeScanningAsmNo,
                           ),
                         ),
+                        SizedBox(
+                          width: 10,
+                        )
                       ],
                     ),
                     Row(
@@ -316,12 +353,18 @@ class ProdStartOperationState extends State<ProdStartOperation> {
                         SizedBox(width: 10),
                         SizedBox(
                           width: 54,
-                          child: RaisedButton(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                            ),
                             // Mtl No.
                             child: Icon(Icons.camera_alt),
                             onPressed: barcodeScanningOprNo,
                           ),
                         ),
+                        SizedBox(
+                          width: 10,
+                        )
                       ],
                     ),
                     Row(
@@ -341,12 +384,18 @@ class ProdStartOperationState extends State<ProdStartOperation> {
                         SizedBox(width: 10),
                         SizedBox(
                           width: 54,
-                          child: RaisedButton(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                            ),
                             // Asm No.
                             child: Icon(Icons.camera_alt),
                             onPressed: barcodeScanningResId,
                           ),
                         ),
+                        SizedBox(
+                          width: 10,
+                        )
                       ],
                     ),
                     // Row(
@@ -416,32 +465,34 @@ class ProdStartOperationState extends State<ProdStartOperation> {
                     Row(children: <Widget>[
                       Expanded(
                         child: ListTile(
-                          title: NativeButton(
-                            padding: EdgeInsets.zero,
+                          title: ElevatedButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue, // Button color
+                              padding: EdgeInsets.zero,
+                            ),
                             child: Text(
                               'Cancel',
                               textScaleFactor: textScaleFactor,
                               style: TextStyle(color: Colors.white),
                             ),
-                            color: Colors.blue,
-                            disabledColor: Colors.grey,
-                            onPressed: () => {Navigator.pop(context, true)},
                           ),
                         ),
                       ),
                       SizedBox(width: 0),
                       Expanded(
                         child: ListTile(
-                          title: NativeButton(
-                            padding: EdgeInsets.zero,
+                          title: ElevatedButton(
+                            onPressed: submitData,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue, // Button color
+                              padding: EdgeInsets.zero,
+                            ),
                             child: Text(
                               'Submit',
                               textScaleFactor: textScaleFactor,
                               style: TextStyle(color: Colors.white),
                             ),
-                            color: Colors.blue,
-                            disabledColor: Colors.grey,
-                            onPressed: submitData,
                           ),
                         ),
                       )
@@ -459,7 +510,6 @@ class ProdStartOperationState extends State<ProdStartOperation> {
     setState(() {
       _saving = true;
     });
-
     _result = await postProdStartOperation(txtEmpId.text, txtJobNo.text,
         txtAsmNo.text, txtOprNo.text, txtResId.text, _laborHedSeq.toString());
 
@@ -492,14 +542,14 @@ class ProdStartOperationState extends State<ProdStartOperation> {
   Future barcodeScanningJobNo() async {
     _barcodeError = '';
     try {
-      String barcode = await BarcodeScanner.scan();
+      ScanResult barcode = await BarcodeScanner.scan();
       setState(() {
-        if (splitJobNo(barcode) == false) {
-          txtJobNo.text = barcode;
+        if (splitJobNo(barcode.rawContent) == false) {
+          txtJobNo.text = barcode.rawContent;
         }
       });
     } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
         setState(() {
           _barcodeError = 'No camera permission!';
         });
@@ -517,13 +567,16 @@ class ProdStartOperationState extends State<ProdStartOperation> {
   Future barcodeScanningAsmNo() async {
     _barcodeError = '';
     try {
-      String barcode = await BarcodeScanner.scan();
+      ScanResult barcode = await BarcodeScanner.scan();
+      bool result = await splitAsmNo(barcode.rawContent);
       setState(() {
-        txtAsmNo.text = barcode;
+        if (result == false) {
+          txtAsmNo.text = barcode.rawContent;
+        }
         // getJobMtl();
       });
     } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
         setState(() {
           _barcodeError = 'No camera permission!';
         });
@@ -541,13 +594,13 @@ class ProdStartOperationState extends State<ProdStartOperation> {
   Future barcodeScanningOprNo() async {
     _barcodeError = '';
     try {
-      String barcode = await BarcodeScanner.scan();
+      ScanResult barcode = await BarcodeScanner.scan();
       setState(() {
-        txtOprNo.text = barcode;
+        txtOprNo.text = barcode.rawContent;
         // getJobMtl();
       });
     } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
         setState(() {
           _barcodeError = 'No camera permission!';
         });
@@ -565,13 +618,13 @@ class ProdStartOperationState extends State<ProdStartOperation> {
   Future barcodeScanningResId() async {
     _barcodeError = '';
     try {
-      String barcode = await BarcodeScanner.scan();
+      ScanResult barcode = await BarcodeScanner.scan();
       setState(() {
-        txtResId.text = barcode;
+        txtResId.text = barcode.rawContent;
         // getJobMtl();
       });
     } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
         setState(() {
           _barcodeError = 'No camera permission!';
         });

@@ -1,10 +1,10 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter_epihhinventory/data/classes/episplitmergeuom.dart';
 import 'package:flutter_epihhinventory/utils/popUp.dart';
 import 'package:flutter_epihhinventory/utils/postepidata.dart';
-import 'package:native_widgets/native_widgets.dart';
-import 'package:modal_progress_hud/modal_progress_hud.dart';
-
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import '../../constants.dart';
 
 class SplitMergeUOMDtl extends StatefulWidget {
@@ -48,7 +48,7 @@ class SplitMergeUOMDtlState extends State<SplitMergeUOMDtl> {
   String _qty = '';
   String _uom = '';
   String _nooflabel = '';
-  EpiSplitMergeUOMList _listdata;
+  late EpiSplitMergeUOMList _listdata;
 
   @override
   void initState() {
@@ -133,31 +133,37 @@ class SplitMergeUOMDtlState extends State<SplitMergeUOMDtl> {
                     Row(children: <Widget>[
                       Expanded(
                         child: ListTile(
-                          title: NativeButton(
-                            padding: EdgeInsets.zero,
+                          title: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue, // Button color
+                              foregroundColor: Colors.white, // Text color
+                              padding: EdgeInsets.zero,
+                              disabledBackgroundColor:
+                                  Colors.grey, // Disabled button color
+                            ),
                             child: Text(
                               'Cancel',
                               textScaleFactor: textScaleFactor,
-                              style: TextStyle(color: Colors.white),
                             ),
-                            color: Colors.blue,
-                            disabledColor: Colors.grey,
-                            onPressed: () => {Navigator.pop(context, 'C')},
+                            onPressed: () => Navigator.pop(context, 'C'),
                           ),
                         ),
                       ),
                       SizedBox(width: 0),
                       Expanded(
                         child: ListTile(
-                          title: NativeButton(
-                            padding: EdgeInsets.zero,
+                          title: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue, // Button color
+                              foregroundColor: Colors.white, // Text color
+                              padding: EdgeInsets.zero,
+                              disabledBackgroundColor:
+                                  Colors.grey, // Disabled button color
+                            ),
                             child: Text(
                               'Submit',
                               textScaleFactor: textScaleFactor,
-                              style: TextStyle(color: Colors.white),
                             ),
-                            color: Colors.blue,
-                            disabledColor: Colors.grey,
                             onPressed: submitData,
                           ),
                         ),
@@ -177,6 +183,7 @@ class SplitMergeUOMDtlState extends State<SplitMergeUOMDtl> {
     setState(() {
       _saving = true;
     });
+    print('QUANTITTY: $_qty');
 
     var _count = _listdata.episplitmergeuomlist.length;
     if (_count != 0) {

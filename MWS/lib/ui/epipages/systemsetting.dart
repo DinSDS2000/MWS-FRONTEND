@@ -1,5 +1,6 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
-import 'package:native_widgets/native_widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../utils/globals.dart' as _globals;
 
@@ -65,41 +66,46 @@ class SystemSettingState extends State<SystemSetting> {
               children: <Widget>[
                 Expanded(
                   child: ListTile(
-                    title: NativeButton(
-                      padding: EdgeInsets.zero,
+                    title: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue, // Button color
+                        foregroundColor: Colors.white, // Text color
+                        padding: EdgeInsets.zero,
+                        disabledBackgroundColor: Colors.grey, // Disabled button color
+                      ),
                       child: Text(
                         'Cancel',
                         textScaleFactor: textScaleFactor,
-                        style: TextStyle(color: Colors.white),
                       ),
-                      color: Colors.blue,
-                      disabledColor: Colors.grey,
-                      onPressed: () async {
+                      onPressed: () {
                         Navigator.pop(context);
                       },
                     ),
+
+                    ),
                   ),
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: ListTile(
-                    title: NativeButton(
-                      padding: EdgeInsets.zero,
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: ListTile(
+                      title: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue, // Button color
+                        foregroundColor: Colors.white, // Text color
+                        padding: EdgeInsets.zero,
+                        disabledBackgroundColor: Colors.grey, // Disabled button color
+                      ),
                       child: Text(
                         'Save',
                         textScaleFactor: textScaleFactor,
-                        style: TextStyle(color: Colors.white),
                       ),
-                      color: Colors.blue,
-                      disabledColor: Colors.grey,
                       onPressed: () async {
-                        SharedPreferences.getInstance().then((prefs) {
-                          prefs.setString("api_base_url", txtBaseUrl.text);
-                        });
-
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setString("api_base_url", txtBaseUrl.text);
+                        
                         Navigator.pop(context, true);
                       },
                     ),
+
                   ),
                 ),
               ],

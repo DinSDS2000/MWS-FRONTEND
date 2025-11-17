@@ -1,4 +1,6 @@
 
+// ignore_for_file: deprecated_member_use
+
 import 'package:json_annotation/json_annotation.dart';
 
 part 'epitrxinfo.g.dart';
@@ -6,20 +8,20 @@ part 'epitrxinfo.g.dart';
 @JsonSerializable()
 class EpiTrxInfo {
   EpiTrxInfo({
-    this.token,
-    this.company,
-    this.sysdate,
-    this.tranno,
-    this.trantype,
-    this.partnum,
-    this.tranqty,
-    this.whsecode,
-    this.binnum,
-    this.jobnum,
-    this.assemblyseq,
-    this.lotnum,
-    this.uom,
-    this.entryperson,
+    required this.token,
+    required this.company,
+    required this.sysdate,
+    required this.tranno,
+    required this.trantype,
+    required this.partnum,
+    required this.tranqty,
+    required this.whsecode,
+    required this.binnum,
+    required this.jobnum,
+    required this.assemblyseq,
+    required this.lotnum,
+    required this.uom,
+    required this.entryperson,
   });
 
   final String company;
@@ -66,11 +68,11 @@ class EpiTrxInfoList {
   final List<EpiTrxInfo> epitrxinfolist;
 
   EpiTrxInfoList({
-    this.epitrxinfolist,
+    required this.epitrxinfolist,
   });
 
   factory EpiTrxInfoList.fromJson(List<dynamic> json) {
-    List<EpiTrxInfo> epitrxinfolist = new List<EpiTrxInfo>();
+    List<EpiTrxInfo> epitrxinfolist = List<EpiTrxInfo>.empty(growable: true);
 
     for (var i = 0; i < json.length; i++) {
       epitrxinfolist = json.map((i) => EpiTrxInfo.fromJson(i)).toList();

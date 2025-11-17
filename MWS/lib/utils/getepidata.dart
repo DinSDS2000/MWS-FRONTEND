@@ -9,15 +9,18 @@ import 'package:flutter_epihhinventory/data/classes/epimoveinvreq.dart';
 import 'package:flutter_epihhinventory/data/classes/epipart.dart';
 import 'package:flutter_epihhinventory/data/classes/epipartwhse.dart';
 import 'package:flutter_epihhinventory/data/classes/epipartwhsebin.dart';
+import 'package:flutter_epihhinventory/data/classes/epipickerbaq.dart';
 import 'package:flutter_epihhinventory/data/classes/epiporeceipt.dart';
 import 'package:flutter_epihhinventory/data/classes/epiporeceiptdtl.dart';
 import 'package:flutter_epihhinventory/data/classes/epireason.dart';
+import 'package:flutter_epihhinventory/data/classes/epishipdtl.dart';
 import 'package:flutter_epihhinventory/data/classes/episplitmergeuom.dart';
 import 'package:flutter_epihhinventory/data/classes/epitrxinfo.dart';
 import 'package:flutter_epihhinventory/data/classes/epiuom.dart';
 import 'package:flutter_epihhinventory/data/classes/epiworkqueue.dart';
 import 'package:flutter_epihhinventory/data/classes/user.dart';
 import 'package:flutter_epihhinventory/data/web_client.dart';
+import 'package:intl/intl.dart';
 // import 'package:global_configuration/global_configuration.dart';
 
 import '../utils/globals.dart' as _globals;
@@ -36,7 +39,7 @@ Future<List<dynamic>> getEpiJobHead(String jobNo) async {
       '&strJobNum=' +
       jobNo;
 
-  var _data = await WebClient(User(token: null))
+  var _data = await WebClient(User(token: ''))
       .get(_globals.epiApiBaseUrl + '/api/job/LoadJobHeadById' + _params);
 
   if (_data[0] == null) {
@@ -66,7 +69,7 @@ Future<EpiJobMtl> getEpiJobMtl(String jobNo, String asmNo, String mtlNo) async {
       '&iMtlSeq=' +
       mtlNo;
 
-  var _data = await WebClient(User(token: null)).get(
+  var _data = await WebClient(User(token: '')).get(
       _globals.epiApiBaseUrl + '/api/job/LoadJobMaterialByMtlSeq' + _params);
 
   EpiJobMtl _envData = EpiJobMtl.fromJson(_data);
@@ -93,7 +96,7 @@ Future<EpiJobOprResource> getEpiJobOprResourceById(
       '&StrResourceId=' +
       resId;
 
-  var _data = await WebClient(User(token: null)).get(_globals.epiApiBaseUrl +
+  var _data = await WebClient(User(token: '')).get(_globals.epiApiBaseUrl +
       '/api/Productions/LoadJobOperationResourceById' +
       _params);
 
@@ -118,7 +121,7 @@ Future<EpiJobAsm> getEpiJobAsm(String jobNo, String asmNo) async {
       '&iAssemblySeq=' +
       asmNo;
 
-  var _data = await WebClient(User(token: null)).get(
+  var _data = await WebClient(User(token: '')).get(
       _globals.epiApiBaseUrl + '/api/Job/LoadJobAssemblyByAssmbSeq' + _params);
 
   EpiJobAsm _envData = EpiJobAsm.fromJson(_data);
@@ -138,9 +141,9 @@ Future<List<dynamic>> getEpiMovInvPart(String partNo) async {
       '&strEnvId=' +
       _globals.epiEnvId +
       '&strPartNum=' +
-      partNo;
+      Uri.encodeComponent(partNo);
 
-  var _data = await WebClient(User(token: null))
+  var _data = await WebClient(User(token: ''))
       .get(_globals.epiApiBaseUrl + '/api/moveinventory/LoadPart' + _params);
 
   if (_data['Parts'] == null) {
@@ -165,7 +168,7 @@ Future<EpiTrxInfo> getEpiTrxInfo(String trxNo) async {
       '&TranNo=' +
       trxNo;
 
-  var _data = await WebClient(User(token: null))
+  var _data = await WebClient(User(token: ''))
       .get(_globals.epiApiBaseUrl + '/api/Reprint/LoadTranInfo' + _params);
 
   EpiTrxInfo _result = EpiTrxInfo.fromJson(_data);
@@ -189,7 +192,7 @@ Future<List<dynamic>> getEpiPartWhse(String partNo, String whseCode) async {
       '&strWhse=' +
       whseCode;
 
-  var _data = await WebClient(User(token: null)).get(_globals.epiApiBaseUrl +
+  var _data = await WebClient(User(token: '')).get(_globals.epiApiBaseUrl +
       '/api/moveinventory/LoadPartWhseWithBin' +
       _params);
 
@@ -220,7 +223,7 @@ Future<List<dynamic>> getEpiJobToSalvage(String jobNo) async {
       '&strJobNum=' +
       jobNo;
 
-  var _data = await WebClient(User(token: null)).get(
+  var _data = await WebClient(User(token: '')).get(
       _globals.epiApiBaseUrl + '/api/salvage/LoadJobForSalvageById' + _params);
 
   if (_data[0] == null) {
@@ -233,7 +236,7 @@ Future<List<dynamic>> getEpiJobToSalvage(String jobNo) async {
 }
 
 Future<EpiPart> getEpiPart(String partNo) async {
-  String _params = '?strUid=' +
+  String _params = '?strUID=' +
       _globals.epiUsername +
       '&strPass=' +
       Uri.encodeComponent(_globals.epiPassword) +
@@ -244,13 +247,13 @@ Future<EpiPart> getEpiPart(String partNo) async {
       '&strEnvId=' +
       _globals.epiEnvId +
       '&strPartNum=' +
-      partNo;
+      Uri.encodeComponent(partNo);
 
-  var _data = await WebClient(User(token: null))
-      .get(_globals.epiApiBaseUrl + '/api/moveinventory/LoadPart' + _params);
-
+  var _data = await WebClient(User(token: ''))
+      .get(_globals.epiApiBaseUrl + '/api/MoveInventory/LoadPart' + _params);
+  print("PARTTTT: ${_data}");
   if (_data['Parts'] == null) {
-    return null;
+    throw Exception(_data);
   } else {
     EpiPart _envData = EpiPart.fromJson(_data['Parts']);
     return _envData;
@@ -272,7 +275,7 @@ Future<List<dynamic>> getEpiMoveInvReqList(String toWhse, String toBin) async {
       '&strToBin=' +
       toBin;
 
-  var _data = await WebClient(User(token: null)).get(_globals.epiApiBaseUrl +
+  var _data = await WebClient(User(token: '')).get(_globals.epiApiBaseUrl +
       '/api/moveinventory/LoadMoveInventoryRequest' +
       _params);
 
@@ -285,9 +288,14 @@ Future<List<dynamic>> getEpiMoveInvReqList(String toWhse, String toBin) async {
   }
 }
 
-Future<List<dynamic>> getEpiPOReceiptDtlList(
-    String ponum, String legalNum) async {
-  String _params = '?strUid=' +
+Future<List<dynamic>> getEpiPickerList({
+  String? picker,
+  String? orderNum,
+  String? transporter,
+  DateTime? date,
+}) async {
+  // Base params (required)
+  String params = '?strUid=' +
       _globals.epiUsername +
       '&strPass=' +
       Uri.encodeComponent(_globals.epiPassword) +
@@ -296,21 +304,125 @@ Future<List<dynamic>> getEpiPOReceiptDtlList(
       '&strCurCompany=' +
       _globals.epiCompanyId +
       '&strCurPlant=' +
-      _globals.epiSiteId +
-      '&iPONum=' +
-      ponum +
-      '&strLegalNum=' +
-      legalNum;
+      _globals.epiSiteId;
 
-  var _data = await WebClient(User(token: null)).get(_globals.epiApiBaseUrl +
+  // Append optional filters if provided
+  if (picker != null && picker.isNotEmpty) {
+    params += '&picker=' + Uri.encodeComponent(picker);
+  }
+  if (orderNum != null && orderNum.isNotEmpty) {
+    params += '&orderNum=' + Uri.encodeComponent(orderNum);
+  }
+  if (transporter != null && transporter.isNotEmpty) {
+    params += '&transporter=' + Uri.encodeComponent(transporter);
+  }
+
+  if (date != null) {
+    final formattedDate = DateFormat('yyyy-MM-dd').format(date);
+    params += '&date=' + Uri.encodeComponent(formattedDate);
+  }
+  var _data = await WebClient(User(token: '')).get(_globals.epiApiBaseUrl +
+      '/api/DeliveryTracking/LoadPickerDelivery' +
+      params);
+
+  if (_data == null) {
+    return [true, 'Picker BAQ no result'];
+  } else {
+    EpiPickerBaqList _envData = EpiPickerBaqList.fromJson(_data);
+
+    return [false, _envData];
+  }
+}
+
+Future<List<Transporter>> getTransporters() async {
+  final String params =
+      '?strUid=${_globals.epiUsername}&strPass=${Uri.encodeComponent(_globals.epiPassword)}'
+      '&strEnvId=${_globals.epiEnvId}&strCurCompany=${_globals.epiCompanyId}&strCurPlant=${_globals.epiSiteId}';
+
+  var response = await WebClient(User(token: '')).get(
+      '${_globals.epiApiBaseUrl}/api/DeliveryTracking/GetTransporterList$params');
+
+  if (response == null || response['success'] != true) {
+    throw Exception('Failed to load transporters');
+  }
+
+  List<dynamic> data = response['value'];
+  return data.map((json) => Transporter.fromJson(json)).toList();
+}
+
+Future<List<dynamic>> getShipmentDetails({
+  String? lorryID,
+  String? planID,
+}) async {
+  // Build base query string
+  String params = '?username=' +
+      _globals.epiUsername +
+      '&password=' +
+      Uri.encodeComponent(_globals.epiPassword) +
+      '&company=' +
+      _globals.epiCompanyId +
+      '&plant=' +
+      _globals.epiSiteId +
+      '&envID=' +
+      _globals.epiEnvId;
+
+  // Add optional filters
+  if (lorryID != null && lorryID.isNotEmpty) {
+    params += '&lorryID=' + Uri.encodeComponent(lorryID);
+  }
+  if (planID != null && planID.isNotEmpty) {
+    params += '&planID=' + Uri.encodeComponent(planID);
+  }
+
+  // Call API
+  var _data = await WebClient(User(token: '')).get(
+    _globals.epiApiBaseUrl + '/api/CustShip/ShipmentDetail' + params,
+  );
+
+  // Handle response
+  if (_data == null || _data['value'] == null) {
+    return [true, 'Shipment detail BAQ no result'];
+  } else {
+    EpiShipDtlList shipmentList = EpiShipDtlList.fromJson(_data);
+    return [false, shipmentList];
+  }
+}
+
+Future<List<dynamic>> getEpiPOReceiptDtlList(
+    String? ponum, String? legalNum, String? vendorId) async {
+  Map<String, String> queryParams = {
+    'strUid': _globals.epiUsername,
+    'strPass': _globals.epiPassword,
+    'strEnvId': _globals.epiEnvId,
+    'strCurCompany': _globals.epiCompanyId,
+    'strCurPlant': _globals.epiSiteId,
+  };
+
+  if (ponum != null && ponum.isNotEmpty) {
+    queryParams['iPONum'] = ponum;
+  }
+  if (legalNum != null && legalNum.isNotEmpty) {
+    queryParams['strLegalNumber'] = legalNum;
+  }
+  if (vendorId != null && vendorId.isNotEmpty) {
+    queryParams['vendorId'] = vendorId;
+  }
+
+  // Build the full query string
+  String queryString = '?' +
+      queryParams.entries
+          .map((e) =>
+              '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+          .join('&');
+
+  var _data = await WebClient(User(token: '')).get(_globals.epiApiBaseUrl +
       '/api/Receipt/LoadReceiptsDetailsByPONum' +
-      _params);
+      queryString);
 
   if (_data[0] == null) {
     return [true, 'PO Receipts not found'];
   } else {
     EpiPOReceiptDtlList _envData = EpiPOReceiptDtlList.fromJson(_data);
-
     return [false, _envData];
   }
 }
@@ -331,7 +443,7 @@ Future<List<dynamic>> getEpiPOReceiptList(String ponum, String legalnum) async {
       '&strLegalNumber=' +
       legalnum;
 
-  var _data = await WebClient(User(token: null)).get(_globals.epiApiBaseUrl +
+  var _data = await WebClient(User(token: '')).get(_globals.epiApiBaseUrl +
       '/api/Receipt/LoadPurchaseOrdersByLegalId' +
       _params);
 
@@ -360,7 +472,7 @@ Future<List<UOM>> getEpiUOMList(String partno, List<UOM> _uoms) async {
       '&strPartNum=' +
       partno;
 
-  var _data = await WebClient(User(token: null))
+  var _data = await WebClient(User(token: ''))
       .get(_globals.epiApiBaseUrl + '/api/part/LoadUOMByPart' + _params);
 
   if (_data[0] != null) {
@@ -374,6 +486,23 @@ Future<List<UOM>> getEpiUOMList(String partno, List<UOM> _uoms) async {
   }
 
   return _uoms;
+}
+
+class Transporter {
+  final String id;
+  final String name;
+
+  Transporter({required this.id, required this.name});
+
+  factory Transporter.fromJson(Map<String, dynamic> json) {
+    return Transporter(
+      id: json['UDCodes_CodeID'] ?? '',
+      name: json['UDCodes_CodeDesc'] ?? '',
+    );
+  }
+
+  @override
+  String toString() => name;
 }
 
 class UOM {
@@ -398,7 +527,7 @@ Future<List<ReasonItem>> getEpiReasonList(
       '&strReasonType=' +
       _reasonType;
 
-  var _data = await WebClient(User(token: null)).get(
+  var _data = await WebClient(User(token: '')).get(
       _globals.epiApiBaseUrl + '/api/Productions/LoadReasonCodes' + _params);
 
   if (_data[0] != null) {
@@ -435,7 +564,7 @@ Future<List<Employee>> getEpiEmployeeList(List<Employee> _emps) async {
       '&strCurPlant=' +
       _globals.epiSiteId;
 
-  var _data = await WebClient(User(token: null)).get(
+  var _data = await WebClient(User(token: '')).get(
       _globals.epiApiBaseUrl + '/api/Productions/LoadActiveEmployee' + _params);
 
   if (_data[0] != null) {
@@ -444,7 +573,7 @@ Future<List<Employee>> getEpiEmployeeList(List<Employee> _emps) async {
     for (var i = 0; i < _envData.epiemployeelist.length; i++) {
       Employee _epidata = new Employee(
           _envData.epiemployeelist[i].empId,
-          _envData.epiemployeelist[i].empName,
+          (_envData.epiemployeelist[i].empName ?? ''),
           _envData.epiemployeelist[i].empLaborHedSeq);
       _emps.add(_epidata);
     }
@@ -461,7 +590,7 @@ class Employee {
   final int laborhedseq;
 }
 
-Future<EpiDOCustInfo> getEpiDOCustInfo(String legalNo) async {
+Future<EpiDOCustInfo?> getEpiDOCustInfo(String legalNo) async {
   String _params = '?strUid=' +
       _globals.epiUsername +
       '&strPass=' +
@@ -475,7 +604,7 @@ Future<EpiDOCustInfo> getEpiDOCustInfo(String legalNo) async {
       '&strLegalNumber=' +
       legalNo;
 
-  var _data = await WebClient(User(token: null)).get(_globals.epiApiBaseUrl +
+  var _data = await WebClient(User(token: '')).get(_globals.epiApiBaseUrl +
       '/api/DeliveryTracking/LoadDOCustInfo' +
       _params);
 
@@ -520,7 +649,7 @@ Future<List<dynamic>> getEpiSplitMergeUOMList(
       '&strUOM=' +
       ium;
 
-  var _data = await WebClient(User(token: null)).get(_globals.epiApiBaseUrl +
+  var _data = await WebClient(User(token: '')).get(_globals.epiApiBaseUrl +
       '/api/SplitMergeUOM/GetSplitMergeList' +
       _params);
 
@@ -547,7 +676,7 @@ Future<EpiEmployee> getEpiActiveEmployeeById(String empId) async {
       '&strEmpId=' +
       empId;
 
-  var _data = await WebClient(User(token: null)).get(_globals.epiApiBaseUrl +
+  var _data = await WebClient(User(token: '')).get(_globals.epiApiBaseUrl +
       '/api/Productions/LoadActiveEmployeeById' +
       _params);
 
@@ -580,7 +709,7 @@ Future<List<dynamic>> getEpiWorkGroupList(String empId, String jobNo,
       '&strResourceId=' +
       resId;
 
-  var _data = await WebClient(User(token: null))
+  var _data = await WebClient(User(token: ''))
       .get(_globals.epiApiBaseUrl + '/api/Productions/LoadWorkQueue' + _params);
 
   if (_data[0] == null) {

@@ -6,11 +6,11 @@ part of 'epiworkqueue.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-EpiWorkQueue _$EpiWorkQueueFromJson(Map<String, dynamic> json) {
-  return EpiWorkQueue(
+EpiWorkQueue _$EpiWorkQueueFromJson(Map<String, dynamic> json) => EpiWorkQueue(
+      token: json['token'] as String?,
       jobno: json['JobNum'] as String,
-      asmno: json['AssemblySeq'] as int,
-      oprno: json['OprSeq'] as int,
+      asmno: (json['AssemblySeq'] as num).toInt(),
+      oprno: (json['OprSeq'] as num).toInt(),
       opcode: json['OpCode'] as String,
       resgroupid: json['ResourceGrpID'] as String,
       resid: json['ResourceID'] as String,
@@ -19,10 +19,10 @@ EpiWorkQueue _$EpiWorkQueueFromJson(Map<String, dynamic> json) {
       empname: json['EmployeeName'] as String,
       clockindate: json['ClockInDate'] as String,
       clockintime: json['ClockIntime'] as String,
-      transqty: json['TranQty'] as double,
-      laborhedseq: json['LaborHedSeq'] as int,
-      labordtlseq: json['LaborDtlSeq'] as int);
-}
+      transqty: (json['TranQty'] as num).toDouble(),
+      laborhedseq: (json['LaborHedSeq'] as num).toInt(),
+      labordtlseq: (json['LaborDtlSeq'] as num).toInt(),
+    );
 
 Map<String, dynamic> _$EpiWorkQueueToJson(EpiWorkQueue instance) =>
     <String, dynamic>{
@@ -39,5 +39,6 @@ Map<String, dynamic> _$EpiWorkQueueToJson(EpiWorkQueue instance) =>
       'ClockIntime': instance.clockintime,
       'TranQty': instance.transqty,
       'LaborHedSeq': instance.laborhedseq,
-      'LaborDtlSeq': instance.labordtlseq
+      'LaborDtlSeq': instance.labordtlseq,
+      'token': instance.token,
     };

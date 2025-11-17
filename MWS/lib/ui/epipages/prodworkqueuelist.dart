@@ -1,12 +1,13 @@
+// ignore_for_file: deprecated_member_use
+
+import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
-import 'package:barcode_scan/barcode_scan.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_epihhinventory/data/classes/epiworkqueue.dart';
 import 'package:flutter_epihhinventory/ui/epipages/prodworkqueue.dart';
 import 'package:flutter_epihhinventory/utils/getepidata.dart';
 import 'package:flutter_epihhinventory/utils/popUp.dart';
-import 'package:native_widgets/native_widgets.dart';
-import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
 import '../../constants.dart';
 import '../../utils/globals.dart' as _globals;
@@ -25,7 +26,7 @@ class ProdWorkQueueListState extends State<ProdWorkQueueList> {
   String _oldAsmNo = '';
   String _oldOprNo = '';
   bool _saving = false;
-  EpiWorkQueueList _listWQ;
+  late EpiWorkQueueList _listWQ = EpiWorkQueueList(epiworkqueuelist: []);
 
   var txtEmpId = new TextEditingController();
   var txtJobNo = new TextEditingController();
@@ -65,6 +66,27 @@ class ProdWorkQueueListState extends State<ProdWorkQueueList> {
         if (txtAsmNo.text != '') {}
       }
     }
+  }
+
+  Future<bool> splitAsmNo(String txt) async {
+    bool result = false;
+    var strSplit = txt.split(_globals.epibarcodeseperator);
+
+    if (strSplit.length == 2) {
+      txtAsmNo.text = strSplit[0];
+      txtOprNo.text = strSplit[1];
+      result = true;
+    } else {
+      var strSplit2 = txt.split(_globals.epibarcodeseperator2);
+      if (strSplit2.length == 2) {
+        txtAsmNo.text = strSplit[0];
+        txtOprNo.text = strSplit[1];
+        result = true;
+      } else {
+        return false;
+      }
+    }
+    return result;
   }
 
   void onChangeOprSeq() {
@@ -113,171 +135,215 @@ class ProdWorkQueueListState extends State<ProdWorkQueueList> {
       resizeToAvoidBottomInset: false,
       body: ModalProgressHUD(
           child: SafeArea(
-            child: Column(
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: ListTile(
-                        title: TextFormField(
-                          decoration: InputDecoration(labelText: 'Employee Id'),
-                          obscureText: false,
-                          keyboardType: TextInputType.text,
-                          autocorrect: false,
-                          controller: txtEmpId,
+            child: Container(
+              child: ListView(
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: ListTile(
+                          title: TextFormField(
+                            decoration:
+                                InputDecoration(labelText: 'Employee Id'),
+                            obscureText: false,
+                            keyboardType: TextInputType.text,
+                            autocorrect: false,
+                            controller: txtEmpId,
+                          ),
                         ),
                       ),
-                    ),
-                    SizedBox(width: 10),
-                    SizedBox(
-                      width: 54,
-                      child: RaisedButton(
-                        // Job No.
-                        child: Icon(Icons.camera_alt),
-                        onPressed: barcodeScanningEmpId,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: ListTile(
-                        title: TextFormField(
-                          decoration: InputDecoration(labelText: 'Job No.'),
-                          obscureText: false,
-                          keyboardType: TextInputType.text,
-                          autocorrect: false,
-                          controller: txtJobNo,
-                          focusNode: _textFocusJobNo,
+                      SizedBox(width: 10),
+                      SizedBox(
+                        width: 54,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                          ),
+                          // Job No.
+                          child: Icon(Icons.camera_alt),
+                          onPressed: barcodeScanningEmpId,
                         ),
                       ),
-                    ),
-                    SizedBox(width: 10),
-                    SizedBox(
-                      width: 54,
-                      child: RaisedButton(
-                        // Job No.
-                        child: Icon(Icons.camera_alt),
-                        onPressed: barcodeScanningJobNo,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: ListTile(
-                        title: TextFormField(
-                          decoration: InputDecoration(labelText: 'Asm No.'),
-                          obscureText: false,
-                          keyboardType: TextInputType.number,
-                          autocorrect: false,
-                          controller: txtAsmNo,
-                          focusNode: _textFocusAsmSeq,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    SizedBox(
-                      width: 54,
-                      child: RaisedButton(
-                        // Asm No.
-                        child: Icon(Icons.camera_alt),
-                        onPressed: barcodeScanningAsmNo,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: ListTile(
-                        title: TextFormField(
-                          decoration: InputDecoration(labelText: 'Opr No.'),
-                          obscureText: false,
-                          keyboardType: TextInputType.number,
-                          autocorrect: false,
-                          controller: txtOprNo,
-                          focusNode: _textFocusOprSeq,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    SizedBox(
-                      width: 54,
-                      child: RaisedButton(
-                        // Mtl No.
-                        child: Icon(Icons.camera_alt),
-                        onPressed: barcodeScanningOprNo,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: ListTile(
-                        title: TextFormField(
-                          decoration: InputDecoration(labelText: 'Resource ID'),
-                          obscureText: false,
-                          keyboardType: TextInputType.text,
-                          autocorrect: false,
-                          controller: txtResId,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    SizedBox(
-                      width: 54,
-                      child: RaisedButton(
-                        // Asm No.
-                        child: Icon(Icons.camera_alt),
-                        onPressed: barcodeScanningResId,
-                      ),
-                    ),
-                  ],
-                ),
-                //SizedBox(height: 30),
-                Row(children: <Widget>[
-                  Expanded(
-                    child: ListTile(
-                      title: NativeButton(
-                        padding: EdgeInsets.zero,
-                        child: Text(
-                          'Cancel',
-                          textScaleFactor: textScaleFactor,
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        color: Colors.blue,
-                        disabledColor: Colors.grey,
-                        onPressed: () => {Navigator.pop(context, true)},
-                      ),
-                    ),
+                      SizedBox(
+                        width: 10,
+                      )
+                    ],
                   ),
-                  SizedBox(width: 0),
-                  Expanded(
-                    child: ListTile(
-                      title: NativeButton(
-                        padding: EdgeInsets.zero,
-                        child: Text(
-                          'Retrieve',
-                          textScaleFactor: textScaleFactor,
-                          style: TextStyle(color: Colors.white),
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: ListTile(
+                          title: TextFormField(
+                            decoration: InputDecoration(labelText: 'Job No.'),
+                            obscureText: false,
+                            keyboardType: TextInputType.text,
+                            autocorrect: false,
+                            controller: txtJobNo,
+                            focusNode: _textFocusJobNo,
+                          ),
                         ),
-                        color: Colors.blue,
-                        disabledColor: Colors.grey,
-                        onPressed: retrieveWorkQueueList,
+                      ),
+                      SizedBox(width: 10),
+                      SizedBox(
+                        width: 54,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                          ),
+                          // Job No.
+                          child: Icon(Icons.camera_alt),
+                          onPressed: barcodeScanningJobNo,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      )
+                    ],
+                  ),
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: ListTile(
+                          title: TextFormField(
+                            decoration: InputDecoration(labelText: 'Asm No.'),
+                            obscureText: false,
+                            keyboardType: TextInputType.number,
+                            autocorrect: false,
+                            controller: txtAsmNo,
+                            focusNode: _textFocusAsmSeq,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      SizedBox(
+                        width: 54,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                          ),
+                          // Asm No.
+                          child: Icon(Icons.camera_alt),
+                          onPressed: barcodeScanningAsmNo,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      )
+                    ],
+                  ),
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: ListTile(
+                          title: TextFormField(
+                            decoration: InputDecoration(labelText: 'Opr No.'),
+                            obscureText: false,
+                            keyboardType: TextInputType.number,
+                            autocorrect: false,
+                            controller: txtOprNo,
+                            focusNode: _textFocusOprSeq,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      SizedBox(
+                        width: 54,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                          ),
+                          // Mtl No.
+                          child: Icon(Icons.camera_alt),
+                          onPressed: barcodeScanningOprNo,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      )
+                    ],
+                  ),
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: ListTile(
+                          title: TextFormField(
+                            decoration:
+                                InputDecoration(labelText: 'Resource ID'),
+                            obscureText: false,
+                            keyboardType: TextInputType.text,
+                            autocorrect: false,
+                            controller: txtResId,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      SizedBox(
+                        width: 54,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                          ),
+                          // Asm No.
+                          child: Icon(Icons.camera_alt),
+                          onPressed: barcodeScanningResId,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      )
+                    ],
+                  ),
+                  //SizedBox(height: 30),
+                  Row(children: <Widget>[
+                    Expanded(
+                      child: ListTile(
+                        title: ElevatedButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue, // Button color
+                            padding: EdgeInsets.zero,
+                          ),
+                          child: Text(
+                            'Cancel',
+                            textScaleFactor: textScaleFactor,
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
                       ),
                     ),
-                  )
-                ]),
-                Expanded(
-                  child: new Padding(
-                      padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
-                      child: populateWQList(context)),
-                ),
-              ],
+                    SizedBox(width: 0),
+                    Expanded(
+                      child: ListTile(
+                        title: ElevatedButton(
+                          onPressed: retrieveWorkQueueList,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue, // Button color
+                            padding: EdgeInsets.zero,
+                          ),
+                          child: Text(
+                            'Retrieve',
+                            textScaleFactor: textScaleFactor,
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    )
+                  ]),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: new Padding(
+                          padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
+                          child: SizedBox(
+                            height: 300, // Set appropriate height
+                            child: populateWQList(context),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
           inAsyncCall: _saving),
@@ -289,7 +355,7 @@ class ProdWorkQueueListState extends State<ProdWorkQueueList> {
       _saving = true;
     });
 
-    _listWQ = null;
+    _listWQ = EpiWorkQueueList(epiworkqueuelist: []);
     List<dynamic> _result;
 
     _result = await getEpiWorkGroupList(txtEmpId.text, txtJobNo.text,
@@ -307,9 +373,7 @@ class ProdWorkQueueListState extends State<ProdWorkQueueList> {
 
   populateWQList(BuildContext context) {
     int _rowCnt = 0;
-    if (_listWQ != null) {
-      _rowCnt = _listWQ.epiworkqueuelist.length;
-    }
+    _rowCnt = _listWQ.epiworkqueuelist.length;
     return ListView.builder(
       itemCount: _rowCnt,
       itemBuilder: _getWQListValue,
@@ -330,19 +394,17 @@ class ProdWorkQueueListState extends State<ProdWorkQueueList> {
     String _listClockInTime = '';
     String _listTransQty = '';
 
-    if (_listWQ != null) {
-      _listJobNo = _listWQ.epiworkqueuelist[index].jobno;
-      _listAsmNo = _listWQ.epiworkqueuelist[index].asmno.toString();
-      _listOprNo = _listWQ.epiworkqueuelist[index].oprno.toString();
-      _listOpCode = _listWQ.epiworkqueuelist[index].opcode;
-      _listResGroupId = _listWQ.epiworkqueuelist[index].resgroupid;
-      _listResId = _listWQ.epiworkqueuelist[index].resid;
-      _listEmpId = _listWQ.epiworkqueuelist[index].empid;
-      _listEmpName = _listWQ.epiworkqueuelist[index].empname;
-      _listClockInDate = _listWQ.epiworkqueuelist[index].clockindate;
-      _listClockInTime = _listWQ.epiworkqueuelist[index].clockintime;
-      _listTransQty = _listWQ.epiworkqueuelist[index].transqty.toString();
-    }
+    _listJobNo = _listWQ.epiworkqueuelist[index].jobno;
+    _listAsmNo = _listWQ.epiworkqueuelist[index].asmno.toString();
+    _listOprNo = _listWQ.epiworkqueuelist[index].oprno.toString();
+    _listOpCode = _listWQ.epiworkqueuelist[index].opcode;
+    _listResGroupId = _listWQ.epiworkqueuelist[index].resgroupid;
+    _listResId = _listWQ.epiworkqueuelist[index].resid;
+    _listEmpId = _listWQ.epiworkqueuelist[index].empid;
+    _listEmpName = _listWQ.epiworkqueuelist[index].empname;
+    _listClockInDate = _listWQ.epiworkqueuelist[index].clockindate;
+    _listClockInTime = _listWQ.epiworkqueuelist[index].clockintime;
+    _listTransQty = _listWQ.epiworkqueuelist[index].transqty.toString();
     return new Card(
       elevation: 8.0,
       margin: new EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
@@ -418,27 +480,34 @@ class ProdWorkQueueListState extends State<ProdWorkQueueList> {
                         style: TextStyle(
                             color: Colors.black, fontWeight: FontWeight.bold)),
                     actions: <Widget>[
-                      new FlatButton(
-                        color: Colors.blue,
-                        child: new Text('Batch'),
+                      new ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              Colors.blue, // Button background color
+                          foregroundColor: Colors.white, // Text color
+                        ),
+                        child: Text('Batch'),
                         onPressed: () {
                           Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => ProdWorkQueue(true,
-                                          _listWQ.epiworkqueuelist[index])))
-                              .then((value) {
-                            //print(value);
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProdWorkQueue(
+                                  true, _listWQ.epiworkqueuelist[index]),
+                            ),
+                          ).then((value) {
                             if (value != 'C') {
-                              //retrieveWorkQueueList();
                               removeItem(index);
                             }
                             Navigator.of(context).pop();
                           });
                         },
                       ),
-                      new FlatButton(
-                        color: Colors.blue,
+                      new ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              Colors.blue, // Button background color
+                          foregroundColor: Colors.white, // Text color
+                        ),
                         child: new Text('Employee'),
                         onPressed: () {
                           Navigator.push(
@@ -474,12 +543,12 @@ class ProdWorkQueueListState extends State<ProdWorkQueueList> {
   Future barcodeScanningEmpId() async {
     _barcodeError = '';
     try {
-      String barcode = await BarcodeScanner.scan();
+      ScanResult barcode = await BarcodeScanner.scan();
       setState(() {
-        txtEmpId.text = barcode;
+        txtEmpId.text = barcode.rawContent;
       });
     } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
         setState(() {
           _barcodeError = 'No camera permission!';
         });
@@ -497,14 +566,14 @@ class ProdWorkQueueListState extends State<ProdWorkQueueList> {
   Future barcodeScanningJobNo() async {
     _barcodeError = '';
     try {
-      String barcode = await BarcodeScanner.scan();
+      ScanResult barcode = await BarcodeScanner.scan();
       setState(() {
-        if (splitJobNo(barcode) == false) {
-          txtJobNo.text = barcode;
+        if (splitJobNo(barcode.rawContent) == false) {
+          txtJobNo.text = barcode.rawContent;
         }
       });
     } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
         setState(() {
           _barcodeError = 'No camera permission!';
         });
@@ -522,13 +591,16 @@ class ProdWorkQueueListState extends State<ProdWorkQueueList> {
   Future barcodeScanningAsmNo() async {
     _barcodeError = '';
     try {
-      String barcode = await BarcodeScanner.scan();
+      ScanResult barcode = await BarcodeScanner.scan();
+      bool result = await splitAsmNo(barcode.rawContent);
       setState(() {
-        txtAsmNo.text = barcode;
+        if (result == false) {
+          txtAsmNo.text = barcode.rawContent;
+        }
         // getJobMtl();
       });
     } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
         setState(() {
           _barcodeError = 'No camera permission!';
         });
@@ -546,13 +618,13 @@ class ProdWorkQueueListState extends State<ProdWorkQueueList> {
   Future barcodeScanningOprNo() async {
     _barcodeError = '';
     try {
-      String barcode = await BarcodeScanner.scan();
+      ScanResult barcode = await BarcodeScanner.scan();
       setState(() {
-        txtOprNo.text = barcode;
+        txtOprNo.text = barcode.rawContent;
         // getJobMtl();
       });
     } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
         setState(() {
           _barcodeError = 'No camera permission!';
         });
@@ -570,13 +642,13 @@ class ProdWorkQueueListState extends State<ProdWorkQueueList> {
   Future barcodeScanningResId() async {
     _barcodeError = '';
     try {
-      String barcode = await BarcodeScanner.scan();
+      ScanResult barcode = await BarcodeScanner.scan();
       setState(() {
-        txtResId.text = barcode;
+        txtResId.text = barcode.rawContent;
         // getJobMtl();
       });
     } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
         setState(() {
           _barcodeError = 'No camera permission!';
         });

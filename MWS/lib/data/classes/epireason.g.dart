@@ -6,13 +6,14 @@ part of 'epireason.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-EpiReason _$EpiReasonFromJson(Map<String, dynamic> json) {
-  return EpiReason(
+EpiReason _$EpiReasonFromJson(Map<String, dynamic> json) => EpiReason(
+      token: json['token'] as String?,
       reasoncode: json['ReasonCode'] as String,
-      reasondesc: json['ReasonDescription'] as String);
-}
+      reasondesc: json['Description'] as String,
+    );
 
 Map<String, dynamic> _$EpiReasonToJson(EpiReason instance) => <String, dynamic>{
       'ReasonCode': instance.reasoncode,
-      'ReasonDescription': instance.reasondesc
+      'Description': instance.reasondesc,
+      'token': instance.token,
     };

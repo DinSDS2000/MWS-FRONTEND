@@ -1,5 +1,7 @@
+// ignore_for_file: deprecated_member_use
+
+import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
-import 'package:barcode_scan/barcode_scan.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_epihhinventory/data/classes/epipart.dart';
 import 'package:flutter_epihhinventory/ui/epipages/lotcreation.dart';
@@ -7,8 +9,7 @@ import 'package:flutter_epihhinventory/utils/getepidata.dart';
 import 'package:flutter_epihhinventory/utils/popUp.dart';
 import 'package:flutter_epihhinventory/utils/postepidata.dart';
 import 'package:flutter_epihhinventory/utils/validator.dart';
-import 'package:native_widgets/native_widgets.dart';
-import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
 import '../../constants.dart';
 import '../../utils/globals.dart' as _globals;
@@ -23,8 +24,8 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
   final formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  List<UOM> _uoms = new List<UOM>();
-  List<ReasonItem> _reasons = new List<ReasonItem>();
+  List<UOM> _uoms = List<UOM>.empty(growable: true);
+  List<ReasonItem> _reasons = List<ReasonItem>.empty(growable: true);
 
   String _barcodeError = '';
   String _oldPartNo = '';
@@ -133,9 +134,9 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
             content: DropdownButton<UOM>(
               isExpanded: true,
               value: _uoms[0],
-              onChanged: (UOM _newValue) {
+              onChanged: (UOM? _newValue) {
                 setState(() {
-                  if (_newValue.id != '0') {
+                  if (_newValue != null && _newValue.id != '0') {
                     txtIUM.text = _newValue.id;
                   }
                 });
@@ -152,7 +153,7 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
               }).toList(),
             ),
             actions: <Widget>[
-              new FlatButton(
+              new TextButton(
                 child: new Text('Cancel'),
                 onPressed: () {
                   Navigator.of(context).pop();
@@ -189,9 +190,9 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
             content: DropdownButton<ReasonItem>(
               isExpanded: true,
               value: _reasons[0],
-              onChanged: (ReasonItem _newValue) {
+              onChanged: (ReasonItem? _newValue) {
                 setState(() {
-                  if (_newValue.id != '0') {
+                  if (_newValue!.id != '0') {
                     txtReason.text = _newValue.id;
                   }
                 });
@@ -208,7 +209,7 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
               }).toList(),
             ),
             actions: <Widget>[
-              new FlatButton(
+              new TextButton(
                 child: new Text('Cancel'),
                 onPressed: () {
                   Navigator.of(context).pop();
@@ -233,21 +234,19 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
         txtPartNo.text = strSplit2[0];
         txtLotNo.text = strSplit2[1];
         result = true;
+      } else {
+        txtPartNo.text = txt;
       }
     }
 
     EpiPart _data = await getEpiPart(txtPartNo.text);
 
     setState(() {
-      if (_data != null) {
-        _lotEnabled = _data.tracklots;
-        txtIUM.text = _data.ium;
-        txtPartDesc.text = _data.partdescription;
-        if (_lotEnabled == false) {
-          txtLotNo.text = '';
-        }
-      } else {
-        _lotEnabled = false;
+      _lotEnabled = _data.tracklots;
+      txtIUM.text = _data.ium;
+      txtPartDesc.text = _data.partdescription;
+      if (_lotEnabled == false) {
+        txtLotNo.text = '';
       }
     });
 
@@ -256,17 +255,27 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
 
   bool splitFrWhse(String txt) {
     bool result = false;
-    var strSplit = txt.split(_globals.epibarcodeseperator);
 
-    if (strSplit.length == 2) {
+    var strSplit = txt.split(_globals.epibarcodeseperator);
+    if (strSplit.length >= 2) {
       txtFrWhse.text = strSplit[0];
       txtFrBin.text = strSplit[1];
+
+      if (strSplit.length >= 3 && _lotEnabled) {
+        txtLotNo.text = strSplit[2];
+      }
+
       result = true;
     } else {
       var strSplit2 = txt.split(_globals.epibarcodeseperator2);
-      if (strSplit2.length == 2) {
+      if (strSplit2.length >= 2) {
         txtFrWhse.text = strSplit2[0];
         txtFrBin.text = strSplit2[1];
+
+        if (strSplit2.length >= 3) {
+          txtLotNo.text = strSplit2[2];
+        }
+
         result = true;
       }
     }
@@ -326,7 +335,10 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
                         SizedBox(width: 10),
                         SizedBox(
                           width: 54,
-                          child: RaisedButton(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                            ),
                             // Part
                             child: Icon(Icons.camera_alt),
                             onPressed: barcodeScanningPartNo,
@@ -380,34 +392,12 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
                         ),
                         SizedBox(
                           width: 54,
-                          child: RaisedButton(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                            ),
                             child: Icon(Icons.search),
                             onPressed: triggerUOMDropDown,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration: InputDecoration(labelText: 'Lot'),
-                              obscureText: false,
-                              keyboardType: TextInputType.text,
-                              autocorrect: false,
-                              controller: txtLotNo,
-                              enabled: _lotEnabled,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 10),
-                        SizedBox(
-                          width: 54,
-                          child: RaisedButton(
-                            // Lot
-                            child: Icon(Icons.camera_alt),
-                            onPressed: barcodeScanningLotNo,
                           ),
                         ),
                       ],
@@ -430,7 +420,10 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
                         SizedBox(width: 10),
                         SizedBox(
                           width: 54,
-                          child: RaisedButton(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                            ),
                             // From Warehouse
                             child: Icon(Icons.camera_alt),
                             onPressed: barcodeScanningFrWhse,
@@ -455,7 +448,10 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
                         SizedBox(width: 10),
                         SizedBox(
                           width: 54,
-                          child: RaisedButton(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                            ),
                             // From Bin
                             child: Icon(Icons.camera_alt),
                             onPressed: barcodeScanningFrBin,
@@ -463,6 +459,35 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
                         ),
                       ],
                     ),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: ListTile(
+                            title: TextFormField(
+                              decoration: InputDecoration(labelText: 'Lot'),
+                              obscureText: false,
+                              keyboardType: TextInputType.text,
+                              autocorrect: false,
+                              controller: txtLotNo,
+                              enabled: _lotEnabled,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        SizedBox(
+                          width: 54,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                            ),
+                            // Lot
+                            child: Icon(Icons.camera_alt),
+                            onPressed: barcodeScanningLotNo,
+                          ),
+                        ),
+                      ],
+                    ),
+
                     // Row(
                     //   children: <Widget>[
                     //     Expanded(
@@ -481,7 +506,7 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
                     //     SizedBox(width: 10),
                     //     SizedBox(
                     //       width: 54,
-                    //       child: RaisedButton(
+                    //       child: ElevatedButton(
                     //         // To Warehouse
                     //         child: Icon(Icons.camera_alt),
                     //         onPressed: barcodeScanningToWhse,
@@ -505,7 +530,7 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
                     //     SizedBox(width: 10),
                     //     SizedBox(
                     //       width: 54,
-                    //       child: RaisedButton(
+                    //       child: ElevatedButton(
                     //         // To Bin
                     //         child: Icon(Icons.camera_alt),
                     //         onPressed: barcodeScanningToBin,
@@ -528,7 +553,10 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
                         ),
                         SizedBox(
                           width: 54,
-                          child: RaisedButton(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                            ),
                             child: Icon(Icons.search),
                             onPressed: triggerReasonDropDown,
                           ),
@@ -552,7 +580,10 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
                         SizedBox(width: 10),
                         SizedBox(
                           width: 54,
-                          child: RaisedButton(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                            ),
                             // To Bin
                             child: Icon(Icons.camera_alt),
                             onPressed: barcodeScanningRef,
@@ -580,32 +611,38 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
                     Row(children: <Widget>[
                       Expanded(
                         child: ListTile(
-                          title: NativeButton(
-                            padding: EdgeInsets.zero,
+                          title: ElevatedButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue, // Button color
+                              disabledBackgroundColor:
+                                  Colors.grey, // Disabled button color
+                              padding: EdgeInsets.zero,
+                            ),
                             child: Text(
                               'Cancel',
                               textScaleFactor: textScaleFactor,
-                              style: TextStyle(color: Colors.white),
+                              style: const TextStyle(color: Colors.white),
                             ),
-                            color: Colors.blue,
-                            disabledColor: Colors.grey,
-                            onPressed: () => {Navigator.pop(context, true)},
                           ),
                         ),
                       ),
                       SizedBox(width: 0),
                       Expanded(
                         child: ListTile(
-                          title: NativeButton(
-                            padding: EdgeInsets.zero,
+                          title: ElevatedButton(
+                            onPressed: submitData,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue, // Button color
+                              disabledBackgroundColor:
+                                  Colors.grey, // Disabled button color
+                              padding: EdgeInsets.zero,
+                            ),
                             child: Text(
                               'Submit',
                               textScaleFactor: textScaleFactor,
-                              style: TextStyle(color: Colors.white),
+                              style: const TextStyle(color: Colors.white),
                             ),
-                            color: Colors.blue,
-                            disabledColor: Colors.grey,
-                            onPressed: submitData,
                           ),
                         ),
                       )
@@ -691,17 +728,17 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
   Future barcodeScanningPartNo() async {
     _barcodeError = '';
     try {
-      String barcode = await BarcodeScanner.scan();
-      bool isSplitPartNo = await splitPartNo(barcode);
+      ScanResult barcode = await BarcodeScanner.scan();
+      bool isSplitPartNo = await splitPartNo(barcode.rawContent);
 
       setState(() {
         if (isSplitPartNo == false) {
           // if not split part no. means barcode only contains part no.
-          txtPartNo.text = barcode;
+          txtPartNo.text = barcode.rawContent;
         }
       });
     } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
         setState(() {
           _barcodeError = 'No camera permission!';
         });
@@ -720,13 +757,13 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
     _barcodeError = '';
     try {
       if (_lotEnabled == true) {
-        String barcode = await BarcodeScanner.scan();
+        ScanResult barcode = await BarcodeScanner.scan();
         setState(() {
-          txtLotNo.text = barcode;
+          txtLotNo.text = barcode.rawContent;
         });
       }
     } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
         setState(() {
           _barcodeError = 'No camera permission!';
         });
@@ -744,14 +781,14 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
   Future barcodeScanningFrWhse() async {
     _barcodeError = '';
     try {
-      String barcode = await BarcodeScanner.scan();
+      ScanResult barcode = await BarcodeScanner.scan();
       setState(() {
-        if (splitFrWhse(barcode) == false) {
-          txtFrWhse.text = barcode;
+        if (splitFrWhse(barcode.rawContent) == false) {
+          txtFrWhse.text = barcode.rawContent;
         }
       });
     } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
         setState(() {
           _barcodeError = 'No camera permission!';
         });
@@ -769,12 +806,12 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
   Future barcodeScanningFrBin() async {
     _barcodeError = '';
     try {
-      String barcode = await BarcodeScanner.scan();
+      ScanResult barcode = await BarcodeScanner.scan();
       setState(() {
-        txtFrBin.text = barcode;
+        txtFrBin.text = barcode.rawContent;
       });
     } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
         setState(() {
           _barcodeError = 'No camera permission!';
         });
@@ -792,14 +829,14 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
   Future barcodeScanningToWhse() async {
     _barcodeError = '';
     try {
-      String barcode = await BarcodeScanner.scan();
+      ScanResult barcode = await BarcodeScanner.scan();
       setState(() {
-        if (splitToWhse(barcode) == false) {
-          txtToWhse.text = barcode;
+        if (splitToWhse(barcode.rawContent) == false) {
+          txtToWhse.text = barcode.rawContent;
         }
       });
     } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
         setState(() {
           _barcodeError = 'No camera permission!';
         });
@@ -817,12 +854,12 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
   Future barcodeScanningToBin() async {
     _barcodeError = '';
     try {
-      String barcode = await BarcodeScanner.scan();
+      ScanResult barcode = await BarcodeScanner.scan();
       setState(() {
-        txtToBin.text = barcode;
+        txtToBin.text = barcode.rawContent;
       });
     } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
         setState(() {
           _barcodeError = 'No camera permission!';
         });
@@ -840,12 +877,12 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
   Future barcodeScanningRef() async {
     _barcodeError = '';
     try {
-      String barcode = await BarcodeScanner.scan();
+      ScanResult barcode = await BarcodeScanner.scan();
       setState(() {
-        txtRef.text = barcode;
+        txtRef.text = barcode.rawContent;
       });
     } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
+      if (e.code == BarcodeScanner.cameraAccessDenied) {
         setState(() {
           _barcodeError = 'No camera permission!';
         });

@@ -22,7 +22,7 @@ Future<List<dynamic>> isJobExist(String jobNo) async {
       '&strJobNum=' +
       jobNo;
 
-  http.Response response = await WebClient(User(token: null)).getHttpReponse(
+  http.Response response = await WebClient(User(token: '')).getHttpReponse(
     _globals.epiApiBaseUrl + '/api/job/LoadJobHeadById' + _params,
     headers: {
       HttpHeaders.authorizationHeader: "Bearer ",
@@ -55,7 +55,7 @@ Future<List<dynamic>> isJobAsmExist(String jobNo, String asmNo) async {
       '&iAssemblySeq=' +
       asmNo;
 
-  http.Response response = await WebClient(User(token: null)).getHttpReponse(
+  http.Response response = await WebClient(User(token: '')).getHttpReponse(
     _globals.epiApiBaseUrl + '/api/job/LoadJobAssemblyByAssmbSeq' + _params,
     headers: {
       HttpHeaders.authorizationHeader: "Bearer ",
@@ -91,7 +91,7 @@ Future<List<dynamic>> isJobMtlExist(
       '&iMtlSeq=' +
       mtlNo;
 
-  http.Response response = await WebClient(User(token: null)).getHttpReponse(
+  http.Response response = await WebClient(User(token: '')).getHttpReponse(
     _globals.epiApiBaseUrl + '/api/job/LoadJobMaterialByMtlSeq' + _params,
     headers: {
       HttpHeaders.authorizationHeader: "Bearer ",
@@ -122,7 +122,7 @@ Future<List<dynamic>> isMtlPartExist(String partNo) async {
       '&strPartNum=' +
       partNo;
 
-  http.Response response = await WebClient(User(token: null)).getHttpReponse(
+  http.Response response = await WebClient(User(token: '')).getHttpReponse(
     _globals.epiApiBaseUrl + '/api/issuemtl/LoadPart' + _params,
     headers: {
       HttpHeaders.authorizationHeader: "Bearer ",
@@ -155,7 +155,7 @@ Future<List<dynamic>> isPartLotExist(String partNo, String lotNo) async {
       '&strLotNum=' +
       lotNo;
 
-  http.Response response = await WebClient(User(token: null)).getHttpReponse(
+  http.Response response = await WebClient(User(token: '')).getHttpReponse(
     _globals.epiApiBaseUrl + '/api/part/LoadPartLot' + _params,
     headers: {
       HttpHeaders.authorizationHeader: "Bearer ",
@@ -188,7 +188,7 @@ Future<List<dynamic>> isPartWhseExist(String partNo, String whseCode) async {
       '&strWhse=' +
       whseCode;
 
-  http.Response response = await WebClient(User(token: null)).getHttpReponse(
+  http.Response response = await WebClient(User(token: '')).getHttpReponse(
     _globals.epiApiBaseUrl + '/api/part/LoadPartWhseById' + _params,
     headers: {
       HttpHeaders.authorizationHeader: "Bearer ",
@@ -224,7 +224,7 @@ Future<List<dynamic>> isPartWhseBinExist(
       '&strBinNum=' +
       binNo;
 
-  http.Response response = await WebClient(User(token: null)).getHttpReponse(
+  http.Response response = await WebClient(User(token: '')).getHttpReponse(
     _globals.epiApiBaseUrl + '/api/part/LoadPartWhseBinById' + _params,
     headers: {
       HttpHeaders.authorizationHeader: "Bearer ",
@@ -258,7 +258,7 @@ Future<List<dynamic>> isPOReceiptHeaderExist(
       '&strPackSlip=' +
       packSlip;
 
-  http.Response response = await WebClient(User(token: null)).getHttpReponse(
+  http.Response response = await WebClient(User(token: '')).getHttpReponse(
     _globals.epiApiBaseUrl + '/api/Receipt/LoadReceiptByPackSlip' + _params,
     headers: {
       HttpHeaders.authorizationHeader: "Bearer ",

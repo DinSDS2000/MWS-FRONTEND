@@ -6,43 +6,53 @@ part 'epimoveinvreq.g.dart';
 class EpiMoveInvReq {
   EpiMoveInvReq({
     this.token,
-    this.reqnum,
-    this.partnum,
-    this.partdesc,
-    this.dtranqty,
-    this.frwhse,
-    this.frbin,
-    this.frlotnum,
-    this.towhse,
-    this.tobin,
-    this.tolotnum,
-    this.labelcount,
+    required this.reqnum,
+    required this.partnum,
+    required this.partdesc,
+    required this.dtranqty,
+    required this.frwhse,
+    required this.frbin,
+    required this.frlotnum,
+    required this.towhse,
+    required this.tobin,
+    required this.tolotnum,
+    required this.labelcount,
   });
 
+  @JsonKey(name: 'ReqNum')
   final String reqnum;
 
+  @JsonKey(name: 'PartNum')
   final String partnum;
 
+  @JsonKey(name: 'Description')
   final String partdesc;
 
+  @JsonKey(name: 'TranQty')
   final double dtranqty;
 
+  @JsonKey(name: 'FromWarehouseCode')
   final String frwhse;
 
+  @JsonKey(name: 'FromBinNum')
   final String frbin;
 
+  @JsonKey(name: 'FromLotNum')
   final String frlotnum;
 
+  @JsonKey(name: 'ToWarehouseCode')
   final String towhse;
 
+  @JsonKey(name: 'ToBinNum')
   final String tobin;
 
+  @JsonKey(name: 'ToLotNum')
   final String tolotnum;
 
+  @JsonKey(name: 'LabelCount')
   final int labelcount;
 
-  @JsonKey(nullable: true)
-  String token;
+  String? token;
 
   factory EpiMoveInvReq.fromJson(Map<String, dynamic> json) =>
       _$EpiMoveInvReqFromJson(json);
@@ -59,11 +69,12 @@ class EpiMoveInvReqList {
   final List<EpiMoveInvReq> epimoveinvreqlist;
 
   EpiMoveInvReqList({
-    this.epimoveinvreqlist,
+    required this.epimoveinvreqlist,
   });
 
   factory EpiMoveInvReqList.fromJson(List<dynamic> json) {
-    List<EpiMoveInvReq> _epimoveinvreqlist = new List<EpiMoveInvReq>();
+    List<EpiMoveInvReq> _epimoveinvreqlist =
+        List<EpiMoveInvReq>.empty(growable: true);
 
     for (var i = 0; i < json.length; i++) {
       _epimoveinvreqlist = json.map((i) => EpiMoveInvReq.fromJson(i)).toList();

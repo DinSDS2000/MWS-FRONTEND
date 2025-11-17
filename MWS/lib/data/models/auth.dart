@@ -1,14 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:flutter_udid/flutter_udid.dart';
 // import 'package:global_configuration/global_configuration.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:native_widgets/native_widgets.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
-import 'package:imei_plugin/imei_plugin.dart';
 
 import '../classes/user.dart';
 import '../web_client.dart';
@@ -20,7 +18,7 @@ class AuthModel extends Model {
   bool _rememberMe = false;
   bool _stayLoggedIn = true;
   bool _useBio = false;
-  User _user;
+  User? _user;
 
   bool get rememberMe => _rememberMe;
 
@@ -55,28 +53,28 @@ class AuthModel extends Model {
   void loadSettings() async {
     var _prefs = await SharedPreferences.getInstance();
     try {
-      _useBio = _prefs.getBool("use_bio") ?? false;
+      _useBio = _prefs.getBool("use_bio")!;
     } catch (e) {
       print(e);
       _useBio = false;
     }
     try {
-      _rememberMe = _prefs.getBool("remember_me") ?? false;
+      _rememberMe = _prefs.getBool("remember_me")!;
     } catch (e) {
       print(e);
       _rememberMe = false;
     }
     try {
-      _stayLoggedIn = _prefs.getBool("stay_logged_in") ?? false;
+      _stayLoggedIn = _prefs.getBool("stay_logged_in")!;
     } catch (e) {
       print(e);
       _stayLoggedIn = false;
     }
 
     if (_stayLoggedIn) {
-      User _savedUser;
+      User? _savedUser;
       try {
-        String _saved = _prefs.getString("user_data");
+        String _saved = _prefs.getString("user_data")!;
         print("Saved: $_saved");
         _savedUser = User.fromJson(json.decode(_saved));
       } catch (e) {
@@ -84,10 +82,12 @@ class AuthModel extends Model {
       }
       if (_useBio) {
         if (await biometrics()) {
-          _user = _savedUser;
+          if (_savedUser != null) {
+            _user = _savedUser;
+          }
         }
       } else {
-        _user = _savedUser;
+        _user = _savedUser!;
       }
     }
     notifyListeners();
@@ -97,19 +97,21 @@ class AuthModel extends Model {
     final LocalAuthentication auth = LocalAuthentication();
     bool authenticated = false;
     try {
-      authenticated = await auth.authenticateWithBiometrics(
+      authenticated = await auth.authenticate(
           localizedReason: 'Scan your fingerprint to authenticate',
-          useErrorDialogs: true,
-          stickyAuth: false);
+          options: const AuthenticationOptions(
+            useErrorDialogs: true,
+            stickyAuth: false,
+          ));
     } catch (e) {
       print(e);
     }
     return authenticated;
   }
 
-  User get user => _user;
+  User? get user => _user;
 
-  Future<User> getInfo(String token, String epideviceid, String username,
+  Future<User?> getInfo(String token, String epideviceid, String username,
       String password, String epienv) async {
     try {
       String _url = '';
@@ -136,54 +138,42 @@ class AuthModel extends Model {
       }
 
       var _newUser = User.fromJson(json.decode(_data.body));
+      print("Raw JSON: ${_data.body}");
 
-      if (_newUser?.epicuserid == null) {
-        errorMessage = 'Http error';
-        return null;
-      }
-      _newUser?.token = token;
-      _globals.epiCompanyId = _newUser?.epiccurcompany;
-      _globals.epiCompanyName = _newUser?.epiccurcompanyname;
-      _globals.epiSiteId = _newUser?.epicplant;
-      _globals.epiSiteName = _newUser?.epicplantname;
-      _globals.epiempid = _newUser?.epiempid;
-      _globals.epiisenableissuematerial =
-          _newUser?.epicenableissuematerial ?? false;
-      _globals.epiisenablemoveinventory =
-          _newUser?.epicenablemoveinventory ?? false;
-      _globals.epiisenablereturnmaterial =
-          _newUser?.epicenablereturnmaterial ?? false;
+      print("New User: ${_newUser}");
+      _newUser.token = token;
+      _globals.epiCompanyId = _newUser.epiccurcompany;
+      _globals.epiCompanyName = _newUser.epiccurcompanyname;
+      _globals.epiSiteId = _newUser.epicplant;
+      _globals.epiSiteName = _newUser.epicplantname;
+      _globals.epiempid = _newUser.epiempid;
+      _globals.epiisenableissuematerial = _newUser.epicenableissuematerial;
+      _globals.epiisenablemoveinventory = _newUser.epicenablemoveinventory;
+      _globals.epiisenablereturnmaterial = _newUser.epicenablereturnmaterial;
       _globals.epiisenablemoveinventoryrequest =
-          _newUser?.epicenablemoveinventoryrequest ?? false;
+          _newUser.epicenablemoveinventoryrequest;
       _globals.epiisenableiacceptinventoryrequest =
-          _newUser?.epicenableacceptinventoryrequest ?? false;
-      _globals.epiisenablejobtoinventory =
-          _newUser?.epicenablejobtoinventory ?? false;
-      _globals.epiisenablejobtosalvage =
-          _newUser?.epicenablejobtosalvage ?? false;
-      _globals.epiisenableporeceipt = _newUser?.epicenableporeceipt ?? false;
-      _globals.epiisenableissueassembly =
-          _newUser?.epienableissueassembly ?? false;
-      _globals.epiisenablereturnassembly =
-          _newUser?.epicenablereturnassembly ?? false;
-      _globals.epiisenablesplitmergeuom =
-          _newUser?.epienablesplitmergeuom ?? false;
-      _globals.epiisenablereprintlabel =
-          _newUser?.epienablereprintlabel ?? false;
-      _globals.epiisenabledeliverytracking =
-          _newUser?.epienabledeliverytracking ?? false;
+          _newUser.epicenableacceptinventoryrequest;
+      _globals.epiisenablejobtoinventory = _newUser.epicenablejobtoinventory;
+      _globals.epiisenablejobtosalvage = _newUser.epicenablejobtosalvage;
+      _globals.epiisenableporeceipt = _newUser.epicenableporeceipt;
+      _globals.epiisenableissueassembly = _newUser.epienableissueassembly;
+      _globals.epiisenablereturnassembly = _newUser.epicenablereturnassembly;
+      _globals.epiisenablesplitmergeuom = _newUser.epienablesplitmergeuom;
+      _globals.epiisenablereprintlabel = _newUser.epienablereprintlabel;
+      _globals.epiisenabledeliverytracking = _newUser.epienabledeliverytracking;
       _globals.epiisenableissuemiscmaterial =
-          _newUser?.epienableissuemiscmaterial ?? false;
+          _newUser.epienableissuemiscmaterial;
+      _globals.epiisenablematerialloading = _newUser.epienablematerialloading;
+      _globals.epiisenablematerialpicking = _newUser.epienablematerialpicking;
       _globals.epiisenablereturnmiscmaterial =
-          _newUser?.epienablereturnmiscmaterial ?? false;
-      _globals.epiisenableqtyadjustment =
-          _newUser?.epienableqtyadjustment ?? false;
-      _globals.epiisenableprodclockin = _newUser?.epienableclockin ?? false;
-      _globals.epiisenableprodstartoperation =
-          _newUser?.epienablestartoperation ?? false;
-      _globals.epiisenableprodworkqueue = _newUser?.epienableworkqueue ?? false;
+          _newUser.epienablereturnmiscmaterial;
+      _globals.epiisenableqtyadjustment = _newUser.epienableqtyadjustment;
+      _globals.epiisenableprodclockin = _newUser.epienableclockin;
+      _globals.epiisenableprodstartoperation = _newUser.epienablestartoperation;
+      _globals.epiisenableprodworkqueue = _newUser.epienableworkqueue;
       _globals.epiisenableusedefaultlabelqty =
-          _newUser?.epienabledefaultlabelqty ?? false;
+          _newUser.epienabledefaultlabelqty;
       return _newUser;
     } catch (e) {
       errorMessage = "Could Not Load Data: $e";
@@ -193,9 +183,9 @@ class AuthModel extends Model {
   }
 
   Future<bool> login({
-    @required String username,
-    @required String password,
-    @required String epienv,
+    required String username,
+    required String password,
+    required String epienv,
   }) async {
     var uuid = new Uuid();
     String _epideviceid = "";
@@ -212,23 +202,19 @@ class AuthModel extends Model {
       });
     }
 
-    _epideviceid = await ImeiPlugin.getImei();
-
+    _epideviceid = await FlutterUdid.udid;
+    print("Device ID: $_epideviceid");
     // Get Info For User
-    User _newUser = await getInfo(
+    User? _newUser = await getInfo(
         uuid.v4().toString(), _epideviceid, _username, _password, _epienv);
-    if (_newUser != null) {
-      _user = _newUser;
-      notifyListeners();
+    _user = _newUser;
+    notifyListeners();
 
-      SharedPreferences.getInstance().then((prefs) {
-        var _save = json.encode(_user.toJson());
-        print("Data: $_save");
-        prefs.setString("user_data", _save);
-      });
-    } else {
-      return false;
-    }
+    SharedPreferences.getInstance().then((prefs) {
+      var _save = json.encode(_user?.toJson());
+      print("Data: $_save");
+      prefs.setString("user_data", _save);
+    });
 
     //if (_newUser?.token == null || _newUser.token.isEmpty) return false;
 
@@ -239,7 +225,7 @@ class AuthModel extends Model {
     _user = null;
     notifyListeners();
     SharedPreferences.getInstance().then((prefs) {
-      prefs.setString("user_data", null);
+      prefs.setString("user_data", "");
     });
     return;
   }

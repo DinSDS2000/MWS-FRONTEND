@@ -2,60 +2,48 @@
 //  Generated file. Do not edit.
 //
 
+// clang-format off
+
 #import "GeneratedPluginRegistrant.h"
 
-#if __has_include(<barcode_scan/BarcodeScanPlugin.h>)
-#import <barcode_scan/BarcodeScanPlugin.h>
+#if __has_include(<barcode_scan2/BarcodeScanPlugin.h>)
+#import <barcode_scan2/BarcodeScanPlugin.h>
 #else
-@import barcode_scan;
+@import barcode_scan2;
 #endif
 
-#if __has_include(<get_version/GetVersionPlugin.h>)
-#import <get_version/GetVersionPlugin.h>
+#if __has_include(<flutter_udid/FlutterUdidPlugin.h>)
+#import <flutter_udid/FlutterUdidPlugin.h>
 #else
-@import get_version;
+@import flutter_udid;
 #endif
 
-#if __has_include(<imei_plugin/ImeiPlugin.h>)
-#import <imei_plugin/ImeiPlugin.h>
+#if __has_include(<image_picker_ios/FLTImagePickerPlugin.h>)
+#import <image_picker_ios/FLTImagePickerPlugin.h>
 #else
-@import imei_plugin;
+@import image_picker_ios;
 #endif
 
-#if __has_include(<local_auth/FLTLocalAuthPlugin.h>)
-#import <local_auth/FLTLocalAuthPlugin.h>
+#if __has_include(<local_auth_darwin/FLALocalAuthPlugin.h>)
+#import <local_auth_darwin/FLALocalAuthPlugin.h>
 #else
-@import local_auth;
+@import local_auth_darwin;
 #endif
 
-#if __has_include(<package_info/PackageInfoPlugin.h>)
-#import <package_info/PackageInfoPlugin.h>
+#if __has_include(<shared_preferences_foundation/SharedPreferencesPlugin.h>)
+#import <shared_preferences_foundation/SharedPreferencesPlugin.h>
 #else
-@import package_info;
-#endif
-
-#if __has_include(<path_provider/PathProviderPlugin.h>)
-#import <path_provider/PathProviderPlugin.h>
-#else
-@import path_provider;
-#endif
-
-#if __has_include(<shared_preferences/SharedPreferencesPlugin.h>)
-#import <shared_preferences/SharedPreferencesPlugin.h>
-#else
-@import shared_preferences;
+@import shared_preferences_foundation;
 #endif
 
 @implementation GeneratedPluginRegistrant
 
 + (void)registerWithRegistry:(NSObject<FlutterPluginRegistry>*)registry {
   [BarcodeScanPlugin registerWithRegistrar:[registry registrarForPlugin:@"BarcodeScanPlugin"]];
-  [GetVersionPlugin registerWithRegistrar:[registry registrarForPlugin:@"GetVersionPlugin"]];
-  [ImeiPlugin registerWithRegistrar:[registry registrarForPlugin:@"ImeiPlugin"]];
-  [FLTLocalAuthPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTLocalAuthPlugin"]];
-  [FLTPackageInfoPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTPackageInfoPlugin"]];
-  [FLTPathProviderPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTPathProviderPlugin"]];
-  [FLTSharedPreferencesPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTSharedPreferencesPlugin"]];
+  [FlutterUdidPlugin registerWithRegistrar:[registry registrarForPlugin:@"FlutterUdidPlugin"]];
+  [FLTImagePickerPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTImagePickerPlugin"]];
+  [FLALocalAuthPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLALocalAuthPlugin"]];
+  [SharedPreferencesPlugin registerWithRegistrar:[registry registrarForPlugin:@"SharedPreferencesPlugin"]];
 }
 
 @end

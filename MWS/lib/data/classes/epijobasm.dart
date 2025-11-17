@@ -6,22 +6,27 @@ part 'epijobasm.g.dart';
 class EpiJobAsm {
   EpiJobAsm({
     this.token,
-    this.partnum,
-    this.ium,
-    this.reqqty,
-    this.previssueqyy,
+    required this.partnum,
+    required this.ium,
+    required this.reqqty,
+    required this.previssueqyy,
   });
 
+  @JsonKey(name: 'PartNum')
   final String partnum;
 
+  @JsonKey(name: 'IUM')
   final String ium;
 
+  @JsonKey(name: 'RequiredQty')
   final double reqqty;
 
+  @JsonKey(name: 'IssuedQty')
   final double previssueqyy;
 
+  // ignore: deprecated_member_use
   @JsonKey(nullable: true)
-  String token;
+  String? token;
 
   factory EpiJobAsm.fromJson(Map<String, dynamic> json) =>
       _$EpiJobAsmFromJson(json);
@@ -38,11 +43,11 @@ class EpiJobAsmList {
   final List<EpiJobAsm> epijobasmlist;
 
   EpiJobAsmList({
-    this.epijobasmlist,
+    required this.epijobasmlist,
   });
 
   factory EpiJobAsmList.fromJson(List<dynamic> json) {
-    List<EpiJobAsm> _epijobasmlist = new List<EpiJobAsm>();
+    List<EpiJobAsm> _epijobasmlist = List<EpiJobAsm>.empty(growable: true);
 
     for (var i = 0; i < json.length; i++) {
       _epijobasmlist = json.map((i) => EpiJobAsm.fromJson(i)).toList();

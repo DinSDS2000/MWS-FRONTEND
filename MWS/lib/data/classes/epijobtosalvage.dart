@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:json_annotation/json_annotation.dart';
 
 part 'epijobtosalvage.g.dart';
@@ -5,16 +7,16 @@ part 'epijobtosalvage.g.dart';
 @JsonSerializable()
 class EpiJobToSalvage {
   EpiJobToSalvage({
-    this.token,
-    this.company,
-    this.plant,
-    this.jobnum,
-    this.jobpartnum,
-    this.partnum,
-    this.asmseq,
-    this.mtlseq,
-    this.dtranqty,
-    this.ium,
+    required this.token,
+    required this.company,
+    required this.plant,
+    required this.jobnum,
+    required this.jobpartnum,
+    required this.partnum,
+    required this.asmseq,
+    required this.mtlseq,
+    required this.dtranqty,
+    required this.ium,
   });
 
   final String company;
@@ -53,11 +55,11 @@ class EpiJobToSalvageList {
   final List<EpiJobToSalvage> epijobtosalvage;
 
   EpiJobToSalvageList({
-    this.epijobtosalvage,
+    required this.epijobtosalvage,
   });
 
   factory EpiJobToSalvageList.fromJson(List<dynamic> json) {
-    List<EpiJobToSalvage> _epijobtosalvage = new List<EpiJobToSalvage>();
+    List<EpiJobToSalvage> _epijobtosalvage = List<EpiJobToSalvage>.empty(growable: true);
 
     for (var i = 0; i < json.length; i++) {
       _epijobtosalvage = json.map((i) => EpiJobToSalvage.fromJson(i)).toList();

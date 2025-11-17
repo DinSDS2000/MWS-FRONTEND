@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-class TextButton extends StatelessWidget {
-  const TextButton({
-    this.name,
-    this.onPressed,
+class CustomTextButton extends StatelessWidget {
+  const CustomTextButton({
+    required this.name,
+    required this.onPressed,
   });
 
   final VoidCallback onPressed;
@@ -11,15 +11,17 @@ class TextButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return (new FlatButton(
-      child: new Text(name,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-              color: Colors.black,
-              fontSize: 14.0,
-              fontFamily: "Roboto",
-              fontWeight: FontWeight.bold)),
+    return TextButton(
       onPressed: onPressed,
-    ));
+      style: TextButton.styleFrom(
+        foregroundColor: Colors.black, // Replaces `primary`
+        textStyle: const TextStyle(
+          fontSize: 14.0,
+          fontFamily: "Roboto",
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      child: Text(name, textAlign: TextAlign.center),
+    );
   }
 }

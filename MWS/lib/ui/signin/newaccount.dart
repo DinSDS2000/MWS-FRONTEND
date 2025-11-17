@@ -1,9 +1,8 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
-import 'package:native_widgets/native_widgets.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 import '../../constants.dart';
@@ -15,12 +14,12 @@ class CreateAccount extends StatefulWidget {
 }
 
 class CreateAccountState extends State<CreateAccount> {
-  String _username, _password;
+  late String _username, _password;
 
   final formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  TextEditingController _controllerUsername, _controllerPassword;
+  late TextEditingController _controllerUsername, _controllerPassword;
 
   @override
   initState() {
@@ -54,8 +53,8 @@ class CreateAccountState extends State<CreateAccount> {
                     title: TextFormField(
                       decoration: InputDecoration(labelText: 'Username'),
                       validator: (val) =>
-                          val.length < 1 ? 'Username Required' : null,
-                      onSaved: (val) => _username = val,
+                          val!.length < 1 ? 'Username Required' : null,
+                      onSaved: (val) => _username = val ?? '',
                       obscureText: false,
                       keyboardType: TextInputType.text,
                       controller: _controllerUsername,
@@ -66,8 +65,8 @@ class CreateAccountState extends State<CreateAccount> {
                     title: TextFormField(
                       decoration: InputDecoration(labelText: 'Password'),
                       validator: (val) =>
-                          val.length < 1 ? 'Password Required' : null,
-                      onSaved: (val) => _password = val,
+                          val!.length < 1 ? 'Password Required' : null,
+                      onSaved: (val) => _password = val ?? '',
                       obscureText: true,
                       controller: _controllerPassword,
                       keyboardType: TextInputType.text,
@@ -78,27 +77,32 @@ class CreateAccountState extends State<CreateAccount> {
               ),
             ),
             ListTile(
-              title: NativeButton(
+              title: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue, // Button color
+                ),
                 child: Text(
                   'Save',
                   textScaleFactor: textScaleFactor,
                   style: TextStyle(color: Colors.white),
                 ),
-                color: Colors.blue,
                 onPressed: () async {
                   final form = formKey.currentState;
-                  if (form.validate()) {
+                  if (form!.validate()) {
                     form.save();
+                    
+                    // Show SnackBar with loading indicator
                     final snackbar = SnackBar(
                       duration: Duration(seconds: 30),
                       content: Row(
                         children: <Widget>[
-                          NativeLoadingIndicator(),
-                          Text("  Signing Up...")
+                          CircularProgressIndicator(), // Native loading indicator
+                          SizedBox(width: 10),
+                          Text("Signing Up...")
                         ],
                       ),
                     );
-                    _scaffoldKey.currentState.showSnackBar(snackbar);
+                    ScaffoldMessenger.of(context).showSnackBar(snackbar);
 
                     _auth
                         .login(
@@ -107,29 +111,34 @@ class CreateAccountState extends State<CreateAccount> {
                       epienv: '',
                     )
                         .then((result) async {
+                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
                       if (result) {
-                        final snackbar = SnackBar(
-                          duration: Duration(seconds: 3),
-                          content: Row(
-                            children: <Widget>[
-                              NativeLoadingIndicator(),
-                              Text("  Signing Up...")
-                            ],
+                        // Show success SnackBar
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            duration: Duration(seconds: 3),
+                            content: Row(
+                              children: <Widget>[
+                                CircularProgressIndicator(),
+                                SizedBox(width: 10),
+                                Text("Signing Up..."),
+                              ],
+                            ),
                           ),
                         );
-                        _scaffoldKey.currentState.showSnackBar(snackbar);
 
                         await Future.delayed(Duration(seconds: 3));
-                        _scaffoldKey.currentState.hideCurrentSnackBar();
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
                         Navigator.pop(context, true);
                       } else {
-                        _scaffoldKey.currentState.hideCurrentSnackBar();
                         showAlertPopup(context, 'Info', _auth.errorMessage);
                       }
                     });
                   }
                 },
               ),
+
             ),
           ],
         ),

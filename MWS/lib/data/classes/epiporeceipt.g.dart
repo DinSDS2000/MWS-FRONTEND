@@ -6,34 +6,35 @@ part of 'epiporeceipt.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-EpiPOReceipt _$EpiPOReceiptFromJson(Map<String, dynamic> json) {
-  return EpiPOReceipt(
-      ponum: json['PONum'],
-      podate: json['PODate'] as String,
-      vendorid: json['VendorId'] as String,
-      vendorname: json['VendorName'] as String,
-      buyer: json['Buyer'] as String,
-      shipviacode: json['ShipViaCode'] as String,
-      termcode: json['TermsCode'] as String,
-      purpoint: json['PurPoint'] as String,
-      currencycode: json['CurrencyCode'] as String,
-      approve: json['Approve'] as bool,
-      doctoorder: json['DocTotalOrder'] as double,
-      legalnumber: json['LegalNumber'] as String);
-}
+EpiPOReceipt _$EpiPOReceiptFromJson(Map<String, dynamic> json) => EpiPOReceipt(
+      token: json['token'] as String,
+      ponum: (json['ponum'] as num).toInt(),
+      podate: json['podate'] as String,
+      vendorid: json['vendorid'] as String,
+      vendorname: json['vendorname'] as String,
+      buyer: json['buyer'] as String,
+      shipviacode: json['shipviacode'] as String,
+      termcode: json['termcode'] as String,
+      purpoint: json['purpoint'] as String,
+      currencycode: json['currencycode'] as String,
+      approve: json['approve'] as bool,
+      doctoorder: (json['doctoorder'] as num).toDouble(),
+      legalnumber: json['legalnumber'] as String,
+    );
 
 Map<String, dynamic> _$EpiPOReceiptToJson(EpiPOReceipt instance) =>
     <String, dynamic>{
-      'PONum': instance.ponum,
-      'PODate': instance.podate,
-      'VendorId': instance.vendorid,
-      'VendorName': instance.vendorname,
-      'Buyer': instance.buyer,
-      'ShipViaCode': instance.shipviacode,
-      'TermsCode': instance.termcode,
-      'PurPoint': instance.purpoint,
-      'CurrencyCode': instance.currencycode,
-      'Approve': instance.approve,
-      'DocTotalOrder': instance.doctoorder,
-      'LegalNumber': instance.legalnumber
+      'ponum': instance.ponum,
+      'podate': instance.podate,
+      'vendorid': instance.vendorid,
+      'vendorname': instance.vendorname,
+      'buyer': instance.buyer,
+      'shipviacode': instance.shipviacode,
+      'termcode': instance.termcode,
+      'purpoint': instance.purpoint,
+      'currencycode': instance.currencycode,
+      'approve': instance.approve,
+      'doctoorder': instance.doctoorder,
+      'legalnumber': instance.legalnumber,
+      'token': instance.token,
     };

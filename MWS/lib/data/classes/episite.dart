@@ -6,19 +6,20 @@ part 'episite.g.dart';
 class EpiSite {
   EpiSite({
     this.token,
-    this.company,
-    this.siteplant,
-    this.name,
+    required this.company,
+    required this.siteplant,
+    required this.name,
   });
-
+  @JsonKey(name: "Company")
   final String company;
 
+  @JsonKey(name: "SitePlant")
   final String siteplant;
 
+  @JsonKey(name: "Name")
   final String name;
 
-  @JsonKey(nullable: true)
-  String token;
+  String? token;
 
   factory EpiSite.fromJson(Map<String, dynamic> json) =>
       _$EpiSiteFromJson(json);
@@ -35,16 +36,16 @@ class EpiSiteList {
   final List<EpiSite> episitelist;
 
   EpiSiteList({
-    this.episitelist,
+    required this.episitelist,
   });
 
   factory EpiSiteList.fromJson(List<dynamic> json) {
-    List<EpiSite> episitelist = new List<EpiSite>();
+    List<EpiSite> episitelist = List<EpiSite>.empty(growable: true);
 
-   for (var i = 0; i < json.length; i++) {
-    episitelist = json.map((i) => EpiSite.fromJson(i)).toList();
-  }
-  return new EpiSiteList(
+    for (var i = 0; i < json.length; i++) {
+      episitelist = json.map((i) => EpiSite.fromJson(i)).toList();
+    }
+    return new EpiSiteList(
       episitelist: episitelist,
     );
   }

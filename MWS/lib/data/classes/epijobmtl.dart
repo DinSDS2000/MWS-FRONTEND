@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:json_annotation/json_annotation.dart';
 
 part 'epijobmtl.g.dart';
@@ -6,22 +8,25 @@ part 'epijobmtl.g.dart';
 class EpiJobMtl {
   EpiJobMtl({
     this.token,
-    this.partnum,
-    this.ium,
-    this.reqqty,
-    this.previssueqyy,
+    required this.partnum,
+    required this.ium,
+    required this.reqqty,
+    required this.previssueqyy,
   });
 
+  @JsonKey(name: 'PartNum')
   final String partnum;
 
+  @JsonKey(name: 'IUM')
   final String ium;
 
+  @JsonKey(name: 'RequiredQty')
   final double reqqty;
 
+  @JsonKey(name: 'TotalIssuedQty')
   final double previssueqyy;
 
-  @JsonKey(nullable: true)
-  String token;
+  String? token;
 
   factory EpiJobMtl.fromJson(Map<String, dynamic> json) =>
       _$EpiJobMtlFromJson(json);
@@ -29,20 +34,18 @@ class EpiJobMtl {
   Map<String, dynamic> toJson() => _$EpiJobMtlToJson(this);
 
   @override
-  String toString() {
-    return "$partnum".toString();
-  }
+  String toString() => "$partnum";
 }
 
 class EpiJobMtlList {
   final List<EpiJobMtl> epijobmtllist;
 
   EpiJobMtlList({
-    this.epijobmtllist,
+    required this.epijobmtllist,
   });
 
   factory EpiJobMtlList.fromJson(List<dynamic> json) {
-    List<EpiJobMtl> _epijobmtllist = new List<EpiJobMtl>();
+    List<EpiJobMtl> _epijobmtllist = List<EpiJobMtl>.empty(growable: true);
 
     for (var i = 0; i < json.length; i++) {
       _epijobmtllist = json.map((i) => EpiJobMtl.fromJson(i)).toList();

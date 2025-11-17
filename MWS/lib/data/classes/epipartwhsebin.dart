@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:json_annotation/json_annotation.dart';
 
 part 'epipartwhsebin.g.dart';
@@ -5,9 +7,9 @@ part 'epipartwhsebin.g.dart';
 @JsonSerializable()
 class EpiPartWhseBin {
   EpiPartWhseBin({
-    this.token,
-    this.binnum,
-    this.description,
+    required this.token,
+    required this.binnum,
+    required this.description,
   });
 
   final String binnum;
@@ -32,11 +34,11 @@ class EpiPartWhseBinList {
   final List<EpiPartWhseBin> epipartwhsebinlist;
 
   EpiPartWhseBinList({
-    this.epipartwhsebinlist,
+    required this.epipartwhsebinlist,
   });
 
   factory EpiPartWhseBinList.fromJson(List<dynamic> json) {
-    List<EpiPartWhseBin> epipartwhsebinlist = new List<EpiPartWhseBin>();
+    List<EpiPartWhseBin> epipartwhsebinlist = List<EpiPartWhseBin>.empty(growable: true);
 
    for (var i = 0; i < json.length; i++) {
     epipartwhsebinlist = json.map((i) => EpiPartWhseBin.fromJson(i)).toList();

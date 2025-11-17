@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:json_annotation/json_annotation.dart';
 
 part 'epiemployee.g.dart';
@@ -6,19 +8,20 @@ part 'epiemployee.g.dart';
 class EpiEmployee {
   EpiEmployee({
     this.token,
-    this.empId,
+    required this.empId,
     this.empName,
-    this.empLaborHedSeq,
+    required this.empLaborHedSeq,
   });
 
+  @JsonKey(name: 'EmployeeNum')
   final String empId;
 
-  final String empName;
+  @JsonKey(name: 'EmployeeName')
+  final String? empName;
 
+  @JsonKey(name: 'LaborHedSeq')
   final int empLaborHedSeq;
-
-  @JsonKey(nullable: true)
-  String token;
+  String? token;
 
   factory EpiEmployee.fromJson(Map<String, dynamic> json) =>
       _$EpiEmployeeFromJson(json);
@@ -35,11 +38,11 @@ class EpiEmployeeList {
   final List<EpiEmployee> epiemployeelist;
 
   EpiEmployeeList({
-    this.epiemployeelist,
+    required this.epiemployeelist,
   });
 
   factory EpiEmployeeList.fromJson(List<dynamic> json) {
-    List<EpiEmployee> epiemployeelist = new List<EpiEmployee>();
+    List<EpiEmployee> epiemployeelist = List<EpiEmployee>.empty(growable: true);
 
     for (var i = 0; i < json.length; i++) {
       epiemployeelist = json.map((i) => EpiEmployee.fromJson(i)).toList();

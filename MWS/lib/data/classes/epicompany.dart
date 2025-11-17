@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:json_annotation/json_annotation.dart';
 
 part 'epicompany.g.dart';
@@ -5,17 +7,18 @@ part 'epicompany.g.dart';
 @JsonSerializable()
 class EpiCompany {
   EpiCompany({
-    this.token,
-    this.companycode,
-    this.companyname,
+    required this.token,
+    required this.companycode,
+    required this.companyname,
   });
 
-  final String companycode;
+  @JsonKey(name: 'Company_Code')
+  final String? companycode;
 
-  final String companyname;
+  @JsonKey(name: 'Company_Name')
+  final String? companyname;
 
-  @JsonKey(nullable: true)
-  String token;
+  String? token;
 
   factory EpiCompany.fromJson(Map<String, dynamic> json) =>
       _$EpiCompanyFromJson(json);
@@ -32,16 +35,16 @@ class EpiCompanyList {
   final List<EpiCompany> epicompanylist;
 
   EpiCompanyList({
-    this.epicompanylist,
+    required this.epicompanylist,
   });
 
   factory EpiCompanyList.fromJson(List<dynamic> json) {
-    List<EpiCompany> epicompanylist = new List<EpiCompany>();
+    List<EpiCompany> epicompanylist = List<EpiCompany>.empty(growable: true);
 
-   for (var i = 0; i < json.length; i++) {
-    epicompanylist = json.map((i) => EpiCompany.fromJson(i)).toList();
-  }
-  return new EpiCompanyList(
+    for (var i = 0; i < json.length; i++) {
+      epicompanylist = json.map((i) => EpiCompany.fromJson(i)).toList();
+    }
+    return new EpiCompanyList(
       epicompanylist: epicompanylist,
     );
   }

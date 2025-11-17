@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:json_annotation/json_annotation.dart';
 
 part 'epireason.g.dart';
@@ -6,16 +8,17 @@ part 'epireason.g.dart';
 class EpiReason {
   EpiReason({
     this.token,
-    this.reasoncode,
-    this.reasondesc,
+    required this.reasoncode,
+    required this.reasondesc,
   });
 
+  @JsonKey(name: 'ReasonCode')
   final String reasoncode;
 
+  @JsonKey(name: 'Description')
   final String reasondesc;
 
-  @JsonKey(nullable: true)
-  String token;
+  String? token;
 
   factory EpiReason.fromJson(Map<String, dynamic> json) =>
       _$EpiReasonFromJson(json);
@@ -32,11 +35,11 @@ class EpiReasonList {
   final List<EpiReason> epireasonlist;
 
   EpiReasonList({
-    this.epireasonlist,
+    required this.epireasonlist,
   });
 
   factory EpiReasonList.fromJson(List<dynamic> json) {
-    List<EpiReason> epireasonlist = new List<EpiReason>();
+    List<EpiReason> epireasonlist = List<EpiReason>.empty(growable: true);
 
     for (var i = 0; i < json.length; i++) {
       epireasonlist = json.map((i) => EpiReason.fromJson(i)).toList();

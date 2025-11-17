@@ -1,11 +1,12 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter_epihhinventory/data/classes/epipart.dart';
 import 'package:flutter_epihhinventory/utils/getepidata.dart';
 import 'package:flutter_epihhinventory/utils/popUp.dart';
 import 'package:flutter_epihhinventory/utils/postepidata.dart';
 import 'package:intl/intl.dart';
-import 'package:modal_progress_hud/modal_progress_hud.dart';
-import 'package:native_widgets/native_widgets.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
 import '../../constants.dart';
 
@@ -55,19 +56,17 @@ class LotCreationState extends State<LotCreation> {
   loadPartInfo() async {
     EpiPart _data = await getEpiPart(widget.partno);
 
-    if (_data != null) {
-      setState(() {
-        _batchEnabled = _data.attbatch != 'N' ? true : false;
-        _mfgBatchEnabled = _data.attmfgbatch != 'N' ? true : false;
-        _mfglotEnabled = _data.attmfglot != 'N' ? true : false;
-        _heatEnabled = _data.attheat != 'N' ? true : false;
-        _firmwareEnabled = _data.attfirmware != 'N' ? true : false;
-        _beforeDtEnabled = _data.attbeforedt != 'N' ? true : false;
-        _mfgDtEnabled = _data.attmfgdt != 'N' ? true : false;
-        _cureDtEnabled = _data.attcuredt != 'N' ? true : false;
-        _expDtEnabled = _data.attexpdt != 'N' ? true : false;
-      });
-    }
+    setState(() {
+      _batchEnabled = _data.attbatch != 'N' ? true : false;
+      _mfgBatchEnabled = _data.attmfgbatch != 'N' ? true : false;
+      _mfglotEnabled = _data.attmfglot != 'N' ? true : false;
+      _heatEnabled = _data.attheat != 'N' ? true : false;
+      _firmwareEnabled = _data.attfirmware != 'N' ? true : false;
+      _beforeDtEnabled = _data.attbeforedt != 'N' ? true : false;
+      _mfgDtEnabled = _data.attmfgdt != 'N' ? true : false;
+      _cureDtEnabled = _data.attcuredt != 'N' ? true : false;
+      _expDtEnabled = _data.attexpdt != 'N' ? true : false;
+    });
   }
 
   @override
@@ -168,7 +167,7 @@ class LotCreationState extends State<LotCreation> {
                     SizedBox(width: 10),
                     SizedBox(
                       width: 54,
-                      child: RaisedButton(
+                      child: ElevatedButton(
                         // Calendar.
                         child: Icon(Icons.calendar_today),
                         onPressed: () {
@@ -198,7 +197,7 @@ class LotCreationState extends State<LotCreation> {
                     SizedBox(width: 10),
                     SizedBox(
                       width: 54,
-                      child: RaisedButton(
+                      child: ElevatedButton(
                         // Calendar.
                         child: Icon(Icons.calendar_today),
                         onPressed: () {
@@ -228,7 +227,7 @@ class LotCreationState extends State<LotCreation> {
                     SizedBox(width: 10),
                     SizedBox(
                       width: 54,
-                      child: RaisedButton(
+                      child: ElevatedButton(
                         // Calendar.
                         child: Icon(Icons.calendar_today),
                         onPressed: () {
@@ -258,7 +257,7 @@ class LotCreationState extends State<LotCreation> {
                     SizedBox(width: 10),
                     SizedBox(
                       width: 54,
-                      child: RaisedButton(
+                      child: ElevatedButton(
                         // Calendar.
                         child: Icon(Icons.calendar_today),
                         onPressed: () {
@@ -275,35 +274,42 @@ class LotCreationState extends State<LotCreation> {
                   children: <Widget>[
                     Expanded(
                       child: ListTile(
-                        title: NativeButton(
-                          padding: EdgeInsets.zero,
+                        title: ElevatedButton(
+                          onPressed: () async {
+                            // print('${widget.partno} : ${widget.lotno}');
+                            Navigator.pop(context, true);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue, // Button color
+                            disabledBackgroundColor:
+                                Colors.grey, // Disabled button color
+                            padding: EdgeInsets.zero,
+                          ),
                           child: Text(
                             'Cancel',
                             textScaleFactor: textScaleFactor,
-                            style: TextStyle(color: Colors.white),
+                            style: const TextStyle(color: Colors.white),
                           ),
-                          color: Colors.blue,
-                          disabledColor: Colors.grey,
-                          onPressed: () async {
-                            //print('${widget.partno} : ${widget.lotno}');
-                            Navigator.pop(context, true);
-                          },
                         ),
                       ),
                     ),
                     SizedBox(width: 0),
                     Expanded(
                       child: ListTile(
-                        title: NativeButton(
+                        title: ElevatedButton(
+                          onPressed: submitData,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue, // Button color
+                            disabledBackgroundColor:
+                                Colors.grey, // Disabled button color
                             padding: EdgeInsets.zero,
-                            child: Text(
-                              'Create Lot',
-                              textScaleFactor: textScaleFactor,
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            color: Colors.blue,
-                            disabledColor: Colors.grey,
-                            onPressed: submitData),
+                          ),
+                          child: Text(
+                            'Create Lot',
+                            textScaleFactor: textScaleFactor,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -316,51 +322,47 @@ class LotCreationState extends State<LotCreation> {
   }
 
   Future<Null> _selectBestBeforeDate(BuildContext context) async {
-    final DateTime picked = await showDatePicker(
+    final DateTime? picked = await showDatePicker(
         context: context,
         initialDate: DateTime.now(),
         firstDate: DateTime(2000, 1),
         lastDate: DateTime(2100));
-    if (picked != null)
-      setState(() {
-        txtBestBeforeDt.text = DateFormat("yyyy-MM-dd").format(picked);
-      });
+    setState(() {
+      txtBestBeforeDt.text = DateFormat("yyyy-MM-dd").format(picked!);
+    });
   }
 
   Future<Null> _selectOrigMfgDate(BuildContext context) async {
-    final DateTime picked = await showDatePicker(
+    final DateTime? picked = await showDatePicker(
         context: context,
         initialDate: DateTime.now(),
         firstDate: DateTime(2000, 1),
         lastDate: DateTime(2100));
-    if (picked != null)
-      setState(() {
-        txtOrigMfgDt.text = DateFormat("yyyy-MM-dd").format(picked);
-      });
+    setState(() {
+      txtOrigMfgDt.text = DateFormat("yyyy-MM-dd").format(picked!);
+    });
   }
 
   Future<Null> _selectCureDate(BuildContext context) async {
-    final DateTime picked = await showDatePicker(
+    final DateTime? picked = await showDatePicker(
         context: context,
         initialDate: DateTime.now(),
         firstDate: DateTime(2000, 1),
         lastDate: DateTime(2100));
-    if (picked != null)
-      setState(() {
-        txtCureDt.text = DateFormat("yyyy-MM-dd").format(picked);
-      });
+    setState(() {
+      txtCureDt.text = DateFormat("yyyy-MM-dd").format(picked!);
+    });
   }
 
   Future<Null> _selectExpiryDate(BuildContext context) async {
-    final DateTime picked = await showDatePicker(
+    final DateTime? picked = await showDatePicker(
         context: context,
         initialDate: DateTime.now(),
         firstDate: DateTime(2000, 1),
         lastDate: DateTime(2100));
-    if (picked != null)
-      setState(() {
-        txtExpiryDt.text = DateFormat("yyyy-MM-dd").format(picked);
-      });
+    setState(() {
+      txtExpiryDt.text = DateFormat("yyyy-MM-dd").format(picked!);
+    });
   }
 
   Future submitData() async {

@@ -1,6 +1,6 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
-import 'package:native_widgets/native_widgets.dart';
-import 'package:persist_theme/persist_theme.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 import '../../constants.dart';
@@ -58,18 +58,20 @@ class SettingsPage extends StatelessWidget {
                 'Logout from the Main Menu',
                 textScaleFactor: textScaleFactor,
               ),
-              trailing: NativeSwitch(
-                onChanged: _auth.handleStayLoggedIn,
+              trailing: Switch(
                 value: _auth.stayLoggedIn,
+                onChanged: _auth.handleStayLoggedIn,
+                activeColor: Colors.blue, // Optional: Customize the switch color
               ),
             ),
+
             Divider(height: 20.0),
-            DarkModeSwitch(),
-            TrueBlackSwitch(),
-            CustomThemeSwitch(),
-            PrimaryColorPicker(),
-            AccentColorPicker(),
-            DarkAccentColorPicker(),
+            // DarkModeSwitch(),
+            // TrueBlackSwitch(),
+            // CustomThemeSwitch(),
+            // PrimaryColorPicker(),
+            // AccentColorPicker(),
+            // DarkAccentColorPicker(),
             Divider(height: 20.0),
           ],
         ),

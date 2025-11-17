@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter_epihhinventory/data/classes/epicompany.dart';
 import 'package:flutter_epihhinventory/data/classes/user.dart';
@@ -5,7 +7,6 @@ import 'package:flutter_epihhinventory/data/web_client.dart';
 import 'package:flutter_epihhinventory/ui/epipages/selectsite.dart';
 import 'package:flutter_epihhinventory/utils/popUp.dart';
 // import 'package:global_configuration/global_configuration.dart';
-import 'package:native_widgets/native_widgets.dart';
 
 import '../../constants.dart';
 import '../../utils/globals.dart' as _globals;
@@ -20,22 +21,25 @@ class SelectCompanyState extends State<SelectCompany> {
   final formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  Company _selectedCompamy;
-  List<Company> _companies = new List<Company>();
+  late Company _selectedCompamy;
+  List<Company> _companies = List<Company>.empty(growable: true);
 
   @override
-  initState() {
+  void initState() {
     super.initState();
 
-    if (_companies.length == 0) {
-      _companies.add(new Company('0', 'Please select Company'));
+    // Set initial with just placeholder
+    _companies = [Company('0', 'Please select Company')];
+    _selectedCompamy = _companies[0];
 
-      getEpiCompanyList().then((List<Company> list) => setState(() {
-            //_epienvs = list;
-          }));
-    } else {
-      defaultCompany();
-    }
+    // Fetch and update company list
+    getEpiCompanyList().then((List<Company> list) {
+      setState(() {
+        // Create new list to avoid modifying during iteration
+        _companies = [Company('0', 'Please select Company'), ...list];
+        defaultCompany();
+      });
+    });
   }
 
   void defaultCompany() {
@@ -69,9 +73,9 @@ class SelectCompanyState extends State<SelectCompany> {
                   title: DropdownButton<Company>(
                     isExpanded: true,
                     value: _selectedCompamy,
-                    onChanged: (Company _newValue) {
+                    onChanged: (Company? _newValue) {
                       setState(() {
-                        _selectedCompamy = _newValue;
+                        _selectedCompamy = _newValue!;
                         if (_selectedCompamy.id != _globals.epiCompanyId) {
                           _globals.epiSiteId = '';
                           _globals.epiSiteName = '';
@@ -96,15 +100,18 @@ class SelectCompanyState extends State<SelectCompany> {
               children: <Widget>[
                 Expanded(
                   child: ListTile(
-                    title: NativeButton(
-                      padding: EdgeInsets.zero,
+                    title: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue, // Button color
+                        foregroundColor: Colors.white, // Text color
+                        padding: EdgeInsets.zero,
+                        disabledBackgroundColor:
+                            Colors.grey, // Disabled button color
+                      ),
                       child: Text(
                         'Cancel',
                         textScaleFactor: textScaleFactor,
-                        style: TextStyle(color: Colors.white),
                       ),
-                      color: Colors.blue,
-                      disabledColor: Colors.grey,
                       onPressed: () async {
                         Navigator.pop(context, true);
                       },
@@ -114,15 +121,18 @@ class SelectCompanyState extends State<SelectCompany> {
                 SizedBox(width: 10),
                 Expanded(
                   child: ListTile(
-                    title: NativeButton(
-                      padding: EdgeInsets.zero,
+                    title: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue, // Button color
+                        foregroundColor: Colors.white, // Text color
+                        padding: EdgeInsets.zero,
+                        disabledBackgroundColor:
+                            Colors.grey, // Disabled button color
+                      ),
                       child: Text(
                         'Save & Next',
                         textScaleFactor: textScaleFactor,
-                        style: TextStyle(color: Colors.white),
                       ),
-                      color: Colors.blue,
-                      disabledColor: Colors.grey,
                       onPressed: () async {
                         if (_selectedCompamy.id == "0") {
                           showAlertPopup(
@@ -134,10 +144,12 @@ class SelectCompanyState extends State<SelectCompany> {
                           });
 
                           Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => SelectSite(),
-                                  fullscreenDialog: true));
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SelectSite(),
+                              fullscreenDialog: true,
+                            ),
+                          );
                         }
                       },
                     ),
@@ -159,14 +171,15 @@ class SelectCompanyState extends State<SelectCompany> {
         '&strEnvId=' +
         _globals.epiEnvId;
 
-    var _data = await WebClient(User(token: null)).get(
+    var _data = await WebClient(User(token: '')).get(
         _globals.epiApiBaseUrl + '/api/useracct/LoadEpicUserCompany' + _params);
 
     EpiCompanyList _envData = EpiCompanyList.fromJson(_data);
 
     for (var i = 0; i < _envData.epicompanylist.length; i++) {
-      Company _epidata = new Company(_envData.epicompanylist[i].companycode,
-          _envData.epicompanylist[i].companyname);
+      Company _epidata = new Company(
+          _envData.epicompanylist[i].companycode ?? "",
+          _envData.epicompanylist[i].companyname ?? "");
       _companies.add(_epidata);
     }
 

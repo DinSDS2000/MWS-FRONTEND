@@ -6,27 +6,29 @@ part of 'epijobhead.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-EpiJobHead _$EpiJobHeadFromJson(Map<String, dynamic> json) {
-  return EpiJobHead(
-      company: json['Company'] as String,
-      plant: json['Plant'] as String,
-      jobnum: json['JobNum'] as String,
-      jobtype: json['JobType'] as String,
-      partnum: json['PartNum'] as String,
-      partdescription: json['PartDescription'] as String,
-      revisionnum: json['RevisionNum'] as String,
-      prodqty: json['ProdQty'], //Decimal.parse(json['ProdQty']),
-      ium: json['IUM'] as String);
-}
+EpiJobHead _$EpiJobHeadFromJson(Map<String, dynamic> json) => EpiJobHead(
+      token: json['token'] as String,
+      company: json['company'] as String,
+      plant: json['plant'] as String,
+      jobnum: json['jobnum'] as String,
+      jobtype: json['jobtype'] as String,
+      partnum: json['partnum'] as String,
+      partdescription: json['partdescription'] as String,
+      revisionnum: json['revisionnum'] as String,
+      prodqty: (json['prodqty'] as num).toDouble(),
+      ium: json['ium'] as String,
+    );
 
-Map<String, dynamic> _$EpiJobHeadToJson(EpiJobHead instance) => <String, dynamic>{
-      'Company': instance.company,
-      'Plant': instance.plant,
-      'JobNum': instance.jobnum,
-      'JobType': instance.jobtype,
-      'PartNum': instance.partnum,
-      'PartDescription': instance.partdescription,
-      'RevisionNum': instance.revisionnum,
-      'ProdQty': instance.prodqty,
-      'IUM': instance.ium
+Map<String, dynamic> _$EpiJobHeadToJson(EpiJobHead instance) =>
+    <String, dynamic>{
+      'company': instance.company,
+      'plant': instance.plant,
+      'jobnum': instance.jobnum,
+      'jobtype': instance.jobtype,
+      'partnum': instance.partnum,
+      'partdescription': instance.partdescription,
+      'revisionnum': instance.revisionnum,
+      'prodqty': instance.prodqty,
+      'ium': instance.ium,
+      'token': instance.token,
     };

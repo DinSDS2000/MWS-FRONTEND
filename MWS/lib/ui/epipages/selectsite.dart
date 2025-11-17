@@ -1,10 +1,11 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter_epihhinventory/data/classes/episite.dart';
 import 'package:flutter_epihhinventory/data/classes/user.dart';
 import 'package:flutter_epihhinventory/data/web_client.dart';
 import 'package:flutter_epihhinventory/utils/popUp.dart';
 // import 'package:global_configuration/global_configuration.dart';
-import 'package:native_widgets/native_widgets.dart';
 
 import '../../constants.dart';
 import '../../utils/globals.dart' as _globals;
@@ -19,8 +20,8 @@ class SelectSiteState extends State<SelectSite> {
   final formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  Site _selectedSite;
-  List<Site> _sites = new List<Site>();
+  Site? _selectedSite;
+  List<Site> _sites = List<Site>.empty(growable: true);
 
   @override
   initState() {
@@ -68,9 +69,9 @@ class SelectSiteState extends State<SelectSite> {
                   title: DropdownButton<Site>(
                     isExpanded: true,
                     value: _selectedSite,
-                    onChanged: (Site _newValue) {
+                    onChanged: (Site? _newValue) {
                       setState(() {
-                        _selectedSite = _newValue;
+                        _selectedSite = _newValue!;
                       });
                     },
                     items: _sites.map((Site _site) {
@@ -88,26 +89,26 @@ class SelectSiteState extends State<SelectSite> {
             ),
             SizedBox(height: 10),
             ListTile(
-              title: NativeButton(
-                padding: EdgeInsets.zero,
+              title: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue, // Button color
+                  foregroundColor: Colors.white, // Text color
+                  padding: EdgeInsets.zero,
+                  disabledBackgroundColor: Colors.grey, // Disabled button color
+                ),
                 child: Text(
                   'Save',
                   textScaleFactor: textScaleFactor,
-                  style: TextStyle(color: Colors.white),
                 ),
-                color: Colors.blue,
-                disabledColor: Colors.grey,
                 onPressed: () async {
-                  if (_selectedSite.id == "0") {
+                  if (_selectedSite?.id == "0") {
                     showAlertPopup(context, 'Warning', 'Please select Site...');
                   } else {
                     setState(() {
-                      _globals.epiSiteId = _selectedSite.id;
-                      _globals.epiSiteName = _selectedSite.name;
+                      _globals.epiSiteId = _selectedSite?.id ?? "";
+                      _globals.epiSiteName = _selectedSite?.name ?? "";
                     });
                     Navigator.pop(context, true);
-                    /*  Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => Home())); */
                   }
                 },
               ),
@@ -128,7 +129,7 @@ class SelectSiteState extends State<SelectSite> {
         '&strCompanyId=' +
         _globals.epiCompanyId;
 
-    var _data = await WebClient(User(token: null)).get(_globals.epiApiBaseUrl +
+    var _data = await WebClient(User(token: "")).get(_globals.epiApiBaseUrl +
         '/api/useracct/LoadPlantByCompanyId' +
         _params);
 

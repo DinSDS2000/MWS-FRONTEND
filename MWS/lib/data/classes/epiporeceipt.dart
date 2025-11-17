@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:json_annotation/json_annotation.dart';
 
 part 'epiporeceipt.g.dart';
@@ -5,19 +7,19 @@ part 'epiporeceipt.g.dart';
 @JsonSerializable()
 class EpiPOReceipt {
   EpiPOReceipt({
-    this.token,
-    this.ponum,
-    this.podate,
-    this.vendorid,
-    this.vendorname,
-    this.buyer,
-    this.shipviacode,
-    this.termcode,
-    this.purpoint,
-    this.currencycode,
-    this.approve,
-    this.doctoorder,
-    this.legalnumber,
+    required this.token,
+    required this.ponum,
+    required this.podate,
+    required this.vendorid,
+    required this.vendorname,
+    required this.buyer,
+    required this.shipviacode,
+    required this.termcode,
+    required this.purpoint,
+    required this.currencycode,
+    required this.approve,
+    required this.doctoorder,
+    required this.legalnumber,
   });
 
   final int ponum;
@@ -62,11 +64,11 @@ class EpiPOReceiptList {
   final List<EpiPOReceipt> epiporeceiptlist;
 
   EpiPOReceiptList({
-    this.epiporeceiptlist,
+    required this.epiporeceiptlist,
   });
 
   factory EpiPOReceiptList.fromJson(List<dynamic> json) {
-    List<EpiPOReceipt> _epiporeceiptlist = new List<EpiPOReceipt>();
+    List<EpiPOReceipt> _epiporeceiptlist = List<EpiPOReceipt>.empty(growable: true);
 
     for (var i = 0; i < json.length; i++) {
       _epiporeceiptlist = json.map((i) => EpiPOReceipt.fromJson(i)).toList();

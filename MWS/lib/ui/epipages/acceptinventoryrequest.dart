@@ -1,12 +1,12 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_epihhinventory/data/classes/epimoveinvreq.dart';
 import 'package:flutter_epihhinventory/data/classes/epipart.dart';
 import 'package:flutter_epihhinventory/utils/getepidata.dart';
 import 'package:flutter_epihhinventory/utils/popUp.dart';
 import 'package:flutter_epihhinventory/utils/postepidata.dart';
-import 'package:native_widgets/native_widgets.dart';
-import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
 import '../../constants.dart';
 import '../../utils/globals.dart' as _globals;
@@ -23,7 +23,7 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
   final formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  List<UOM> _uoms = new List<UOM>();
+  List<UOM> _uoms = List<UOM>.empty(growable: true);
 
   //String _barcodeError = "";
   String _reqNum = '';
@@ -134,9 +134,9 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
             content: DropdownButton<UOM>(
               isExpanded: true,
               value: _uoms[0],
-              onChanged: (UOM _newValue) {
+              onChanged: (UOM? _newValue) {
                 setState(() {
-                  if (_newValue.id != '0') {
+                  if (_newValue != null && _newValue.id != '0') {
                     txtIUM.text = _newValue.id;
                   }
                 });
@@ -153,12 +153,12 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
               }).toList(),
             ),
             actions: <Widget>[
-              new FlatButton(
-                child: new Text('Cancel'),
+              TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-              )
+                child: const Text('Cancel'),
+              ),
             ],
           );
         });
@@ -173,9 +173,7 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
       EpiPart _data = _result[1];
 
       txtIUM.text = '';
-      if (_data.partdescription != null) {
-        txtIUM.text = _data.ium;
-      }
+      txtIUM.text = _data.ium;
     }
   }
 
@@ -195,20 +193,18 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
         txtFrLotNo.text = strSplit2[1];
         txtToLotNo.text = strSplit2[1];
         result = true;
+      } else {
+        txtPartNo.text = txt;
       }
     }
 
     EpiPart _data = await getEpiPart(txtPartNo.text);
 
     setState(() {
-      if (_data != null) {
-        _lotEnabled = _data.tracklots;
-        if (_lotEnabled == false) {
-          txtFrLotNo.text = '';
-          txtToLotNo.text = '';
-        }
-      } else {
-        _lotEnabled = false;
+      _lotEnabled = _data.tracklots;
+      if (_lotEnabled == false) {
+        txtFrLotNo.text = '';
+        txtToLotNo.text = '';
       }
     });
 
@@ -348,9 +344,13 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
                         ),
                         SizedBox(
                           width: 54,
-                          child: RaisedButton(
-                            child: Icon(Icons.search),
+                          child: ElevatedButton(
                             onPressed: triggerUOMDropDown,
+                            style: ElevatedButton.styleFrom(
+                              padding:
+                                  EdgeInsets.zero, // Removes default padding
+                            ),
+                            child: const Icon(Icons.search),
                           ),
                         ),
                       ],
@@ -564,52 +564,66 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
                       children: <Widget>[
                         Expanded(
                           child: ListTile(
-                            title: NativeButton(
-                              padding: EdgeInsets.zero,
-                              child: Text(
-                                'Cancel',
-                                textScaleFactor: textScaleFactor,
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              color: Colors.blue,
-                              disabledColor: Colors.grey,
+                            title: ElevatedButton(
                               onPressed: () async {
                                 Navigator.pop(context, 'C');
                               },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue, // Button color
+                                disabledForegroundColor: Colors.grey
+                                    .withOpacity(0.38), // Disabled text color
+                                disabledBackgroundColor:
+                                    Colors.grey, // Disabled button color
+                                padding:
+                                    EdgeInsets.zero, // Removes extra padding
+                              ),
+                              child: Text(
+                                'Cancel',
+                                textScaleFactor: textScaleFactor,
+                                style: const TextStyle(color: Colors.white),
+                              ),
                             ),
                           ),
                         ),
                         Expanded(
                           child: ListTile(
-                            title: NativeButton(
-                              padding: EdgeInsets.zero,
-                              child: Text(
-                                'Reject',
-                                textScaleFactor: textScaleFactor,
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              color: Colors.blue,
-                              disabledColor: Colors.grey,
+                            title: ElevatedButton(
                               onPressed: () async {
                                 submitData(false);
                               },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue, // Button color
+                                disabledBackgroundColor:
+                                    Colors.grey, // Disabled button color
+                                padding:
+                                    EdgeInsets.zero, // Removes extra padding
+                              ),
+                              child: Text(
+                                'Reject',
+                                textScaleFactor: textScaleFactor,
+                                style: const TextStyle(color: Colors.white),
+                              ),
                             ),
                           ),
                         ),
                         Expanded(
                           child: ListTile(
-                            title: NativeButton(
-                              padding: EdgeInsets.zero,
-                              child: Text(
-                                'Approve',
-                                textScaleFactor: textScaleFactor,
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              color: Colors.blue,
-                              disabledColor: Colors.grey,
+                            title: ElevatedButton(
                               onPressed: () async {
                                 submitData(true);
                               },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue, // Button color
+                                disabledBackgroundColor:
+                                    Colors.grey, // Disabled button color
+                                padding:
+                                    EdgeInsets.zero, // Removes default padding
+                              ),
+                              child: Text(
+                                'Approve',
+                                textScaleFactor: textScaleFactor,
+                                style: const TextStyle(color: Colors.white),
+                              ),
                             ),
                           ),
                         )
@@ -900,5 +914,4 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
       setState(() => _barcodeError = 'Unknown error: $e');
     }
   } */
-
 }

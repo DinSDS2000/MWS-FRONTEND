@@ -5,12 +5,12 @@ part 'epijoboprresource.g.dart';
 @JsonSerializable()
 class EpiJobOprResource {
   EpiJobOprResource({
-    this.token,
-    this.resourceid,
-    this.resourcedesc,
-    this.opcode,
-    this.resourcegrpid,
-    this.resourcegrpdesc,
+    required this.token,
+    required this.resourceid,
+    required this.resourcedesc,
+    required this.opcode,
+    required this.resourcegrpid,
+    required this.resourcegrpdesc,
   });
 
   final String resourceid;
@@ -23,6 +23,7 @@ class EpiJobOprResource {
 
   final String resourcegrpdesc;
 
+  // ignore: deprecated_member_use
   @JsonKey(nullable: true)
   String token;
 
@@ -41,12 +42,12 @@ class EpiJobOprResourceList {
   final List<EpiJobOprResource> epijoboprresourcelist;
 
   EpiJobOprResourceList({
-    this.epijoboprresourcelist,
+    required this.epijoboprresourcelist,
   });
 
   factory EpiJobOprResourceList.fromJson(List<dynamic> json) {
     List<EpiJobOprResource> _epijoboprresourcelist =
-        new List<EpiJobOprResource>();
+        List<EpiJobOprResource>.empty(growable: true);
 
     for (var i = 0; i < json.length; i++) {
       _epijoboprresourcelist =
