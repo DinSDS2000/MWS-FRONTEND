@@ -5,53 +5,64 @@ part 'episitereceipt.g.dart';
 @JsonSerializable()
 class EpiSiteReceipt {
   EpiSiteReceipt({
-    required this.token,
-    required this.company,
-    required this.trandate,
-    required this.whsedescription,
-    required this.bindescription,
-    required this.jobnum,
-    required this.partnum,
-    required this.partdescription,
-    required this.tranqty,
-    required this.uom,
-    required this.refno,
-    required this.seqno,
-    required this.rcvdqty,
-    required this.submitqty,
-    required this.fullrcv,
+    this.token,
+    this.company,
+    this.trandate,
+    this.whsedescription,
+    this.bindescription,
+    this.jobnum,
+    this.partnum,
+    this.partdescription,
+    this.tranqty,
+    this.uom,
+    this.refno,
+    this.seqno,
+    this.rcvdqty,
+    this.submitqty,
+    this.fullrcv,
   });
 
-  final String company;
+  @JsonKey(name: "UD09_Company")
+  String? company;
 
-  final String partnum;
+  @JsonKey(name: "UD09_ShortChar01")
+  String? partnum;
 
-  final String partdescription;
+  @JsonKey(name: "UD09_Character01")
+  String? partdescription;
 
-  final String trandate;
+  @JsonKey(name: "UD09_Date01")
+  String? trandate;
 
-  final String whsedescription;
+  @JsonKey(name: "Warehse_Description")
+  String? whsedescription;
 
-  final String bindescription;
+  @JsonKey(name: "WhseBin_Description")
+  String? bindescription;
 
-  final String jobnum;
+  @JsonKey(name: "UD09_Key3")
+  String? jobnum;
 
-  final num tranqty;
+  @JsonKey(name: "UD09_Number02")
+  num? tranqty;
 
-  final String uom;
+  @JsonKey(name: "UD09_ShortChar02")
+  String? uom;
 
-  final String refno;
+  @JsonKey(name: "UD09_Key1")
+  String? refno;
 
-  final String seqno;
+  @JsonKey(name: "Calculated_SeqNo")
+  String? seqno;
 
-  final num rcvdqty;
+  num? rcvdqty;
 
-  num submitqty;
+  @JsonKey(name: "Calculated_TotalSubmitQty")
+  num? submitqty;
 
-  bool fullrcv;
+  bool? fullrcv;
 
-  @JsonKey(nullable: true)
-  String token;
+  String? token;
 
   factory EpiSiteReceipt.fromJson(Map<String, dynamic> json) =>
       _$EpiSiteReceiptFromJson(json);

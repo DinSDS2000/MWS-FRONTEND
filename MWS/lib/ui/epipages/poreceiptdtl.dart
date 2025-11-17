@@ -1,25 +1,35 @@
 // ignore_for_file: deprecated_member_use
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_epihhinventory/data/classes/epipart.dart';
 import 'package:flutter_epihhinventory/data/classes/epiporeceiptdtl.dart';
+import 'package:flutter_epihhinventory/data/classes/user.dart';
+import 'package:flutter_epihhinventory/data/web_client.dart';
 import 'package:flutter_epihhinventory/ui/epipages/lotcreation.dart';
+import 'package:flutter_epihhinventory/ui/epipages/previewscreen.dart';
 import 'package:flutter_epihhinventory/utils/getepidata.dart';
 import 'package:flutter_epihhinventory/utils/popUp.dart';
 import 'package:flutter_epihhinventory/utils/postepidata.dart';
 import 'package:flutter_epihhinventory/utils/validator.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../constants.dart';
 import '../../utils/globals.dart' as _globals;
 
 class POReceiptDtl extends StatefulWidget {
   final String packno;
+  final String userID;
+  final String companyID;
   final EpiPOReceiptDtl epiporeceiptdtl;
 
-  POReceiptDtl(this.packno, this.epiporeceiptdtl);
+  POReceiptDtl(this.packno, this.epiporeceiptdtl, this.userID, this.companyID);
 
   POReceiptDtlState createState() => POReceiptDtlState();
 }
@@ -30,10 +40,14 @@ class POReceiptDtlState extends State<POReceiptDtl> {
 
   List<UOM> _uoms = List<UOM>.empty(growable: true);
 
+  EpiWhse? _selectedEpiWhse;
+  List<EpiWhse> _epiwhse = [];
   String _barcodeError = "";
   bool _saving = false;
   bool _lotEnabled = false;
   String _packno = '';
+  List<FileSystemEntity> file = [];
+  String directory = "";
 
   var txtPartNo = new TextEditingController();
   var txtPartDesc = new TextEditingController();
@@ -71,8 +85,27 @@ class POReceiptDtlState extends State<POReceiptDtl> {
 
     txtQty.text = '1';
     txtNoofLable.text = '1';
+    loadEpiWhse();
 
     loadPartInfo();
+    _listofFiles();
+  }
+
+  void loadEpiWhse() {
+    // if(_locEnabled) {
+    _epiwhse.clear();
+
+    _epiwhse.add(new EpiWhse(
+      '0',
+      'Please select Warehouse',
+    ));
+
+    setState(() {
+      _selectedEpiWhse = _epiwhse[0];
+    });
+
+    getEpiWhseList();
+    // }
   }
 
   void onChangeQty() {
@@ -83,6 +116,39 @@ class POReceiptDtlState extends State<POReceiptDtl> {
         });
       }
     }
+  }
+
+  void _listofFiles() async {
+    directory = (await getApplicationDocumentsDirectory()).path;
+
+    List<FileSystemEntity> tempFile = Directory(directory).listSync();
+
+    file.clear();
+
+    for (var entity in tempFile) {
+      if (entity is! File) continue; // skip folders
+
+      File f = entity as File;
+
+      String fileName = f.path.split('/').last;
+
+      // get part before "_"
+      String fileNamePrefix = fileName.split('_').first;
+
+      print("fileNamePrefix = $fileNamePrefix");
+
+      // expected prefix
+      String prefix =
+          "${_packno}-${widget.epiporeceiptdtl.ponum}-${widget.epiporeceiptdtl.poline}-${widget.epiporeceiptdtl.polinerel}";
+
+      print("expected prefix = $prefix");
+
+      if (fileNamePrefix == prefix) {
+        file.add(f); // now it's safe
+      }
+    }
+
+    setState(() {});
   }
 
   void onChangeWhse() {
@@ -279,33 +345,60 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                         ),
                       ],
                     ),
+                    // Row(
+                    //   children: <Widget>[
+                    //     Expanded(
+                    //       child: ListTile(
+                    //         title: TextFormField(
+                    //           decoration:
+                    //               InputDecoration(labelText: 'Warehouse'),
+                    //           obscureText: false,
+                    //           keyboardType: TextInputType.text,
+                    //           autocorrect: false,
+                    //           controller: txtWhse,
+                    //           focusNode: _textFocusWhse,
+                    //         ),
+                    //       ),
+                    //     ),
+                    //     SizedBox(width: 10),
+                    //     SizedBox(
+                    //       width: 54,
+                    //       child: ElevatedButton(
+                    //         style: ElevatedButton.styleFrom(
+                    //           padding: EdgeInsets.zero,
+                    //         ),
+                    //         // Job No.
+                    //         child: Icon(Icons.camera_alt),
+                    //         onPressed: barcodeScanningWhse,
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
                     Row(
-                      children: <Widget>[
+                      children: [
                         Expanded(
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration:
-                                  InputDecoration(labelText: 'Warehouse'),
-                              obscureText: false,
-                              keyboardType: TextInputType.text,
-                              autocorrect: false,
-                              controller: txtWhse,
-                              focusNode: _textFocusWhse,
+                            child: ListTile(
+                          title: Container(
+                            height: 60,
+                            child: DropdownButton<EpiWhse>(
+                              isExpanded: true,
+                              value: _selectedEpiWhse,
+                              onChanged: (EpiWhse? _newValue) {
+                                setState(() {
+                                  if (_newValue != null) {
+                                    _selectedEpiWhse = _newValue;
+                                  }
+                                });
+                              },
+                              items: _epiwhse.map((EpiWhse whse) {
+                                return DropdownMenuItem<EpiWhse>(
+                                  value: whse,
+                                  child: Text(whse.name),
+                                );
+                              }).toList(),
                             ),
                           ),
-                        ),
-                        SizedBox(width: 10),
-                        SizedBox(
-                          width: 54,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                            ),
-                            // Job No.
-                            child: Icon(Icons.camera_alt),
-                            onPressed: barcodeScanningWhse,
-                          ),
-                        ),
+                        ))
                       ],
                     ),
                     Row(
@@ -481,6 +574,102 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                         ),
                       ],
                     ),
+                    Container(
+                      padding: const EdgeInsets.only(left: 12.0, top: 10.0),
+                      child: Text('Attachment(s)'),
+                    ),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.only(left: 10.0, top: 10.0),
+                            child: Container(
+                              height: 100.0,
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: Colors.grey,
+                                  width: 1,
+                                ),
+                              ),
+                              child: ListView.builder(
+                                itemCount: file.length,
+                                itemBuilder: (BuildContext context, int index) {
+                                  return Card(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: <Widget>[
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: <Widget>[
+                                            // Expanded so the filename shrinks if too long
+                                            Expanded(
+                                              child: InkWell(
+                                                child: Text(
+                                                  file[index]
+                                                      .toString()
+                                                      .split('/')
+                                                      .last
+                                                      .replaceAll("'", ""),
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    decoration: TextDecoration
+                                                        .underline,
+                                                  ),
+                                                ),
+                                                onTap: () {
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          PreviewScreen(
+                                                        imageFile:
+                                                            file[index] as File,
+                                                        fileList: file,
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                            SizedBox(
+                                                width:
+                                                    8), // spacing before close button
+                                            TextButton(
+                                              child: const Icon(Icons.close),
+                                              onPressed: () {
+                                                setState(() {
+                                                  print(file[index].toString());
+                                                  file[index]
+                                                      .delete(recursive: true);
+                                                  _listofFiles();
+                                                });
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        SizedBox(
+                          width: 54,
+                          child: ElevatedButton(
+                            // Job No.
+                            child: Icon(Icons.add_a_photo),
+                            onPressed: cameraCapture,
+                          ),
+                        ),
+                      ],
+                    ),
+
                     SizedBox(height: 30),
                     Row(children: <Widget>[
                       Expanded(
@@ -505,7 +694,7 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                       Expanded(
                         child: ListTile(
                           title: ElevatedButton(
-                            onPressed: submitData,
+                            onPressed: submitDataRest,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue, // Button color
                               disabledBackgroundColor:
@@ -784,4 +973,253 @@ class POReceiptDtlState extends State<POReceiptDtl> {
     }
     if (_barcodeError != '') showAlertPopup(context, 'Error', _barcodeError);
   }
+
+  Future<void> cameraCapture() async {
+    try {
+      // Open camera
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: ImageSource.camera);
+
+      if (pickedFile == null) return; // user cancelled
+
+      // Build your existing prefix
+      String prefix =
+          "${_packno}-${widget.epiporeceiptdtl.ponum}-${widget.epiporeceiptdtl.poline}-${widget.epiporeceiptdtl.polinerel}";
+
+      // Get app directory
+      final directory = await getApplicationDocumentsDirectory();
+
+      // Create unique filename
+      final String fileName =
+          '${prefix}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+      final String savePath = '${directory.path}/$fileName';
+
+      // Save image
+      final File savedFile = await File(pickedFile.path).copy(savePath);
+
+      print("📸 Saved image: ${savedFile.path}");
+
+      // Refresh attachment list (your UI)
+      _listofFiles(); // <-- no navigation needed
+
+      // Optional: if you want UI to update immediately
+      setState(() {});
+    } catch (e) {
+      showAlertPopup(context, 'Error', '$e');
+    }
+  }
+
+  Future<List<EpiWhse>> getEpiWhseList() async {
+    final uri =
+        Uri.parse('${_globals.epiApiBaseUrl}/api/Receipt/GetSLVWarehouse')
+            .replace(queryParameters: {
+      "company": _globals.epiCompanyId,
+      "plant": _globals.epiSiteId,
+      "userID": widget.userID,
+    });
+
+    var _data = await WebClient(User(token: '')).get(uri.toString());
+
+    final List<dynamic> values = _data['value'] ?? [];
+
+    // clear previous items except placeholder
+    _epiwhse.removeRange(1, _epiwhse.length); // keep 'Please select Warehouse'
+
+    for (var item in values) {
+      _epiwhse.add(EpiWhse(item['UD04_Key1'], item['Warehse_Description']));
+    }
+
+    // Keep the placeholder as default
+    _selectedEpiWhse = _epiwhse[0];
+
+    setState(() {});
+    return _epiwhse;
+  }
+
+  Future submitDataRest() async {
+    List<dynamic> _result;
+
+    // if (num.parse(txtQty.text) > widget.epiporeceiptdtl.balqty)
+    // {
+    //   showAlertPopup(context, 'Error', 'Transaction Block Due to Receiving More Than the Purchase Quantity.');
+    //   txtQty.text = '0';
+    // }
+
+    //Create lot if Track Lot = true and Lot does not exist
+
+    if (txtLotNo.text != '' && _lotEnabled == true) {
+      setState(() {
+        _saving = true;
+      });
+
+      _result = await isPartLotExist(txtPartNo.text, txtLotNo.text);
+
+      setState(() {
+        _saving = false;
+      });
+
+      if (_result[0] == false) {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    LotCreation(txtPartNo.text, txtLotNo.text),
+                fullscreenDialog: true));
+        return;
+      }
+    }
+
+    // Update PO Receiot
+    setState(() {
+      _saving = true;
+    });
+
+    /* if (widget.packno != '') {
+      _result = await isPOReceiptHeaderExist(
+          widget.epiporeceiptdtl.ponum.toString(), widget.packno);
+      if (_result[0] == false) {
+        _result = await postNewPOReceiptHead(
+            widget.epiporeceiptdtl.ponum.toString(),
+            widget.packno,
+            widget.epiporeceiptdtl.vendorid);
+
+        if (_result[0] == false) {
+          setState(() {
+            _saving = false;
+          });
+
+          showAlertPopup(
+              context, 'Error', 'Process PO Receipt Head : ' + _result[1]);
+          return;
+        }
+      }
+    } */
+
+    if (widget.packno != '') {
+      _result = await postNewPOReceiptDtl(
+          widget.epiporeceiptdtl.ponum.toString(),
+          widget.epiporeceiptdtl.poline.toString(),
+          widget.epiporeceiptdtl.polinerel.toString(),
+          _packno,
+          widget.epiporeceiptdtl.vendornum.toString(),
+          txtPartNo.text,
+          _selectedEpiWhse?.id ?? "",
+          txtBin.text,
+          txtLotNo.text,
+          txtQty.text,
+          txtIUM.text,
+          txtDriverName.text,
+          txtDriverIC.text,
+          txtLorry.text,
+          txtNoofLable.text);
+
+      setState(() {
+        _saving = false;
+      });
+
+      if (_result[0] == false) {
+        showAlertPopup(
+            context, 'Error', 'Process PO Receipt Detail: ' + _result[1][0]);
+        return;
+      } else {
+        // var response = _result[2];
+        // var rcvDtl = response['RcvDtl'][response['RcvDtl'].length - 1];
+        // var packLine = rcvDtl['PackLine'].toString();
+        if (file.length > 0) {
+          //for (int i = 0; i < file.length; i++) {
+          for (int i = file.length - 1; i >= 0; i--) {
+            File fileItem = File(file[i].path);
+
+            // List<int> imageBytes = fileItem.readAsBytesSync();
+            // String base64Image = base64Encode(imageBytes);
+            double packLineDouble = double.parse(_result[1].toString());
+
+            _result = await uploadAttachmentRcvDtlRest(
+                docTypeID: '',
+                parentTable: 'RcvDtl',
+                file: fileItem,
+                vendorNum: widget.epiporeceiptdtl.vendornum.toDouble(),
+                purPoint: widget.epiporeceiptdtl.purpoint ?? "",
+                packSlip: _packno,
+                packLine: packLineDouble);
+
+            if (_result[0] == false) {
+              showAlertPopup(context, 'Error',
+                  'Process PO Receipt Detail: ' + _result[1][0]);
+              return;
+            } else {
+              file[i].delete(recursive: true);
+            }
+          }
+        }
+      }
+    } else {
+      setState(() {
+        _saving = false;
+      });
+
+      showAlertPopup(context, 'Error',
+          'Process PO Receipt Detail: Pack No. cannot be blank!');
+      return;
+    }
+
+    showOKDialog(context, 'Success', '‘Transaction is successful.');
+
+    //Navigator.pop(context, 'A');
+  }
+
+  showOKDialog(BuildContext context, String title, String detail) {
+    // set up the button
+    Widget okButton = TextButton(
+      child: Text("OK"),
+      onPressed: () {
+        Navigator.pop(context, 'A');
+        Navigator.pop(context, 'A');
+      },
+    );
+
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text(title),
+      content: Text(detail),
+      actions: [
+        okButton,
+      ],
+    );
+
+    // show the dialog
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+}
+
+class EpiWhse {
+  const EpiWhse(
+    this.id,
+    this.name,
+  );
+
+  final String id;
+  final String name;
+
+  // Override equality for DropdownButton
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is EpiWhse &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name;
+
+  @override
+  int get hashCode => id.hashCode ^ name.hashCode;
+
+  @override
+  String toString() => '$id - $name';
 }

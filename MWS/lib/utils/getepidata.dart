@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_epihhinventory/data/classes/epidocustinfo.dart';
 import 'package:flutter_epihhinventory/data/classes/epiemployee.dart';
 import 'package:flutter_epihhinventory/data/classes/epijobasm.dart';
@@ -14,6 +16,7 @@ import 'package:flutter_epihhinventory/data/classes/epiporeceipt.dart';
 import 'package:flutter_epihhinventory/data/classes/epiporeceiptdtl.dart';
 import 'package:flutter_epihhinventory/data/classes/epireason.dart';
 import 'package:flutter_epihhinventory/data/classes/epishipdtl.dart';
+import 'package:flutter_epihhinventory/data/classes/episitereceipt.dart';
 import 'package:flutter_epihhinventory/data/classes/episplitmergeuom.dart';
 import 'package:flutter_epihhinventory/data/classes/epitrxinfo.dart';
 import 'package:flutter_epihhinventory/data/classes/epiuom.dart';
@@ -716,6 +719,29 @@ Future<List<dynamic>> getEpiWorkGroupList(String empId, String jobNo,
     return [true, _data['Message']];
   } else {
     EpiWorkQueueList _envData = EpiWorkQueueList.fromJson(_data);
+
+    return [false, _envData];
+  }
+}
+
+Future<List<dynamic>> getEpiSiteReceiptRest(String refNo) async {
+  final uri =
+      Uri.parse('${_globals.epiApiBaseUrl}/api/UD09/GetMaterialQueueByRef')
+          .replace(queryParameters: {
+    "Username": _globals.epiUsername,
+    "Password": _globals.epiPassword,
+    "Company": _globals.epiCompanyId,
+    "Plant": _globals.epiSiteId,
+    "Environment": _globals.epiEnvName,
+    "refNumber": refNo,
+  });
+
+  var _data = await WebClient(User(token: '')).get(uri.toString());
+
+  if (_data['value'] == null) {
+    return [];
+  } else {
+    EpiSiteReceiptList _envData = EpiSiteReceiptList.fromJson(_data['value']);
 
     return [false, _envData];
   }

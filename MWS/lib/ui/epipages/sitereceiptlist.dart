@@ -5,10 +5,14 @@ import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_epihhinventory/data/classes/episitereceipt.dart';
+import 'package:flutter_epihhinventory/ui/epipages/attachmentlist.dart';
+import 'package:flutter_epihhinventory/utils/getepidata.dart';
 import 'package:flutter_epihhinventory/utils/popUp.dart';
+import 'package:flutter_epihhinventory/utils/postepidata.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
+import 'package:path_provider/path_provider.dart';
 
 class SiteReceiptList extends StatefulWidget {
   const SiteReceiptList({super.key});
@@ -19,11 +23,12 @@ class SiteReceiptList extends StatefulWidget {
 
 class _SitereceiptlistState extends State<SiteReceiptList> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-
   String _barcodeError = "";
   String _oldRefNo = '';
   bool _saving = false;
 
+  List<FileSystemEntity> file = [];
+  String directory = "";
   Map<String, int> _map = {};
   DateTime selectedDate = DateTime.now();
   DateFormat formatter = DateFormat('dd/MM/yyyy');
@@ -44,60 +49,6 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
     txtDateRcv.text = formatter.format(selectedDate);
     txtRcvdQty.text = '0';
 
-    _listRef = EpiSiteReceiptList(episitereceiptlist: [
-      EpiSiteReceipt(
-        token: "ABC123",
-        company: "SVL",
-        trandate: "2025-11-05",
-        whsedescription: "Main Warehouse",
-        bindescription: "Bin A1",
-        jobnum: "JOB-001",
-        partnum: "P-1001",
-        partdescription: "Solar Panel 550W",
-        tranqty: 20,
-        uom: "EA",
-        refno: "REF-001",
-        seqno: "1",
-        rcvdqty: 5,
-        submitqty: 0,
-        fullrcv: false,
-      ),
-      EpiSiteReceipt(
-        token: "XYZ789",
-        company: "SVL",
-        trandate: "2025-11-03",
-        whsedescription: "Sub Warehouse",
-        bindescription: "Bin B3",
-        jobnum: "JOB-002",
-        partnum: "P-2002",
-        partdescription: "Inverter 5kW",
-        tranqty: 10,
-        uom: "EA",
-        refno: "REF-002",
-        seqno: "2",
-        rcvdqty: 2,
-        submitqty: 0,
-        fullrcv: false,
-      ),
-      EpiSiteReceipt(
-        token: "LMN456",
-        company: "SVL",
-        trandate: "2025-10-29",
-        whsedescription: "Main Warehouse",
-        bindescription: "Bin C7",
-        jobnum: "JOB-003",
-        partnum: "P-3005",
-        partdescription: "Mounting Bracket",
-        tranqty: 50,
-        uom: "SET",
-        refno: "REF-003",
-        seqno: "3",
-        rcvdqty: 10,
-        submitqty: 0,
-        fullrcv: true,
-      ),
-    ]);
-
     super.initState();
   }
 
@@ -115,6 +66,41 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
         getRef(txtRefNo.text);
       }
     }
+  }
+
+  Future<void> _listOfFiles() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final tempFiles = Directory(directory.path).listSync();
+
+    // Clear previous list
+    file.clear();
+
+    final prefix = txtRefNo.text; // fallback if null
+
+    if (prefix.isEmpty) return; // nothing to filter
+
+    // Filter files that match the prefix
+    file.addAll(tempFiles.where((f) {
+      final fileName =
+          f.uri.pathSegments.isNotEmpty ? f.uri.pathSegments.last : '';
+      if (fileName.isEmpty) return false;
+      final filePrefix = fileName.split('_').first.split('-').first;
+      return filePrefix == prefix;
+    }));
+
+    // Map each seqno to the number of matching files
+    _map = {
+      for (var receipt in (_listRef?.episitereceiptlist ?? []))
+        receipt.seqno ?? '': file.where((f) {
+          final fileName =
+              f.uri.pathSegments.isNotEmpty ? f.uri.pathSegments.last : '';
+          if (fileName.isEmpty) return false;
+          final filePrefix = fileName.split('_').first;
+          return filePrefix == '${prefix}-${receipt.seqno ?? ''}';
+        }).length
+    };
+
+    setState(() {});
   }
 
   Future getRef(String refnum) async {
@@ -180,13 +166,15 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
                 bool success = false;
 
                 for (int i = 0; i < _listRef!.episitereceiptlist.length; i++) {
-                  String listSeqNo = _listRef!.episitereceiptlist[i].seqno;
+                  String listSeqNo =
+                      _listRef!.episitereceiptlist[i].seqno ?? '';
 
                   if (listSeqNo == seqNo) {
                     num totalQty = num.parse(txtRcvdQty.text) +
-                        _listRef!.episitereceiptlist[i].rcvdqty;
+                        (_listRef!.episitereceiptlist[i].rcvdqty ?? 0);
 
-                    if (totalQty > _listRef!.episitereceiptlist[i].tranqty) {
+                    if (totalQty >
+                        (_listRef!.episitereceiptlist[i].tranqty ?? 0)) {
                       showAlertPopup(
                         context,
                         'Error',
@@ -337,7 +325,9 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
                     Expanded(
                       child: ListTile(
                         title: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue, // Button color
                             padding: EdgeInsets.zero,
@@ -353,16 +343,24 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
                       child: ListTile(
                         title: ElevatedButton(
                           onPressed: () async {
-                            if (txtRefNo.text != '') {
+                            if (txtRefNo.text.isNotEmpty) {
                               setState(() {
                                 _saving = true;
                               });
 
-                              // Temporarily skip API call and file fetching
-                              // List<dynamic> _result = await getEpiSiteReceiptRest(txtRefNo.text);
-                              // await _listofFiles();
+                              // Call the API
+                              List<dynamic> _result =
+                                  await getEpiSiteReceiptRest(txtRefNo.text);
 
-                              // Use your mock data already in _listRef
+                              if (_result.isNotEmpty) {
+                                // _result[1] should be your EpiSiteReceiptList
+                                _listRef = _result[1] as EpiSiteReceiptList;
+                              }
+
+                              // Populate files map
+                              await _listOfFiles();
+
+                              // Rebuild the UI with the new data
                               setState(() {
                                 _saving = false;
                               });
@@ -386,7 +384,7 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
                     Expanded(
                       child: ListTile(
                         title: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: submitDataRest,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue, // Button color
                             padding: EdgeInsets.zero,
@@ -428,7 +426,7 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
   }
 
   Widget _getSiteReceiptListValue(BuildContext context, int index) {
-    String _listPartNum = '';
+    String? _listPartNum = '';
     String _listPartDesc = '';
     String _listWhse = '';
     String _listBin = '';
@@ -438,24 +436,18 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
     num _listRcvdQty = 0.00;
     num _qtyToSubmit = 0.00;
     bool _fullRcv = false;
-
+    print("list ref:" + (_listRef!.episitereceiptlist[index].partnum ?? ''));
     if (_listRef != null) {
-      _listPartNum = _listRef!.episitereceiptlist[index].partnum;
-      _listPartDesc = _listRef!.episitereceiptlist[index].partdescription;
-      _listWhse = _listRef?.episitereceiptlist[index].whsedescription == null
-          ? ' '
-          : _listRef!.episitereceiptlist[index].whsedescription;
-      _listBin = _listRef?.episitereceiptlist[index].bindescription == null
-          ? ' '
-          : _listRef!.episitereceiptlist[index].bindescription;
-      _listQty = _listRef!.episitereceiptlist[index].tranqty;
-      _listUOM = _listRef!.episitereceiptlist[index].uom;
-      _listSeqNo = _listRef!.episitereceiptlist[index].seqno;
-      _listRcvdQty = _listRef!.episitereceiptlist[index].rcvdqty;
-      _qtyToSubmit = _listRef?.episitereceiptlist[index].submitqty == null
-          ? 0
-          : _listRef!.episitereceiptlist[index].submitqty;
-      _fullRcv = _listRef!.episitereceiptlist[index].fullrcv;
+      _listPartNum = _listRef!.episitereceiptlist[index].partnum ?? '';
+      _listPartDesc = _listRef!.episitereceiptlist[index].partdescription ?? '';
+      _listWhse = _listRef?.episitereceiptlist[index].whsedescription ?? '';
+      _listBin = _listRef?.episitereceiptlist[index].bindescription ?? '';
+      _listQty = _listRef!.episitereceiptlist[index].tranqty ?? 0;
+      _listUOM = _listRef!.episitereceiptlist[index].uom ?? '';
+      _listSeqNo = _listRef!.episitereceiptlist[index].seqno ?? '';
+      _listRcvdQty = _listRef!.episitereceiptlist[index].rcvdqty ?? 0;
+      _qtyToSubmit = _listRef!.episitereceiptlist[index].submitqty ?? 0;
+      _fullRcv = _listRef!.episitereceiptlist[index].fullrcv ?? false;
     }
 
     return new Card(
@@ -467,7 +459,7 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
             _displayQtyToSubmitDialog(
               context,
               _listSeqNo,
-              _listPartNum + ' : ' + _listPartDesc,
+              _listPartNum! + ' : ' + _listPartDesc,
               _qtyToSubmit,
             );
           });
@@ -499,17 +491,17 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
                   SizedBox(height: 8),
                   InkWell(
                     onTap: () {
-                      // String prefix = txtRefNo.text + '-' + _listSeqNo;
-                      // //final foundFile = file.where((element) => element.toString().split('/').last.split('_').first == prefix).toList();
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (context) => AttachmentList(prefix),
-                      //     fullscreenDialog: true,
-                      //   ),
-                      // ).then((value) {
-                      //   _listofFiles();
-                      // });
+                      String prefix = txtRefNo.text + '-' + _listSeqNo;
+                      //final foundFile = file.where((element) => element.toString().split('/').last.split('_').first == prefix).toList();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AttachmentList(prefix: prefix),
+                          fullscreenDialog: true,
+                        ),
+                      ).then((value) {
+                        _listOfFiles();
+                      });
                     },
                     child: new Stack(
                       children: <Widget>[
@@ -633,29 +625,184 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
     );
   }
 
-  Future cameraCapture(String seqNo) async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+  Future<void> cameraCapture(String seqNo) async {
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: ImageSource.camera);
 
-    if (pickedFile == null) return; // user cancelled
+      if (pickedFile == null) return; // user cancelled
 
-    final bytes = await File(pickedFile.path).readAsBytes();
-    final base64Image = base64Encode(bytes);
+      // Create filename prefix
+      String prefix = txtRefNo.text + '-' + seqNo;
 
-    print("Base64 Image: $base64Image");
-    // try {
-    //   String prefix = txtRefNo.text + '-' + seqNo;
-    //   Navigator.push(
-    //     context,
-    //     MaterialPageRoute(builder: (context) => CameraScreen(cameras, prefix)),
-    //   ).then((value) {
-    //     if (value != '') {
-    //       _listofFiles();
-    //     }
-    //   });
-    // } catch (e) {
-    //   showAlertPopup(context, 'Error', '$e');
-    // }
+      // Get the app storage directory
+      final directory = await getApplicationDocumentsDirectory();
+
+      // Create a unique filename with the prefix
+      final String fileName =
+          '${prefix}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final String savePath = '${directory.path}/$fileName';
+
+      // Save image to the app directory
+      final File savedFile = await File(pickedFile.path).copy(savePath);
+
+      print("✅ Saved image: ${savedFile.path}");
+
+      // After saving, refresh attachment list
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AttachmentList(prefix: prefix),
+          fullscreenDialog: true,
+        ),
+      );
+    } catch (e) {
+      print(" Error saving image: $e");
+    }
+  }
+
+  Future submitDataRest() async {
+    if (file.length == 0) {
+      showAlertPopup(
+        context,
+        'Error',
+        'There must be at least ONE attachment to submit.',
+      );
+      return;
+    }
+
+    bool success = true;
+    for (int i = 0; i < (_listRef?.episitereceiptlist.length ?? 0); i++) {
+      num recQty = _listRef?.episitereceiptlist[i].submitqty ?? 0;
+
+      if (recQty > 0) {
+        String seqNo = _listRef?.episitereceiptlist[i].seqno ?? '';
+        bool fullRcv = _listRef?.episitereceiptlist[i].fullrcv ?? false;
+
+        List<dynamic> _result;
+        List<dynamic> _attchresult;
+
+        setState(() {
+          _saving = true;
+        });
+
+        if (txtRefNo.text != '' && txtDateRcv.text != '') {
+          _result = await postSiteReceiptDtlRest(
+            txtRefNo.text,
+            txtDONo.text,
+            seqNo,
+            selectedDate,
+            recQty,
+            '',
+            fullRcv,
+          );
+
+          setState(() {
+            _saving = false;
+          });
+
+          if (_result[0] == false) {
+            success = false;
+            showAlertPopup(
+              context,
+              'Error',
+              'Process Site Receipt: ' + _result[1][0],
+            );
+            return;
+          } else {
+            if (file.length > 0) {
+              for (int i = file.length - 1; i >= 0; i--) {
+                File fileItem = File(file[i].path); // <-- cast to File
+
+                String fileName = fileItem.path.split('/').last;
+                String fileNamePrefix = fileName
+                    .split('_')
+                    .first; // take everything before timestamp
+                String prefix = '${txtRefNo.text}-$seqNo';
+                if (fileNamePrefix != prefix) continue;
+
+                List<int> imageBytes =
+                    fileItem.readAsBytesSync(); // <-- works now
+                String base64Image = base64Encode(imageBytes);
+
+                var responseBody = jsonDecode(_result[1]);
+
+                var data = responseBody['value'][0];
+
+                _attchresult = await uploadSiteReceiptAttachmentRest(
+                  '',
+                  'UD09',
+                  fileItem.path.split('/').last.replaceAll("'", ""),
+                  base64Image,
+                  data['Key1'],
+                  data['Key2'],
+                  data['Key3'],
+                  data['Key4'],
+                  data['Key5'],
+                );
+
+                if (_attchresult[0] == false) {
+                  success = false;
+                  showAlertPopup(
+                    context,
+                    'Error',
+                    'Process PO Receipt Detail: ' + _attchresult[1][0],
+                  );
+                  return;
+                } else {
+                  fileItem.delete(recursive: true); // <-- works now
+                }
+              }
+            }
+          }
+        } else {
+          setState(() {
+            _saving = false;
+          });
+
+          success = false;
+          showAlertPopup(
+            context,
+            'Error',
+            'Process Site Receipt: Ref No. and Date Received cannot be blank!',
+          );
+          return;
+        }
+      }
+    }
+
+    if (success) {
+      showOKDialog(context, 'Success', 'Transactions are successful.');
+
+      //Navigator.pop(context, 'A');
+    }
+  }
+
+  showOKDialog(BuildContext context, String title, String detail) {
+    // set up the button
+    Widget okButton = TextButton(
+      child: Text("OK"),
+      onPressed: () {
+        Navigator.pop(context, 'A');
+        Navigator.pop(context, 'A');
+      },
+    );
+
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text(title),
+      content: Text(detail),
+      actions: [okButton],
+    );
+
+    // show the dialog
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
   }
 
   Future barcodeScanningRefNo() async {

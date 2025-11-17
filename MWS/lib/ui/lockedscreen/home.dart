@@ -723,10 +723,14 @@ class Home extends StatelessWidget {
                                       'You do not have permission to access.');
                                 } else {
                                   Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              POReceiptList()));
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => POReceiptList(
+                                          (_auth.user?.epicuserid.toString() ??
+                                              ""),
+                                          _globals.epiCompanyId),
+                                    ),
+                                  );
                                 }
                               },
                             ),

@@ -13,8 +13,9 @@ import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import '../../constants.dart';
 
 class POReceiptList extends StatefulWidget {
-  POReceiptList();
-
+  final String userID;
+  final String companyID;
+  POReceiptList(this.userID, this.companyID);
   POReceiptListState createState() => POReceiptListState();
 }
 
@@ -46,6 +47,7 @@ class POReceiptListState extends State<POReceiptList> {
     txtLegalNo.addListener(onChangeLegalNo);
     _textFocusLegalNo.addListener(onChangeLegalNo);
 
+    print("CHECKING ID: " + widget.companyID + widget.userID);
     super.initState();
   }
 
@@ -388,10 +390,16 @@ class POReceiptListState extends State<POReceiptList> {
               return;
             }
             Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => POReceiptDtl(txtPackNo.text,
-                        _listPO.epiporeceiptdtllist[index]))).then((value) {
+              context,
+              MaterialPageRoute(
+                builder: (context) => POReceiptDtl(
+                  txtPackNo.text,
+                  _listPO.epiporeceiptdtllist[index],
+                  widget.userID,
+                  widget.companyID,
+                ),
+              ),
+            ).then((value) {
               if (value != 'C') {
                 removeItem(index);
               }

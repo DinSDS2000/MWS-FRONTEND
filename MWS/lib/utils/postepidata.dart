@@ -1533,3 +1533,144 @@ Future<List<dynamic>> postProdEndOperationByEmp(
 
   return [result, response.body];
 }
+
+Future<List<dynamic>> postSiteReceiptDtlRest(
+  String refNo,
+  String doNo,
+  String seqNo,
+  DateTime recDate,
+  num recQty,
+  String recPerson,
+  bool fullRcv,
+) async {
+  bool result = false;
+  DateFormat formatter = DateFormat('yyyy-MM-dd');
+  String date = formatter.format(recDate) + "T00:00:00+08:00";
+
+  String _body = json.encode({
+    "Username": _globals.epiUsername,
+    "Password": _globals.epiPassword,
+    "Company": _globals.epiCompanyId,
+    "Plant": _globals.epiSiteId,
+    "Environment": _globals.epiEnvName,
+    "refNumber": refNo,
+    "doNumber": doNo,
+    "seqNumber": seqNo,
+    "recDate": date,
+    "recQty": recQty,
+    "recPerson": _globals.epiUsername,
+    "fullRcv": fullRcv,
+  });
+
+  String url =
+      '${_globals.epiApiBaseUrl}/api/UD09/SingleCallUpdateMaterialQueue?company=${_globals.epiCompanyId}&plant=${_globals.epiSiteId}';
+
+  http.Response _data = await WebClient(User(token: '')).getHttpReponse(
+    url,
+    headers: {
+      HttpHeaders.contentTypeHeader: "application/json",
+    },
+    method: HttpMethod.post,
+    body: _body, // <-- pass body here, not in URL
+  );
+
+  if (_data.statusCode == 200) {
+    result = true;
+  }
+
+  return [result, _data.body];
+}
+
+Future<List<dynamic>> uploadSiteReceiptAttachmentRest(
+    String docTypeID,
+    String parentTable,
+    String fileName,
+    String data64,
+    String Key1,
+    String Key2,
+    String Key3,
+    String Key4,
+    String Key5) async {
+  String _body = json.encode({
+    "Username": _globals.epiUsername,
+    "Password": _globals.epiPassword,
+    "Company": _globals.epiCompanyId,
+    "Plant": _globals.epiSiteId,
+    "Environment": _globals.epiEnvName,
+    "docTypeID": docTypeID,
+    "parentTable": parentTable,
+    "fileName": fileName,
+    "data": data64,
+    "Key1": Key1,
+    "Key2": Key2,
+    "Key3": Key3,
+    "Key4": Key4,
+    "Key5": Key5,
+  });
+
+  String url =
+      "${_globals.epiApiBaseUrl}/api/UD09/SingleCallUploadUD09Attachment"
+      "?company=${_globals.epiCompanyId}&plant=${_globals.epiSiteId}";
+
+  http.Response _data = await WebClient(User(token: '')).getHttpReponse(
+    url,
+    body: _body,
+    headers: {
+      HttpHeaders.authorizationHeader: "Bearer ",
+      HttpHeaders.contentTypeHeader: "application/json", // REQUIRED!
+    },
+    method: HttpMethod.post,
+  );
+
+  bool result = _data.statusCode == 200;
+
+  return [result, _data.body];
+}
+
+Future<List<dynamic>> uploadAttachmentRcvDtlRest({
+  required String docTypeID,
+  required String parentTable,
+  required File file,
+  required double vendorNum,
+  required String purPoint,
+  required String packSlip,
+  required double packLine,
+}) async {
+  bool result = false;
+
+  // Convert file to base64
+  List<int> imageBytes = await file.readAsBytes();
+  String base64Image = base64Encode(imageBytes);
+
+  // JSON body matches UploadFileRcvDtl
+  String _body = json.encode({
+    "docTypeID": docTypeID,
+    "parentTable": parentTable,
+    "fileName": file.path.split('/').last,
+    "data": base64Image,
+    "VendorNum": vendorNum,
+    "PurPoint": purPoint,
+    "PackSlip": packSlip,
+    "PackLine": packLine,
+  });
+
+  String url =
+      '${_globals.epiApiBaseUrl}/api/Receipt/SingleCallUploadAttachmentRcvDtl?company=${_globals.epiCompanyId}&plant=${_globals.epiSiteId}';
+
+  http.Response _data = await WebClient(User(token: '')).getHttpReponse(
+    url,
+    headers: {
+      HttpHeaders.contentTypeHeader: "application/json",
+    },
+    method: HttpMethod.post,
+    body: _body,
+  );
+
+  if (_data.statusCode == 200) {
+    result = true;
+  } else {
+    print("Upload failed: ${_data.body}");
+  }
+
+  return [result, _data.body];
+}

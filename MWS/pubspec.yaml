@@ -28,6 +28,7 @@ dependencies:
   flutter_sticky_header: "^0.7.0"
   flutter_udid: ^4.0.0
   image_picker: ^1.2.0
+  path_provider: ^2.1.5
   # imei_plugin: ^1.2.0
   
 dev_dependencies:

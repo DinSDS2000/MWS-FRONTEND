@@ -31,6 +31,7 @@ import 'ui/lockedscreen/settings.dart';
 import 'ui/signin/newaccount.dart';
 import 'ui/signin/signin.dart';
 import 'ui/epipages/issuematerial.dart';
+import '../../utils/globals.dart' as _globals;
 // import 'config/app_settings.config.dart';
 
 void main() {
@@ -99,7 +100,9 @@ class _MyAppState extends State<MyApp> {
                 "/returnassembly": (BuildContext context) => ReturnAssembly(),
                 "/jobtoinventory": (BuildContext context) => JobtoInventory(),
                 "/jobtosalvage": (BuildContext context) => JobtoSalvage(),
-                "/poreceipt": (BuildContext context) => POReceiptList(),
+                "/poreceipt": (BuildContext context) => POReceiptList(
+                    (_auth.user?.epicuserid.toString() ?? ""),
+                    _globals.epiCompanyId),
                 "/sitereceipt": (BuildContext context) => SiteReceiptList(),
                 "/splitmergeuom": (BuildContext context) => SplitMergeUOM(),
                 "/deliverytracking": (BuildContext context) =>

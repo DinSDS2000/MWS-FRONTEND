@@ -470,6 +470,24 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "path_provider",
+      "rootUri": "file:///C:/Users/Smart%20Agility/AppData/Local/Pub/Cache/hosted/pub.dev/path_provider-2.1.5",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "path_provider_android",
+      "rootUri": "file:///C:/Users/Smart%20Agility/AppData/Local/Pub/Cache/hosted/pub.dev/path_provider_android-2.2.19",
+      "packageUri": "lib/",
+      "languageVersion": "3.7"
+    },
+    {
+      "name": "path_provider_foundation",
+      "rootUri": "file:///C:/Users/Smart%20Agility/AppData/Local/Pub/Cache/hosted/pub.dev/path_provider_foundation-2.4.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.7"
+    },
+    {
       "name": "path_provider_linux",
       "rootUri": "file:///C:/Users/Smart%20Agility/AppData/Local/Pub/Cache/hosted/pub.dev/path_provider_linux-2.2.1",
       "packageUri": "lib/",
@@ -734,7 +752,7 @@
       "languageVersion": "3.0"
     }
   ],
-  "generated": "2025-11-05T06:47:20.027364Z",
+  "generated": "2025-11-17T07:27:51.602135Z",
   "generator": "pub",
   "generatorVersion": "3.7.0",
   "flutterRoot": "file:///C:/flutter",
