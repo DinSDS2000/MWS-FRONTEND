@@ -109,11 +109,15 @@ class POReceiptDtlState extends State<POReceiptDtl> {
   }
 
   void onChangeQty() {
-    if (!_textFocusQty.hasFocus && txtQty.text != '') {
-      if (_globals.epiisenableusedefaultlabelqty == false) {
-        setState(() {
-          txtNoofLable.text = txtQty.text;
-        });
+    if (!_textFocusQty.hasFocus && txtQty.text.isNotEmpty) {
+      final qtyValue = num.tryParse(txtQty.text);
+      if (qtyValue != null && qtyValue % 1 == 0) {
+        // integer check
+        if (_globals.epiisenableusedefaultlabelqty == false) {
+          setState(() {
+            txtNoofLable.text = txtQty.text;
+          });
+        }
       }
     }
   }
@@ -637,16 +641,23 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                                             SizedBox(
                                                 width:
                                                     8), // spacing before close button
-                                            TextButton(
-                                              child: const Icon(Icons.close),
-                                              onPressed: () {
-                                                setState(() {
-                                                  print(file[index].toString());
-                                                  file[index]
-                                                      .delete(recursive: true);
-                                                  _listofFiles();
-                                                });
-                                              },
+                                            SizedBox(
+                                              width: 54,
+                                              child: IconButton(
+                                                icon: Icon(Icons.close),
+                                                iconSize: 24,
+                                                padding: EdgeInsets
+                                                    .zero, // remove default padding
+                                                constraints:
+                                                    BoxConstraints(), // optional: shrink the button
+                                                onPressed: () {
+                                                  setState(() {
+                                                    file[index].delete(
+                                                        recursive: true);
+                                                    _listofFiles();
+                                                  });
+                                                },
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -662,7 +673,8 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                         SizedBox(
                           width: 54,
                           child: ElevatedButton(
-                            // Job No.
+                            style: ElevatedButton.styleFrom(
+                                padding: EdgeInsets.zero),
                             child: Icon(Icons.add_a_photo),
                             onPressed: cameraCapture,
                           ),
