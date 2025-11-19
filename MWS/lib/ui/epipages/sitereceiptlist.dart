@@ -41,6 +41,8 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
   var txtRcvdQty = new TextEditingController();
 
   FocusNode _textFocusRefNo = new FocusNode();
+  FocusNode _textFocusDate = new FocusNode();
+  FocusNode _textFocusDoNo = new FocusNode();
 
   @override
   void initState() {
@@ -275,6 +277,7 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
                           obscureText: false,
                           keyboardType: TextInputType.text,
                           autocorrect: false,
+                          focusNode: _textFocusDate,
                           controller: txtDateRcv,
                         ),
                       ),
@@ -303,6 +306,7 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
                           obscureText: false,
                           keyboardType: TextInputType.text,
                           autocorrect: false,
+                          focusNode: _textFocusDoNo,
                           controller: txtDONo,
                         ),
                       ),
@@ -481,6 +485,8 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   InkWell(
                     onTap: () {
@@ -491,6 +497,9 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
                   SizedBox(height: 8),
                   InkWell(
                     onTap: () {
+                      _textFocusRefNo.unfocus();
+                      _textFocusDate.unfocus();
+                      _textFocusDoNo.unfocus();
                       String prefix = txtRefNo.text + '-' + _listSeqNo;
                       //final foundFile = file.where((element) => element.toString().split('/').last.split('_').first == prefix).toList();
                       Navigator.push(
@@ -541,6 +550,8 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
             ),
             title: Text(
               _listPartNum + ' : ' + _listPartDesc,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -553,7 +564,6 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
                   children: <Widget>[
                     Expanded(
                       child: Container(
-                        alignment: Alignment.center,
                         child: Text(
                           'Qty Issued:',
                           style: TextStyle(color: Colors.white),
@@ -562,7 +572,7 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
                     ),
                     Expanded(
                       child: Container(
-                        alignment: Alignment.center,
+                        alignment: Alignment.centerLeft,
                         child: Text(
                           'Qty To Submit:',
                           style: TextStyle(color: Colors.white),
@@ -571,7 +581,7 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
                     ),
                     Expanded(
                       child: Container(
-                        alignment: Alignment.center,
+                        alignment: Alignment.centerLeft,
                         child: Text(
                           'Fully Received',
                           style: TextStyle(color: Colors.white),
@@ -584,7 +594,7 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
                   children: <Widget>[
                     Expanded(
                       child: Container(
-                        alignment: Alignment.center,
+                        alignment: Alignment.centerLeft,
                         child: Text(
                           _listQty.toString(),
                           style: TextStyle(color: Colors.white, fontSize: 25),
@@ -593,22 +603,17 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
                     ),
                     Expanded(
                       child: Container(
-                        alignment: Alignment.center,
+                        alignment: Alignment.centerLeft,
                         child: Text(
                           _qtyToSubmit.toString(),
                           style: TextStyle(color: Colors.white, fontSize: 25),
                         ),
                       ),
                     ),
-                    Expanded(
-                      child: Container(
-                        alignment: Alignment.center,
-                        child: CheckboxListTile(
-                          onChanged: null,
-                          value: _fullRcv,
-                          controlAffinity: ListTileControlAffinity
-                              .leading, //  <-- leading Checkbox
-                        ),
+                    Container(
+                      child: Checkbox(
+                        value: _fullRcv,
+                        onChanged: null,
                       ),
                     ),
                   ],
@@ -647,22 +652,23 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
       final File savedFile = await File(pickedFile.path).copy(savePath);
 
       print("✅ Saved image: ${savedFile.path}");
-
+      await _listOfFiles();
+      setState(() {});
       // After saving, refresh attachment list
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => AttachmentList(prefix: prefix),
-          fullscreenDialog: true,
-        ),
-      );
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) => AttachmentList(prefix: prefix),
+      //     fullscreenDialog: true,
+      //   ),
+      // );
     } catch (e) {
       print(" Error saving image: $e");
     }
   }
 
   Future submitDataRest() async {
-    if (file.length == 0) {
+    if (file.isEmpty) {
       showAlertPopup(
         context,
         'Error',
@@ -671,95 +677,22 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
       return;
     }
 
-    bool success = true;
-    for (int i = 0; i < (_listRef?.episitereceiptlist.length ?? 0); i++) {
-      num recQty = _listRef?.episitereceiptlist[i].submitqty ?? 0;
+    setState(() {
+      _saving = true; // <-- TURN ON ONCE
+    });
 
-      if (recQty > 0) {
+    bool success = true;
+
+    try {
+      for (int i = 0; i < (_listRef?.episitereceiptlist.length ?? 0); i++) {
+        num recQty = _listRef?.episitereceiptlist[i].submitqty ?? 0;
+
+        if (recQty <= 0) continue;
+
         String seqNo = _listRef?.episitereceiptlist[i].seqno ?? '';
         bool fullRcv = _listRef?.episitereceiptlist[i].fullrcv ?? false;
 
-        List<dynamic> _result;
-        List<dynamic> _attchresult;
-
-        setState(() {
-          _saving = true;
-        });
-
-        if (txtRefNo.text != '' && txtDateRcv.text != '') {
-          _result = await postSiteReceiptDtlRest(
-            txtRefNo.text,
-            txtDONo.text,
-            seqNo,
-            selectedDate,
-            recQty,
-            '',
-            fullRcv,
-          );
-
-          setState(() {
-            _saving = false;
-          });
-
-          if (_result[0] == false) {
-            success = false;
-            showAlertPopup(
-              context,
-              'Error',
-              'Process Site Receipt: ' + _result[1][0],
-            );
-            return;
-          } else {
-            if (file.length > 0) {
-              for (int i = file.length - 1; i >= 0; i--) {
-                File fileItem = File(file[i].path); // <-- cast to File
-
-                String fileName = fileItem.path.split('/').last;
-                String fileNamePrefix = fileName
-                    .split('_')
-                    .first; // take everything before timestamp
-                String prefix = '${txtRefNo.text}-$seqNo';
-                if (fileNamePrefix != prefix) continue;
-
-                List<int> imageBytes =
-                    fileItem.readAsBytesSync(); // <-- works now
-                String base64Image = base64Encode(imageBytes);
-
-                var responseBody = jsonDecode(_result[1]);
-
-                var data = responseBody['value'][0];
-
-                _attchresult = await uploadSiteReceiptAttachmentRest(
-                  '',
-                  'UD09',
-                  fileItem.path.split('/').last.replaceAll("'", ""),
-                  base64Image,
-                  data['Key1'],
-                  data['Key2'],
-                  data['Key3'],
-                  data['Key4'],
-                  data['Key5'],
-                );
-
-                if (_attchresult[0] == false) {
-                  success = false;
-                  showAlertPopup(
-                    context,
-                    'Error',
-                    'Process PO Receipt Detail: ' + _attchresult[1][0],
-                  );
-                  return;
-                } else {
-                  fileItem.delete(recursive: true); // <-- works now
-                }
-              }
-            }
-          }
-        } else {
-          setState(() {
-            _saving = false;
-          });
-
+        if (txtRefNo.text.isEmpty || txtDateRcv.text.isEmpty) {
           success = false;
           showAlertPopup(
             context,
@@ -768,13 +701,78 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
           );
           return;
         }
+
+        List<dynamic> _result = await postSiteReceiptDtlRest(
+          txtRefNo.text,
+          txtDONo.text,
+          seqNo,
+          selectedDate,
+          recQty,
+          '',
+          fullRcv,
+        );
+
+        if (_result[0] == false) {
+          success = false;
+          showAlertPopup(
+            context,
+            'Error',
+            'Process Site Receipt: ' + _result[1][0],
+          );
+          return;
+        }
+
+        // Upload attachments
+        var responseBody = jsonDecode(_result[1]);
+        var data = responseBody['value'][0];
+
+        for (int f = file.length - 1; f >= 0; f--) {
+          File fileItem = File(file[f].path);
+
+          String fileName = fileItem.path.split('/').last;
+          String fileNamePrefix = fileName.split('_').first;
+          String prefix = '${txtRefNo.text}-$seqNo';
+
+          if (fileNamePrefix != prefix) continue;
+
+          String base64Image = base64Encode(fileItem.readAsBytesSync());
+
+          List<dynamic> _attchresult = await uploadSiteReceiptAttachmentRest(
+            '',
+            'UD09',
+            fileName.replaceAll("'", ""),
+            base64Image,
+            data['Key1'],
+            data['Key2'],
+            data['Key3'],
+            data['Key4'],
+            data['Key5'],
+          );
+
+          if (_attchresult[0] == false) {
+            success = false;
+            showAlertPopup(
+              context,
+              'Error',
+              'Process PO Receipt Detail: ' + _attchresult[1][0],
+            );
+            return;
+          }
+
+          fileItem.deleteSync(recursive: true);
+        }
       }
-    }
 
-    if (success) {
-      showOKDialog(context, 'Success', 'Transactions are successful.');
-
-      //Navigator.pop(context, 'A');
+      if (success) {
+        showOKDialog(context, 'Success', 'Transactions are successful.');
+      }
+    } finally {
+      // <-- ALWAYS turn off loader at the end
+      if (mounted) {
+        setState(() {
+          _saving = false;
+        });
+      }
     }
   }
 
