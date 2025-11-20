@@ -3,7 +3,7 @@
     <uses-permission android:name="android.permission.USE_FINGERPRINT"/>
     <uses-permission android:name="android.permission.CAMERA" />
     <application
-        android:label="MWS"
+        android:label="MWS V2"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

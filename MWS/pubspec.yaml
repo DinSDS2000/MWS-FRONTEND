@@ -29,6 +29,7 @@ dependencies:
   flutter_udid: ^4.0.0
   image_picker: ^1.2.0
   path_provider: ^2.1.5
+  flutter_launcher_icons: ^0.14.4
   # imei_plugin: ^1.2.0
   
 dev_dependencies:
@@ -42,4 +43,10 @@ flutter:
 
   assets:
    - assets/images/login_contact.png
+   - assets/images/sds_logo.png
    - CHANGELOG.md
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/sds_logo.png"
