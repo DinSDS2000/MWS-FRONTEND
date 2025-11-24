@@ -678,7 +678,7 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
     }
 
     setState(() {
-      _saving = true; // <-- TURN ON ONCE
+      _saving = true;
     });
 
     bool success = true;
@@ -714,10 +714,19 @@ class _SitereceiptlistState extends State<SiteReceiptList> {
 
         if (_result[0] == false) {
           success = false;
+
+          // _result[1] is a JSON STRING, so decode it first
+          var response = jsonDecode(_result[1]);
+
+          String errorMessage =
+              response['Errors'] != null && response['Errors'].isNotEmpty
+                  ? response['Errors'].join('\n')
+                  : 'Unknown error occurred';
+
           showAlertPopup(
             context,
             'Error',
-            'Process Site Receipt: ' + _result[1][0],
+            'Process Site Receipt: $errorMessage',
           );
           return;
         }

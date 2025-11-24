@@ -43,7 +43,7 @@ class EpiSiteReceipt {
   @JsonKey(name: "UD09_Key3")
   String? jobnum;
 
-  @JsonKey(name: "UD09_Number02")
+  @JsonKey(name: "UD09_Number01")
   num? tranqty;
 
   @JsonKey(name: "UD09_ShortChar02")

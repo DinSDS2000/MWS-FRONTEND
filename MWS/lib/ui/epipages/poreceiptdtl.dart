@@ -1052,133 +1052,128 @@ class POReceiptDtlState extends State<POReceiptDtl> {
   Future submitDataRest() async {
     List<dynamic> _result;
 
-    // if (num.parse(txtQty.text) > widget.epiporeceiptdtl.balqty)
-    // {
-    //   showAlertPopup(context, 'Error', 'Transaction Block Due to Receiving More Than the Purchase Quantity.');
-    //   txtQty.text = '0';
-    // }
-
-    //Create lot if Track Lot = true and Lot does not exist
-
-    if (txtLotNo.text != '' && _lotEnabled == true) {
-      setState(() {
-        _saving = true;
-      });
-
-      _result = await isPartLotExist(txtPartNo.text, txtLotNo.text);
-
-      setState(() {
-        _saving = false;
-      });
-
-      if (_result[0] == false) {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) =>
-                    LotCreation(txtPartNo.text, txtLotNo.text),
-                fullscreenDialog: true));
-        return;
-      }
-    }
-
-    // Update PO Receiot
     setState(() {
       _saving = true;
     });
 
-    /* if (widget.packno != '') {
-      _result = await isPOReceiptHeaderExist(
-          widget.epiporeceiptdtl.ponum.toString(), widget.packno);
-      if (_result[0] == false) {
-        _result = await postNewPOReceiptHead(
-            widget.epiporeceiptdtl.ponum.toString(),
-            widget.packno,
-            widget.epiporeceiptdtl.vendorid);
+    try {
+      // Create lot if Track Lot = true and Lot does not exist
+      if (txtLotNo.text != '' && _lotEnabled == true) {
+        _result = await isPartLotExist(txtPartNo.text, txtLotNo.text);
 
         if (_result[0] == false) {
-          setState(() {
-            _saving = false;
-          });
-
-          showAlertPopup(
-              context, 'Error', 'Process PO Receipt Head : ' + _result[1]);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => LotCreation(txtPartNo.text, txtLotNo.text),
+              fullscreenDialog: true,
+            ),
+          );
           return;
         }
       }
-    } */
 
-    if (widget.packno != '') {
+      // Ensure pack number is not blank
+      if (widget.packno == '') {
+        showAlertPopup(
+          context,
+          'Error',
+          'Process PO Receipt Detail: Pack No. cannot be blank!',
+        );
+        return;
+      }
+
+      // Post PO Receipt Detail
       _result = await postNewPOReceiptDtl(
-          widget.epiporeceiptdtl.ponum.toString(),
-          widget.epiporeceiptdtl.poline.toString(),
-          widget.epiporeceiptdtl.polinerel.toString(),
-          _packno,
-          widget.epiporeceiptdtl.vendornum.toString(),
-          txtPartNo.text,
-          _selectedEpiWhse?.id ?? "",
-          txtBin.text,
-          txtLotNo.text,
-          txtQty.text,
-          txtIUM.text,
-          txtDriverName.text,
-          txtDriverIC.text,
-          txtLorry.text,
-          txtNoofLable.text);
-
-      setState(() {
-        _saving = false;
-      });
+        widget.epiporeceiptdtl.ponum.toString(),
+        widget.epiporeceiptdtl.poline.toString(),
+        widget.epiporeceiptdtl.polinerel.toString(),
+        _packno,
+        widget.epiporeceiptdtl.vendornum.toString(),
+        txtPartNo.text,
+        _selectedEpiWhse?.id ?? "",
+        txtBin.text,
+        txtLotNo.text,
+        txtQty.text,
+        txtIUM.text,
+        txtDriverName.text,
+        txtDriverIC.text,
+        txtLorry.text,
+        txtNoofLable.text,
+      );
 
       if (_result[0] == false) {
+        var response = jsonDecode(_result[1]);
+
+        String errorMessage =
+            response['Errors'] != null && response['Errors'].isNotEmpty
+                ? response['Errors'].join('\n')
+                : 'Unknown error occurred';
+
         showAlertPopup(
-            context, 'Error', 'Process PO Receipt Detail: ' + _result[1][0]);
+          context,
+          'Error',
+          'Process PO Receipt Detail: $errorMessage',
+        );
         return;
-      } else {
-        // var response = _result[2];
-        // var rcvDtl = response['RcvDtl'][response['RcvDtl'].length - 1];
-        // var packLine = rcvDtl['PackLine'].toString();
-        if (file.length > 0) {
-          //for (int i = 0; i < file.length; i++) {
-          for (int i = file.length - 1; i >= 0; i--) {
-            File fileItem = File(file[i].path);
+      }
 
-            // List<int> imageBytes = fileItem.readAsBytesSync();
-            // String base64Image = base64Encode(imageBytes);
-            double packLineDouble = double.parse(_result[1].toString());
+      // Upload attachments if any
+      if (file.isNotEmpty) {
+        for (int i = file.length - 1; i >= 0; i--) {
+          File fileItem = File(file[i].path);
 
-            _result = await uploadAttachmentRcvDtlRest(
-                docTypeID: '',
-                parentTable: 'RcvDtl',
-                file: fileItem,
-                vendorNum: widget.epiporeceiptdtl.vendornum.toDouble(),
-                purPoint: widget.epiporeceiptdtl.purpoint ?? "",
-                packSlip: _packno,
-                packLine: packLineDouble);
+          double packLineDouble = double.parse(_result[1].toString());
 
-            if (_result[0] == false) {
-              showAlertPopup(context, 'Error',
-                  'Process PO Receipt Detail: ' + _result[1][0]);
-              return;
-            } else {
-              file[i].delete(recursive: true);
+          _result = await uploadAttachmentRcvDtlRest(
+            docTypeID: '',
+            parentTable: 'RcvDtl',
+            file: fileItem,
+            vendorNum: widget.epiporeceiptdtl.vendornum.toDouble(),
+            purPoint: widget.epiporeceiptdtl.purpoint ?? "",
+            packSlip: _packno,
+            packLine: packLineDouble,
+          );
+
+          if (_result[0] == false) {
+            dynamic raw = _result[1];
+
+            Map<String, dynamic> response;
+            try {
+              response = raw is Map<String, dynamic>
+                  ? raw
+                  : jsonDecode(raw.toString());
+            } catch (e) {
+              response = {};
             }
+
+            String errorMessage;
+            if (response.containsKey('Errors') &&
+                response['Errors'] != null &&
+                response['Errors'].isNotEmpty) {
+              errorMessage = (response['Errors'] as List).join('\n');
+            } else {
+              errorMessage = raw.toString();
+            }
+
+            showAlertPopup(
+              context,
+              'Error',
+              'Process PO Receipt Detail: $errorMessage',
+            );
+            return;
+          } else {
+            file[i].delete(recursive: true);
           }
         }
       }
-    } else {
+
+      showOKDialog(context, 'Success', 'Transaction is successful.');
+    } finally {
       setState(() {
         _saving = false;
       });
-
-      showAlertPopup(context, 'Error',
-          'Process PO Receipt Detail: Pack No. cannot be blank!');
-      return;
     }
-
-    showOKDialog(context, 'Success', '‘Transaction is successful.');
-
-    //Navigator.pop(context, 'A');
   }
 
   showOKDialog(BuildContext context, String title, String detail) {
