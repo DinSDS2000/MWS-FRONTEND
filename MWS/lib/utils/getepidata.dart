@@ -456,6 +456,38 @@ Future<List<dynamic>> getEpiPOReceiptList(String ponum, String legalnum) async {
   }
 }
 
+Future<String> getPORelTranType(int poNum, int poLine, int poRel) async {
+  // Build query parameters
+  String params = '?strUid=' +
+      _globals.epiUsername +
+      '&strPass=' +
+      Uri.encodeComponent(_globals.epiPassword) +
+      '&strEnvId=' +
+      _globals.epiEnvId +
+      '&strCurCompany=' +
+      _globals.epiCompanyId +
+      '&strCurPlant=' +
+      _globals.epiSiteId +
+      '&PONum=' +
+      poNum.toString() +
+      '&POLine=' +
+      poLine.toString() +
+      '&PORel=' +
+      poRel.toString();
+
+  // Call your backend
+  var response = await WebClient(User(token: ''))
+      .get(_globals.epiApiBaseUrl + '/api/Receipt/GetPORelTranType' + params);
+
+  String tranType = '';
+
+  if (response != null) {
+    tranType = response.toString();
+  }
+
+  return tranType;
+}
+
 Future<List<UOM>> getEpiUOMList(String partno, List<UOM> _uoms) async {
   _uoms.removeWhere((item) => item.id != '0');
 

@@ -34,6 +34,7 @@ class POReceiptDtlState extends State<POReceiptDtl> {
   bool _saving = false;
   bool _lotEnabled = false;
   String _packno = '';
+  String _tranType = '';
 
   var txtPartNo = new TextEditingController();
   var txtPartDesc = new TextEditingController();
@@ -52,6 +53,7 @@ class POReceiptDtlState extends State<POReceiptDtl> {
 
   @override
   void initState() {
+    _loadTranType();
     txtWhse.addListener(onChangeWhse);
     _textFocusWhse.addListener(onChangeWhse);
 
@@ -73,6 +75,18 @@ class POReceiptDtlState extends State<POReceiptDtl> {
     txtNoofLable.text = '1';
 
     loadPartInfo();
+  }
+
+  Future<void> _loadTranType() async {
+    String tranType = await getPORelTranType(
+      widget.epiporeceiptdtl.ponum,
+      widget.epiporeceiptdtl.poline,
+      widget.epiporeceiptdtl.polinerel,
+    );
+
+    setState(() {
+      _tranType = tranType;
+    });
   }
 
   void onChangeQty() {
@@ -291,6 +305,7 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                               autocorrect: false,
                               controller: txtWhse,
                               focusNode: _textFocusWhse,
+                              enabled: _tranType == 'PUR-STK' ? true : false,
                             ),
                           ),
                         ),
@@ -318,6 +333,7 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                               keyboardType: TextInputType.text,
                               autocorrect: false,
                               controller: txtBin,
+                              enabled: _tranType == 'PUR-STK' ? true : false,
                             ),
                           ),
                         ),
@@ -610,8 +626,8 @@ class POReceiptDtlState extends State<POReceiptDtl> {
           _packno,
           widget.epiporeceiptdtl.vendornum.toString(),
           txtPartNo.text,
-          txtWhse.text,
-          txtBin.text,
+          _tranType == 'PUR-STK' ? txtWhse.text : 'RC',
+          _tranType == 'PUR-STK' ? txtBin.text : 'Rack-a',
           txtLotNo.text,
           txtQty.text,
           txtIUM.text,

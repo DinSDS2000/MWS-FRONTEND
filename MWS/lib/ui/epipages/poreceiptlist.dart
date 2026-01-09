@@ -382,7 +382,7 @@ class POReceiptListState extends State<POReceiptList> {
           ),
           trailing:
               Icon(Icons.keyboard_arrow_right, color: Colors.white, size: 30.0),
-          onTap: () {
+          onTap: () async {
             if (txtPackNo.text == '') {
               showAlertPopup(context, 'Error', 'Please provide pack no.');
               return;
