@@ -1497,30 +1497,41 @@ Future<List<dynamic>> postProdEndOperationByBatch(String empId, String jobNo,
 }
 
 Future<List<dynamic>> postProdEndOperationByEmp(
-    String laborHedSeq, String laborDtlSeq, String transQty) async {
+  String laborHedSeq,
+  String laborDtlSeq,
+  String? transQty, {
+  String? nonConQty,
+  String? reason,
+}) async {
   bool result = false;
 
-  String _params = '?strUID=' +
-      _globals.epiUsername +
-      '&strPass=' +
-      Uri.encodeComponent(_globals.epiPassword) +
-      '&strEnvId=' +
-      _globals.epiEnvId +
-      '&strCurCompany=' +
-      _globals.epiCompanyId +
-      '&iLaborHedSeq=' +
-      laborHedSeq +
-      '&iLaborDtlSeq=' +
-      laborDtlSeq +
-      '&strCurPlant=' +
-      _globals.epiSiteId +
-      '&dTranQty=' +
-      transQty;
+  final String finalTransQty =
+      (transQty == null || transQty.isEmpty) ? '0' : transQty;
+
+  final Map<String, String> params = {
+    'strUID': _globals.epiUsername,
+    'strPass': Uri.encodeComponent(_globals.epiPassword),
+    'strEnvId': _globals.epiEnvId,
+    'strCurCompany': _globals.epiCompanyId,
+    'iLaborHedSeq': laborHedSeq,
+    'iLaborDtlSeq': laborDtlSeq,
+    'strCurPlant': _globals.epiSiteId,
+    'dTranQty': finalTransQty, // always send, default 0
+  };
+
+  if (nonConQty != null && nonConQty.isNotEmpty) {
+    params['discQty'] = nonConQty;
+    if (nonConQty != '0' && reason != null && reason.isNotEmpty) {
+      params['discReason'] = reason;
+    }
+  }
+
+  final Uri uri = Uri.parse(
+    _globals.epiApiBaseUrl + '/api/Productions/PerformEmployeeEndActivity',
+  ).replace(queryParameters: params);
 
   http.Response response = await WebClient(User(token: '')).getHttpReponse(
-    _globals.epiApiBaseUrl +
-        '/api/Productions/PerformEmployeeEndActivity' +
-        _params,
+    uri.toString(),
     headers: {
       HttpHeaders.authorizationHeader: "Bearer ",
     },

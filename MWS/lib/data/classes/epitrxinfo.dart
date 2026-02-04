@@ -1,4 +1,3 @@
-
 // ignore_for_file: deprecated_member_use
 
 import 'package:json_annotation/json_annotation.dart';
@@ -8,7 +7,7 @@ part 'epitrxinfo.g.dart';
 @JsonSerializable()
 class EpiTrxInfo {
   EpiTrxInfo({
-    required this.token,
+    this.token,
     required this.company,
     required this.sysdate,
     required this.tranno,
@@ -23,35 +22,46 @@ class EpiTrxInfo {
     required this.uom,
     required this.entryperson,
   });
-
+  @JsonKey(name: 'Company')
   final String company;
 
+  @JsonKey(name: 'SysDate')
   final String sysdate;
 
+  @JsonKey(name: 'TranNo')
   final int tranno;
 
+  @JsonKey(name: 'TranType')
   final String trantype;
 
+  @JsonKey(name: 'PartNum')
   final String partnum;
 
+  @JsonKey(name: 'TranQty')
   final double tranqty;
 
+  @JsonKey(name: 'WarehouseCode')
   final String whsecode;
 
+  @JsonKey(name: 'BinNum')
   final String binnum;
 
+  @JsonKey(name: 'JobNum')
   final String jobnum;
 
+  @JsonKey(name: 'AssemblySeq')
   final int assemblyseq;
 
+  @JsonKey(name: 'LotNum')
   final String lotnum;
 
+  @JsonKey(name: 'UOM')
   final String uom;
 
+  @JsonKey(name: 'EntryPerson')
   final String entryperson;
 
-  @JsonKey(nullable: true)
-  String token;
+  String? token;
 
   factory EpiTrxInfo.fromJson(Map<String, dynamic> json) =>
       _$EpiTrxInfoFromJson(json);

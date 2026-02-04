@@ -544,6 +544,23 @@ class UOM {
   final String id;
 }
 
+Future<List<EpiReason>> getEpiReasonList2(String reasonType) async {
+  String params = '?strUid=${_globals.epiUsername}'
+      '&strPass=${Uri.encodeComponent(_globals.epiPassword)}'
+      '&strEnvId=${_globals.epiEnvId}'
+      '&strCurCompany=${_globals.epiCompanyId}'
+      '&strReasonType=$reasonType';
+
+  final data = await WebClient(User(token: '')).get(
+      _globals.epiApiBaseUrl + '/api/Productions/LoadReasonCodes' + params);
+
+  if (data == null || data.isEmpty) {
+    return [];
+  }
+
+  return data.map<EpiReason>((json) => EpiReason.fromJson(json)).toList();
+}
+
 Future<List<ReasonItem>> getEpiReasonList(
     String _reasonType, List<ReasonItem> _reasonItems) async {
   _reasonItems.removeWhere((item) => item.id != '0');
