@@ -1459,7 +1459,7 @@ Future<List<dynamic>> postProdEndOperationByBatch(String empId, String jobNo,
   String _params = '?strUID=' +
       _globals.epiUsername +
       '&strPass=' +
-      Uri.encodeComponent(_globals.epiPassword) +
+      _globals.epiPassword +
       '&strEnvId=' +
       _globals.epiEnvId +
       '&strCurCompany=' +
@@ -1510,7 +1510,7 @@ Future<List<dynamic>> postProdEndOperationByEmp(
 
   final Map<String, String> params = {
     'strUID': _globals.epiUsername,
-    'strPass': Uri.encodeComponent(_globals.epiPassword),
+    'strPass': _globals.epiPassword,
     'strEnvId': _globals.epiEnvId,
     'strCurCompany': _globals.epiCompanyId,
     'iLaborHedSeq': laborHedSeq,
