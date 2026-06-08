@@ -428,6 +428,12 @@
       "languageVersion": "3.2"
     },
     {
+      "name": "mask_text_input_formatter",
+      "rootUri": "file:///C:/Users/Smart%20Agility/AppData/Local/Pub/Cache/hosted/pub.dev/mask_text_input_formatter-2.9.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "matcher",
       "rootUri": "file:///C:/Users/Smart%20Agility/AppData/Local/Pub/Cache/hosted/pub.dev/matcher-0.12.17",
       "packageUri": "lib/",
@@ -734,7 +740,7 @@
       "languageVersion": "3.0"
     }
   ],
-  "generated": "2026-01-23T10:31:32.414823Z",
+  "generated": "2026-05-19T01:12:38.264099Z",
   "generator": "pub",
   "generatorVersion": "3.7.0",
   "flutterRoot": "file:///C:/flutter",

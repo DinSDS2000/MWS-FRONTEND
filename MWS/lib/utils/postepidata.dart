@@ -1544,3 +1544,130 @@ Future<List<dynamic>> postProdEndOperationByEmp(
 
   return [result, response.body];
 }
+
+Future<List<dynamic>> postPerformCustReplaceItem({
+  String? custId,
+  String? supplierId,
+  required String partNum,
+  String? lotNum,
+  required String desc,
+  required String qty,
+  required String uom,
+  required String whseCode,
+  required String binNum,
+  int? orderNum,
+  required String packNum,
+  String? invoiceNum,
+}) async {
+  bool result = false;
+
+  final Map<String, String> params = {
+    'strUID': _globals.epiUsername,
+    'strPass': _globals.epiPassword,
+    'strEnvId': _globals.epiEnvId,
+    'strCurCompany': _globals.epiCompanyId,
+    'strCurPlant': _globals.epiSiteId,
+    'strShippedPart': partNum,
+    'strDesc': desc,
+    'strQty': qty,
+    'strUom': uom,
+    'strWhse': whseCode,
+    'strBin': binNum,
+    'strOrderNum': orderNum.toString(),
+    'strPackNum': packNum,
+    'InvoiceNum': invoiceNum ?? "",
+  };
+
+  if (custId != null && custId.isNotEmpty) {
+    params['strCustomer'] = custId;
+  }
+  if (supplierId != null && supplierId.isNotEmpty) {
+    params['strSupplier'] = supplierId;
+  }
+  if (lotNum != null && lotNum.isNotEmpty) {
+    params['strShippedLot'] = lotNum;
+  }
+
+  final Uri uri = Uri.parse(
+    _globals.epiApiBaseUrl + '/api/Productions/PerformCustomerReplaceItem',
+  ).replace(queryParameters: params);
+
+  http.Response response = await WebClient(User(token: '')).getHttpReponse(
+    uri.toString(),
+    headers: {
+      HttpHeaders.authorizationHeader: "Bearer ",
+    },
+    method: HttpMethod.post,
+  );
+
+  if (response.statusCode == 200) {
+    result = true;
+  }
+
+  return [result, response.body];
+}
+
+Future<List<dynamic>> postPerformEmptyPackagingReturn({
+  required String partNum,
+  required String ium,
+  required String tranQty,
+  required String warehouseCode,
+  required String binNum,
+  String? lotNum,
+  String? reference,
+  required String desc,
+  int? orderNum,
+  int? packNum,
+  required String custId,
+  int labelCount = 1,
+}) async {
+  bool result = false;
+
+  final Map<String, String> params = {
+    'strUID': _globals.epiUsername,
+    'strPass': _globals.epiPassword,
+    'strEnvId': _globals.epiEnvId,
+    'strCurCompany': _globals.epiCompanyId,
+    'strCurPlant': _globals.epiSiteId,
+    'strPartNum': partNum,
+    'strIUM': ium,
+    'dTranQty': tranQty,
+    'strWarehouseCode': warehouseCode,
+    'strBinNum': binNum,
+    'strDesc': desc,
+    'strCustId': custId,
+  };
+
+  if (orderNum != null) {
+    params['orderNum'] = orderNum.toString();
+  }
+  if (packNum != null) {
+    params['packNum'] = packNum.toString();
+  }
+
+  // Nullable params — only add if provided
+  if (lotNum != null && lotNum.isNotEmpty) {
+    params['strLotNum'] = lotNum;
+  }
+  if (reference != null && reference.isNotEmpty) {
+    params['strReference'] = reference;
+  }
+
+  final Uri uri = Uri.parse(
+    _globals.epiApiBaseUrl + '/api/IssueMtl/PerformEmptyPackagingReturn',
+  ).replace(queryParameters: params);
+
+  http.Response response = await WebClient(User(token: '')).getHttpReponse(
+    uri.toString(),
+    headers: {
+      HttpHeaders.authorizationHeader: "Bearer ",
+    },
+    method: HttpMethod.post,
+  );
+
+  if (response.statusCode == 200) {
+    result = true;
+  }
+
+  return [result, response.body];
+}

@@ -2,7 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_epihhinventory/ui/epipages/acceptinventoryrequestlist.dart';
+import 'package:flutter_epihhinventory/ui/epipages/customerreplacement.dart';
+import 'package:flutter_epihhinventory/ui/epipages/customerreturn.dart';
 import 'package:flutter_epihhinventory/ui/epipages/deliverytracking.dart';
+import 'package:flutter_epihhinventory/ui/epipages/emptypackagingreturn.dart';
 import 'package:flutter_epihhinventory/ui/epipages/issueassembly.dart';
 import 'package:flutter_epihhinventory/ui/epipages/issuematerial.dart';
 import 'package:flutter_epihhinventory/ui/epipages/issuemiscmaterial.dart';
@@ -23,6 +26,7 @@ import 'package:flutter_epihhinventory/ui/epipages/returnmaterial.dart';
 import 'package:flutter_epihhinventory/ui/epipages/returnmiscmaterial.dart';
 import 'package:flutter_epihhinventory/ui/epipages/sitereceiptlist.dart';
 import 'package:flutter_epihhinventory/ui/epipages/splitmergeuom.dart';
+import 'package:flutter_epihhinventory/ui/epipages/supplierreturn.dart';
 import 'package:flutter_epihhinventory/utils/popUp.dart';
 import 'package:scoped_model/scoped_model.dart';
 
@@ -1005,6 +1009,230 @@ class Home extends StatelessWidget {
                                       MaterialPageRoute(
                                           builder: (context) =>
                                               Materialloadinglist()));
+                                }
+                              },
+                            ),
+                          ),
+                        )),
+                    Visibility(
+                        visible: true,
+                        child: Card(
+                          elevation: 8.0,
+                          shape: RoundedRectangleBorder(
+                            side:
+                                new BorderSide(color: Colors.blue, width: 2.0),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          margin: new EdgeInsets.symmetric(
+                              horizontal: 10.0, vertical: 6.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                                color: Color.fromRGBO(0, 0, 0, 0)),
+                            child: ListTile(
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 20.0, vertical: 10.0),
+                              leading: Container(
+                                padding: EdgeInsets.only(right: 12.0),
+                                decoration: new BoxDecoration(
+                                    border: new Border(
+                                        right: new BorderSide(
+                                            width: 1.0,
+                                            color: Colors.blue[900]!))),
+                                child: Icon(Icons.launch,
+                                    color: Colors.blue[900]!),
+                              ),
+                              title: Text(
+                                "Empty Packaging Return",
+                                style: TextStyle(
+                                    color: Colors.blue[900]!,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              trailing: Icon(Icons.keyboard_arrow_right,
+                                  color: Colors.blue[900]!, size: 30.0),
+                              onTap: () {
+                                if (_globals.epiCompanyId == '' ||
+                                    _globals.epiSiteId == '') {
+                                  showAlertPopup(context, 'Warning',
+                                      'Please select the Company or Site.');
+                                } else if (_globals
+                                        .epiisenablematerialloading ==
+                                    false) {
+                                  showAlertPopup(context, 'Warning',
+                                      'You do not have permission to access.');
+                                } else {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              EmptyPackaginGReturn()));
+                                }
+                              },
+                            ),
+                          ),
+                        )),
+                    Visibility(
+                        visible: true,
+                        child: Card(
+                          elevation: 8.0,
+                          shape: RoundedRectangleBorder(
+                            side:
+                                new BorderSide(color: Colors.blue, width: 2.0),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          margin: new EdgeInsets.symmetric(
+                              horizontal: 10.0, vertical: 6.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                                color: Color.fromRGBO(0, 0, 0, 0)),
+                            child: ListTile(
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 20.0, vertical: 10.0),
+                              leading: Container(
+                                padding: EdgeInsets.only(right: 12.0),
+                                decoration: new BoxDecoration(
+                                    border: new Border(
+                                        right: new BorderSide(
+                                            width: 1.0,
+                                            color: Colors.blue[900]!))),
+                                child: Icon(Icons.launch,
+                                    color: Colors.blue[900]!),
+                              ),
+                              title: Text(
+                                "Customer Return",
+                                style: TextStyle(
+                                    color: Colors.blue[900]!,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              trailing: Icon(Icons.keyboard_arrow_right,
+                                  color: Colors.blue[900]!, size: 30.0),
+                              onTap: () {
+                                if (_globals.epiCompanyId == '' ||
+                                    _globals.epiSiteId == '') {
+                                  showAlertPopup(context, 'Warning',
+                                      'Please select the Company or Site.');
+                                } else if (_globals
+                                        .epiisenablematerialloading ==
+                                    false) {
+                                  showAlertPopup(context, 'Warning',
+                                      'You do not have permission to access.');
+                                } else {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              CustomerReturn()));
+                                }
+                              },
+                            ),
+                          ),
+                        )),
+                    Visibility(
+                        visible: true,
+                        child: Card(
+                          elevation: 8.0,
+                          shape: RoundedRectangleBorder(
+                            side:
+                                new BorderSide(color: Colors.blue, width: 2.0),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          margin: new EdgeInsets.symmetric(
+                              horizontal: 10.0, vertical: 6.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                                color: Color.fromRGBO(0, 0, 0, 0)),
+                            child: ListTile(
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 20.0, vertical: 10.0),
+                              leading: Container(
+                                padding: EdgeInsets.only(right: 12.0),
+                                decoration: new BoxDecoration(
+                                    border: new Border(
+                                        right: new BorderSide(
+                                            width: 1.0,
+                                            color: Colors.blue[900]!))),
+                                child: Icon(Icons.launch,
+                                    color: Colors.blue[900]!),
+                              ),
+                              title: Text(
+                                "Customer Replacement Item",
+                                style: TextStyle(
+                                    color: Colors.blue[900]!,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              trailing: Icon(Icons.keyboard_arrow_right,
+                                  color: Colors.blue[900]!, size: 30.0),
+                              onTap: () {
+                                if (_globals.epiCompanyId == '' ||
+                                    _globals.epiSiteId == '') {
+                                  showAlertPopup(context, 'Warning',
+                                      'Please select the Company or Site.');
+                                } else if (_globals
+                                        .epiisenablematerialloading ==
+                                    false) {
+                                  showAlertPopup(context, 'Warning',
+                                      'You do not have permission to access.');
+                                } else {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              CustomerReplacementItem()));
+                                }
+                              },
+                            ),
+                          ),
+                        )),
+                    Visibility(
+                        visible: true,
+                        child: Card(
+                          elevation: 8.0,
+                          shape: RoundedRectangleBorder(
+                            side:
+                                new BorderSide(color: Colors.blue, width: 2.0),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          margin: new EdgeInsets.symmetric(
+                              horizontal: 10.0, vertical: 6.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                                color: Color.fromRGBO(0, 0, 0, 0)),
+                            child: ListTile(
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 20.0, vertical: 10.0),
+                              leading: Container(
+                                padding: EdgeInsets.only(right: 12.0),
+                                decoration: new BoxDecoration(
+                                    border: new Border(
+                                        right: new BorderSide(
+                                            width: 1.0,
+                                            color: Colors.blue[900]!))),
+                                child: Icon(Icons.launch,
+                                    color: Colors.blue[900]!),
+                              ),
+                              title: Text(
+                                "Supplier Return",
+                                style: TextStyle(
+                                    color: Colors.blue[900]!,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              trailing: Icon(Icons.keyboard_arrow_right,
+                                  color: Colors.blue[900]!, size: 30.0),
+                              onTap: () {
+                                if (_globals.epiCompanyId == '' ||
+                                    _globals.epiSiteId == '') {
+                                  showAlertPopup(context, 'Warning',
+                                      'Please select the Company or Site.');
+                                } else if (_globals
+                                        .epiisenablematerialloading ==
+                                    false) {
+                                  showAlertPopup(context, 'Warning',
+                                      'You do not have permission to access.');
+                                } else {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              SupplierReturn()));
                                 }
                               },
                             ),

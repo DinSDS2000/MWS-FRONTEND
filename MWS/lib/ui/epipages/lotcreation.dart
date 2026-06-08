@@ -169,7 +169,10 @@ class LotCreationState extends State<LotCreation> {
                       width: 54,
                       child: ElevatedButton(
                         // Calendar.
-                        child: Icon(Icons.calendar_today),
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.zero, // Removes default padding
+                        ),
+                        child: Center(child: Icon(Icons.calendar_today)),
                         onPressed: () {
                           if (_beforeDtEnabled == true) {
                             _selectBestBeforeDate(context);
@@ -199,6 +202,9 @@ class LotCreationState extends State<LotCreation> {
                       width: 54,
                       child: ElevatedButton(
                         // Calendar.
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.zero, // Removes default padding
+                        ),
                         child: Icon(Icons.calendar_today),
                         onPressed: () {
                           if (_mfgDtEnabled == true) {
@@ -229,6 +235,9 @@ class LotCreationState extends State<LotCreation> {
                       width: 54,
                       child: ElevatedButton(
                         // Calendar.
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.zero, // Removes default padding
+                        ),
                         child: Icon(Icons.calendar_today),
                         onPressed: () {
                           if (_cureDtEnabled == true) {
@@ -259,6 +268,9 @@ class LotCreationState extends State<LotCreation> {
                       width: 54,
                       child: ElevatedButton(
                         // Calendar.
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.zero, // Removes default padding
+                        ),
                         child: Icon(Icons.calendar_today),
                         onPressed: () {
                           if (_expDtEnabled == true) {
@@ -324,6 +336,7 @@ class LotCreationState extends State<LotCreation> {
   Future<Null> _selectBestBeforeDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
         context: context,
+        keyboardType: TextInputType.datetime,
         initialDate: DateTime.now(),
         firstDate: DateTime(2000, 1),
         lastDate: DateTime(2100));
@@ -335,6 +348,7 @@ class LotCreationState extends State<LotCreation> {
   Future<Null> _selectOrigMfgDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
         context: context,
+        keyboardType: TextInputType.datetime,
         initialDate: DateTime.now(),
         firstDate: DateTime(2000, 1),
         lastDate: DateTime(2100));
@@ -346,6 +360,7 @@ class LotCreationState extends State<LotCreation> {
   Future<Null> _selectCureDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
         context: context,
+        keyboardType: TextInputType.datetime,
         initialDate: DateTime.now(),
         firstDate: DateTime(2000, 1),
         lastDate: DateTime(2100));
@@ -357,6 +372,7 @@ class LotCreationState extends State<LotCreation> {
   Future<Null> _selectExpiryDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
         context: context,
+        keyboardType: TextInputType.datetime,
         initialDate: DateTime.now(),
         firstDate: DateTime(2000, 1),
         lastDate: DateTime(2100));

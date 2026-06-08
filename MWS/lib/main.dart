@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_epihhinventory/data/models/auth.dart';
 import 'package:flutter_epihhinventory/ui/epipages/deliverytracking.dart';
+import 'package:flutter_epihhinventory/ui/epipages/emptypackagingreturn.dart';
 import 'package:flutter_epihhinventory/ui/epipages/issueassembly.dart';
 import 'package:flutter_epihhinventory/ui/epipages/issuemiscmaterial.dart';
 import 'package:flutter_epihhinventory/ui/epipages/materialpickinglist.dart';
@@ -114,6 +115,8 @@ class _MyAppState extends State<MyApp> {
                 "/materiallist": (BuildContext context) => MaterialList(),
                 "/materialloadinglist": (BuildContext context) =>
                     Materialloadinglist(),
+                "/emptypackaginreturn": (BuildContext context) =>
+                    EmptyPackaginGReturn(),
                 // "/materialpicking": (BuildContext context) => MaterialPicking(),
                 "/create": (BuildContext context) => CreateAccount(),
                 "/systemsetting": (BuildContext context) => SystemSetting(),
