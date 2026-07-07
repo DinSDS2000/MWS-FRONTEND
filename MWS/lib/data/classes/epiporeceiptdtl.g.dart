@@ -37,6 +37,7 @@ EpiPOReceiptDtl _$EpiPOReceiptDtlFromJson(Map<String, dynamic> json) =>
       confirmed: json['Confirmed'] as bool? ?? false,
       podate: json['PODate'] as String?,
       packline: (json['PackLine'] as num?)?.toInt() ?? 0,
+      exemptionno: json['ExemptionNo'] as String?,
       purpoint: json['PurPoint'] as String?,
     );
 
@@ -72,4 +73,5 @@ Map<String, dynamic> _$EpiPOReceiptDtlToJson(EpiPOReceiptDtl instance) =>
       'PODate': instance.podate,
       'PackLine': instance.packline,
       'PurPoint': instance.purpoint,
+      'ExemptionNo': instance.exemptionno,
     };

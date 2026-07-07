@@ -37,6 +37,7 @@ class User {
     this.epienablematerialloading = false,
     this.epienableworkqueue = false,
     this.epienabledefaultlabelqty = false,
+    this.epiprinter = '',
   });
 
   @JsonKey(name: 'Epic_UserId')
@@ -131,6 +132,9 @@ class User {
 
   @JsonKey(name: 'IsEnable_UseDefaultLabelQty')
   final bool epienabledefaultlabelqty;
+
+  @JsonKey(name: 'Printer')
+  final String epiprinter;
 
   String token;
 

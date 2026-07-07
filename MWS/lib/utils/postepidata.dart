@@ -57,6 +57,8 @@ Future<List<dynamic>> postIssueMaterial(
       lotNo +
       '&strCurPlant=' +
       _globals.epiSiteId +
+      '&path=' +
+      _globals.epiPrinter +
       '&iLabelCount=' +
       noofLabel +
       '&strReference=' +
@@ -125,6 +127,8 @@ Future<List<dynamic>> postReturnMaterial(
       toBin +
       '&strCurPlant=' +
       _globals.epiSiteId +
+      '&path=' +
+      _globals.epiPrinter +
       '&iLabelCount=' +
       noofLabel +
       '&strReference=' +
@@ -382,6 +386,8 @@ Future<List<dynamic>> postIssueMiscMaterial(
       refNo +
       '&strCurPlant=' +
       _globals.epiSiteId +
+      '&path=' +
+      _globals.epiPrinter +
       '&iLabelCount=' +
       noofLabel;
 
@@ -440,6 +446,8 @@ Future<List<dynamic>> postReturnMiscMaterial(
       refNo +
       '&strCurPlant=' +
       _globals.epiSiteId +
+      '&path=' +
+      _globals.epiPrinter +
       '&iLabelCount=' +
       noofLabel;
 
@@ -505,6 +513,8 @@ Future<List<dynamic>> postIssueAssembly(
       lotNo +
       '&strCurPlant=' +
       _globals.epiSiteId +
+      '&path=' +
+      _globals.epiPrinter +
       '&iLabelCount=' +
       noofLabel +
       '&strReference=' +
@@ -570,6 +580,8 @@ Future<List<dynamic>> postReturnAssembly(
       toBin +
       '&strCurPlant=' +
       _globals.epiSiteId +
+      '&path=' +
+      _globals.epiPrinter +
       '&iLabelCount=' +
       noofLabel +
       '&strReference=' +
@@ -636,6 +648,8 @@ Future<List<dynamic>> postMoveInventory(
       refNo +
       '&strCurPlant=' +
       _globals.epiSiteId +
+      '&path=' +
+      _globals.epiPrinter +
       '&iLabelCount=' +
       noofLabel;
 
@@ -701,6 +715,8 @@ Future<List<dynamic>> postJobtoInventory(
       toBin +
       '&strCurPlant=' +
       _globals.epiSiteId +
+      '&path=' +
+      _globals.epiPrinter +
       '&iLabelCount=' +
       noofLabel +
       '&strReference=' +
@@ -766,6 +782,8 @@ Future<List<dynamic>> postJobtoSalvage(
       toBin +
       '&strCurPlant=' +
       _globals.epiSiteId +
+      '&path=' +
+      _globals.epiPrinter +
       '&iLabelCount=' +
       noofLabel;
 
@@ -871,6 +889,8 @@ Future<List<dynamic>> postCreateLot(
       _globals.epiEnvId +
       '&strCurCompany=' +
       _globals.epiCompanyId +
+      '&path=' +
+      _globals.epiPrinter +
       '&strPartNum=' +
       partNo +
       '&strLotNum=' +
@@ -992,6 +1012,8 @@ Future<List<dynamic>> postMoveInventoryRequestApproval(
       _globals.epiUsername +
       '&strPass=' +
       Uri.encodeComponent(_globals.epiPassword) +
+      '&path=' +
+      _globals.epiPrinter +
       '&dTranQty=' +
       trxQty +
       '&iLabelCount=' +
@@ -1029,6 +1051,7 @@ Future<List<dynamic>> postNewPOReceiptDtl(
     String driverName,
     String driverIC,
     String lorry,
+    String? actQty,
     String noofLabel) async {
   bool result = false;
 
@@ -1070,8 +1093,14 @@ Future<List<dynamic>> postNewPOReceiptDtl(
       driverIC +
       '&strLorry=' +
       lorry +
+      '&path=' +
+      _globals.epiPrinter +
       '&iLabelCount=' +
       noofLabel;
+
+  if (actQty != null) {
+    _params += '&actQty=$actQty';
+  }
 
   http.Response response = await WebClient(User(token: '')).getHttpReponse(
     _globals.epiApiBaseUrl + '/api/Receipt/PerformNewReceiptDetail' + _params,
@@ -1203,6 +1232,8 @@ Future<List<dynamic>> postRePrintLabel(
       jobNo +
       '&iAssemblySeq=' +
       _assmNo +
+      '&path=' +
+      _globals.epiPrinter +
       '&iLabelCount=' +
       noofLabel;
 
@@ -1259,6 +1290,8 @@ Future<List<dynamic>> postQtyAdjustment(
       refNo +
       '&strCurPlant=' +
       _globals.epiSiteId +
+      '&path=' +
+      _globals.epiPrinter +
       '&iLabelCount=' +
       noofLabel;
 
@@ -1325,6 +1358,8 @@ Future<List<dynamic>> postSplitMergeUOM(
       ium +
       '&strSplitArray=' +
       Uri.encodeComponent(jsonEncode(_arrayJson)) +
+      '&path=' +
+      _globals.epiPrinter +
       '&iLabelCount=' +
       noofLabel;
 
@@ -1573,7 +1608,6 @@ Future<List<dynamic>> postPerformCustReplaceItem({
     'strUom': uom,
     'strWhse': whseCode,
     'strBin': binNum,
-    'strOrderNum': orderNum.toString(),
     'strPackNum': packNum,
     'InvoiceNum': invoiceNum ?? "",
   };
@@ -1587,9 +1621,12 @@ Future<List<dynamic>> postPerformCustReplaceItem({
   if (lotNum != null && lotNum.isNotEmpty) {
     params['strShippedLot'] = lotNum;
   }
+  if (orderNum != null) {
+    params['strOrderNum'] = orderNum.toString();
+  }
 
   final Uri uri = Uri.parse(
-    _globals.epiApiBaseUrl + '/api/Productions/PerformCustomerReplaceItem',
+    _globals.epiApiBaseUrl + '/api/IssueMtl/PerformCustomerReplaceItem',
   ).replace(queryParameters: params);
 
   http.Response response = await WebClient(User(token: '')).getHttpReponse(

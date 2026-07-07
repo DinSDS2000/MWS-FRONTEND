@@ -20,6 +20,7 @@ class EpiPOReceipt {
     required this.approve,
     required this.doctoorder,
     required this.legalnumber,
+    required this.exemptionno,
   });
 
   final int ponum;
@@ -46,6 +47,8 @@ class EpiPOReceipt {
 
   final String legalnumber;
 
+  final String exemptionno;
+
   @JsonKey(nullable: true)
   String token;
 
@@ -68,7 +71,8 @@ class EpiPOReceiptList {
   });
 
   factory EpiPOReceiptList.fromJson(List<dynamic> json) {
-    List<EpiPOReceipt> _epiporeceiptlist = List<EpiPOReceipt>.empty(growable: true);
+    List<EpiPOReceipt> _epiporeceiptlist =
+        List<EpiPOReceipt>.empty(growable: true);
 
     for (var i = 0; i < json.length; i++) {
       _epiporeceiptlist = json.map((i) => EpiPOReceipt.fromJson(i)).toList();

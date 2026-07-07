@@ -20,6 +20,7 @@ EpiPOReceipt _$EpiPOReceiptFromJson(Map<String, dynamic> json) => EpiPOReceipt(
       approve: json['approve'] as bool,
       doctoorder: (json['doctoorder'] as num).toDouble(),
       legalnumber: json['legalnumber'] as String,
+      exemptionno: json['exemptionno'] as String,
     );
 
 Map<String, dynamic> _$EpiPOReceiptToJson(EpiPOReceipt instance) =>
@@ -36,5 +37,6 @@ Map<String, dynamic> _$EpiPOReceiptToJson(EpiPOReceipt instance) =>
       'approve': instance.approve,
       'doctoorder': instance.doctoorder,
       'legalnumber': instance.legalnumber,
+      'exemptionno': instance.exemptionno,
       'token': instance.token,
     };

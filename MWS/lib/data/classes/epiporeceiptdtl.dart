@@ -37,6 +37,7 @@ class EpiPOReceiptDtl {
     this.confirmed = false,
     this.podate,
     this.packline = 0,
+    this.exemptionno,
     this.purpoint,
   });
 
@@ -129,6 +130,9 @@ class EpiPOReceiptDtl {
 
   @JsonKey(name: 'PurPoint')
   final String? purpoint;
+
+  @JsonKey(name: 'ExemptionNo')
+  final String? exemptionno;
 
   @JsonKey(ignore: true)
   String token;

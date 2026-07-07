@@ -22,6 +22,7 @@ class _CustomerReturnState extends State<CustomerReturn> {
   var txtUOM = TextEditingController();
   var txtWhseCode = TextEditingController();
   var txtBinNum = TextEditingController();
+  List<UOM> _uoms = List<UOM>.empty(growable: true);
 
   @override
   void initState() {
@@ -36,6 +37,8 @@ class _CustomerReturnState extends State<CustomerReturn> {
         });
       }
     });
+    _uoms.add(new UOM('0', 'Not found'));
+
     super.initState();
   }
 
@@ -44,6 +47,62 @@ class _CustomerReturnState extends State<CustomerReturn> {
     _partFocus.dispose();
     txtShipPart.dispose();
     super.dispose();
+  }
+
+  void triggerUOMDropDown() {
+    _uoms.clear();
+
+    if (txtShipPart.text != '') {
+      _uoms.add(new UOM('0', 'Select UOM'));
+      getEpiUOMList(txtShipPart.text, _uoms)
+          .then((List<UOM> list) => setState(() {
+                displaySelUOMDialog();
+              }));
+    } else {
+      _uoms.add(new UOM('0', 'Not found'));
+      setState(() {
+        displaySelUOMDialog();
+      });
+    }
+  }
+
+  displaySelUOMDialog() async {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Select UOM'),
+            content: DropdownButton<UOM>(
+              isExpanded: true,
+              value: _uoms[0],
+              onChanged: (UOM? _newValue) {
+                setState(() {
+                  if (_newValue != null && _newValue.id != '0') {
+                    txtUOM.text = _newValue.id;
+                  }
+                });
+                Navigator.of(context).pop();
+              },
+              items: _uoms.map((UOM _uom) {
+                return new DropdownMenuItem<UOM>(
+                  value: _uom,
+                  child: new Text(
+                    _uom.name,
+                    style: new TextStyle(color: Colors.black),
+                  ),
+                );
+              }).toList(),
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Cancel'),
+              ),
+            ],
+          );
+        });
   }
 
   @override
@@ -197,6 +256,16 @@ class _CustomerReturnState extends State<CustomerReturn> {
                           controller: txtUOM,
                           autocorrect: false,
                         ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 54,
+                      child: ElevatedButton(
+                        onPressed: triggerUOMDropDown,
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.zero, // Removes default padding
+                        ),
+                        child: const Icon(Icons.search),
                       ),
                     ),
                   ],

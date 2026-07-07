@@ -196,33 +196,33 @@ class POReceiptListState extends State<POReceiptList> {
                     ),
                   ],
                 ),
-                // Row(
-                //   children: <Widget>[
-                //     Expanded(
-                //       child: ListTile(
-                //         title: TextFormField(
-                //           decoration: InputDecoration(labelText: 'Supplier.'),
-                //           obscureText: false,
-                //           keyboardType: TextInputType.text,
-                //           autocorrect: false,
-                //           controller: txtVendorId,
-                //         ),
-                //       ),
-                //     ),
-                //     SizedBox(width: 10),
-                //     SizedBox(
-                //       width: 54,
-                //       child: ElevatedButton(
-                //         style: ElevatedButton.styleFrom(
-                //           padding: EdgeInsets.zero,
-                //         ),
-                //         // Job No.
-                //         child: Icon(Icons.camera_alt),
-                //         onPressed: barcodeScanningPackNo,
-                //       ),
-                //     ),
-                //   ],
-                // ),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: ListTile(
+                        title: TextFormField(
+                          decoration: InputDecoration(labelText: 'Supplier.'),
+                          obscureText: false,
+                          keyboardType: TextInputType.text,
+                          autocorrect: false,
+                          controller: txtVendorId,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    SizedBox(
+                      width: 54,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                        ),
+                        // Job No.
+                        child: Icon(Icons.camera_alt),
+                        onPressed: barcodeScanningPackNo,
+                      ),
+                    ),
+                  ],
+                ),
                 Row(
                   children: <Widget>[
                     Expanded(
@@ -317,6 +317,7 @@ class POReceiptListState extends State<POReceiptList> {
     String _listWhse = '';
     String _listBin = '';
     String _listLot = '';
+    String _listExemptionNo;
 
     _listPOLine = _listPO.epiporeceiptdtllist[index].poline.toString();
     _listPOLineRel = _listPO.epiporeceiptdtllist[index].polinerel.toString();
@@ -327,6 +328,7 @@ class POReceiptListState extends State<POReceiptList> {
     _listWhse = _listPO.epiporeceiptdtllist[index].whse ?? ' ';
     _listBin = _listPO.epiporeceiptdtllist[index].bin ?? ' ';
     _listLot = _listPO.epiporeceiptdtllist[index].lotnum ?? ' ';
+    _listExemptionNo = _listPO.epiporeceiptdtllist[index].exemptionno ?? '';
     return new Card(
       elevation: 8.0,
       margin: new EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
@@ -375,6 +377,12 @@ class POReceiptListState extends State<POReceiptList> {
                           _listBin +
                           '/' +
                           _listLot,
+                      style: TextStyle(color: Colors.white)),
+                ],
+              ),
+              Row(
+                children: <Widget>[
+                  Text('Exemption No: ' + _listExemptionNo,
                       style: TextStyle(color: Colors.white)),
                 ],
               ),

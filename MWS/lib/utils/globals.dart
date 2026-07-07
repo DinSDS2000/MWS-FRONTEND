@@ -12,6 +12,7 @@ String epibarcodeseperator = "";
 String epibarcodeseperator2 = "";
 String epiempid = "";
 String epiApiBaseUrl = "";
+String epiPrinter = "";
 String appVersion = "2.1.6";
 bool epiisenableissuematerial = false;
 bool epiisenablemoveinventory = false;
@@ -48,6 +49,7 @@ clearAll() {
   epiPassword = "";
   epibarcodeseperator = "";
   epibarcodeseperator2 = "";
+  epiPrinter = "";
   epiempid = "";
   epiisenableissuematerial = false;
   epiisenablemoveinventory = false;

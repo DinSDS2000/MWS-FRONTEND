@@ -37,6 +37,7 @@ class POReceiptDtlState extends State<POReceiptDtl> {
   String _tranType = '';
 
   var txtPartNo = new TextEditingController();
+  var txtExemptionNo = new TextEditingController();
   var txtPartDesc = new TextEditingController();
   var txtQty = new TextEditingController();
   var txtIUM = new TextEditingController();
@@ -47,6 +48,7 @@ class POReceiptDtlState extends State<POReceiptDtl> {
   var txtDriverName = new TextEditingController();
   var txtDriverIC = new TextEditingController();
   var txtLorry = new TextEditingController();
+  var txtActualQty = new TextEditingController();
 
   FocusNode _textFocusWhse = new FocusNode();
   FocusNode _textFocusQty = new FocusNode();
@@ -67,6 +69,7 @@ class POReceiptDtlState extends State<POReceiptDtl> {
     _packno = widget.packno;
     txtPartNo.text = widget.epiporeceiptdtl.partnum;
     txtPartDesc.text = widget.epiporeceiptdtl.partdesc;
+    txtExemptionNo.text = widget.epiporeceiptdtl.exemptionno ?? '';
     /* txtWhse.text = widget.epiporeceiptdtl.whse;
     txtBin.text = widget.epiporeceiptdtl.bin;
     txtLotNo.text = widget.epiporeceiptdtl.lotnum; */
@@ -258,6 +261,23 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                           child: ListTile(
                             title: TextFormField(
                               decoration:
+                                  InputDecoration(labelText: 'Exemption No.'),
+                              obscureText: false,
+                              keyboardType: TextInputType.text,
+                              autocorrect: false,
+                              controller: txtExemptionNo,
+                              enabled: false,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: ListTile(
+                            title: TextFormField(
+                              decoration:
                                   InputDecoration(labelText: 'Quantity'),
                               obscureText: false,
                               keyboardType: TextInputType.number,
@@ -289,6 +309,22 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                             ),
                             child: Icon(Icons.search),
                             onPressed: triggerUOMDropDown,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: ListTile(
+                            title: TextFormField(
+                              decoration:
+                                  InputDecoration(labelText: 'Actual Quantity'),
+                              obscureText: false,
+                              keyboardType: TextInputType.number,
+                              autocorrect: false,
+                              controller: txtActualQty,
+                            ),
                           ),
                         ),
                       ],
@@ -398,89 +434,89 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                         ),
                       ],
                     ),
-                    // Row(
-                    //   children: <Widget>[
-                    // Expanded(
-                    //   child: ListTile(
-                    //     title: TextFormField(
-                    //       decoration:
-                    //           InputDecoration(labelText: 'Driver Name'),
-                    //       obscureText: false,
-                    //       keyboardType: TextInputType.text,
-                    //       autocorrect: false,
-                    //       controller: txtDriverName,
-                    //     ),
-                    //   ),
-                    // ),
-                    // SizedBox(width: 10),
-                    // SizedBox(
-                    //   width: 54,
-                    //   child: ElevatedButton(
-                    //     style: ElevatedButton.styleFrom(
-                    //       padding: EdgeInsets.zero,
-                    //     ),
-                    //     // Job No.
-                    //     child: Icon(Icons.camera_alt),
-                    //     onPressed: barcodeScanningDriverName,
-                    //   ),
-                    // ),
-                    //   ],
-                    // ),
-                    // Row(
-                    //   children: <Widget>[
-                    //     Expanded(
-                    //       child: ListTile(
-                    //         title: TextFormField(
-                    //           decoration:
-                    //               InputDecoration(labelText: 'Driver IC'),
-                    //           obscureText: false,
-                    //           keyboardType: TextInputType.text,
-                    //           autocorrect: false,
-                    //           controller: txtDriverIC,
-                    //         ),
-                    //       ),
-                    //     ),
-                    //     SizedBox(width: 10),
-                    //     SizedBox(
-                    //       width: 54,
-                    //       child: ElevatedButton(
-                    //         style: ElevatedButton.styleFrom(
-                    //           padding: EdgeInsets.zero,
-                    //         ),
-                    //         // Job No.
-                    //         child: Icon(Icons.camera_alt),
-                    //         onPressed: barcodeScanningDriverIc,
-                    //       ),
-                    //     ),
-                    //   ],
-                    // ),
-                    // Row(
-                    //   children: <Widget>[
-                    //     Expanded(
-                    //       child: ListTile(
-                    //         title: TextFormField(
-                    //           decoration: InputDecoration(labelText: 'Lorry'),
-                    //           obscureText: false,
-                    //           keyboardType: TextInputType.text,
-                    //           autocorrect: false,
-                    //           controller: txtLorry,
-                    //         ),
-                    //       ),
-                    //     ),
-                    //     SizedBox(width: 10),
-                    //     SizedBox(
-                    //       width: 54,
-                    //       child: ElevatedButton(
-                    //         style: ElevatedButton.styleFrom(
-                    //           padding: EdgeInsets.zero,
-                    //         ),
-                    //         // Job No.
-                    //         child: Icon(Icons.camera_alt),
-                    //         onPressed: barcodeScanningLorry,
-                    //       ),
-                    //     ),
-                    //   ],
-                    // ),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: ListTile(
+                            title: TextFormField(
+                              decoration:
+                                  InputDecoration(labelText: 'Driver Name'),
+                              obscureText: false,
+                              keyboardType: TextInputType.text,
+                              autocorrect: false,
+                              controller: txtDriverName,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        SizedBox(
+                          width: 54,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                            ),
+                            // Job No.
+                            child: Icon(Icons.camera_alt),
+                            onPressed: barcodeScanningDriverName,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: ListTile(
+                            title: TextFormField(
+                              decoration:
+                                  InputDecoration(labelText: 'Driver IC'),
+                              obscureText: false,
+                              keyboardType: TextInputType.text,
+                              autocorrect: false,
+                              controller: txtDriverIC,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        SizedBox(
+                          width: 54,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                            ),
+                            // Job No.
+                            child: Icon(Icons.camera_alt),
+                            onPressed: barcodeScanningDriverIc,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: ListTile(
+                            title: TextFormField(
+                              decoration: InputDecoration(labelText: 'Lorry'),
+                              obscureText: false,
+                              keyboardType: TextInputType.text,
+                              autocorrect: false,
+                              controller: txtLorry,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        SizedBox(
+                          width: 54,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                            ),
+                            // Job No.
+                            child: Icon(Icons.camera_alt),
+                            onPressed: barcodeScanningLorry,
+                          ),
+                        ),
+                      ],
+                    ),
                     Row(
                       children: <Widget>[
                         Expanded(
@@ -626,14 +662,15 @@ class POReceiptDtlState extends State<POReceiptDtl> {
           _packno,
           widget.epiporeceiptdtl.vendornum.toString(),
           txtPartNo.text,
-          _tranType == 'PUR-STK' ? txtWhse.text : 'RC',
-          _tranType == 'PUR-STK' ? txtBin.text : 'Rack-a',
+          txtWhse.text,
+          txtBin.text,
           txtLotNo.text,
           txtQty.text,
           txtIUM.text,
           txtDriverName.text,
           txtDriverIC.text,
           txtLorry.text,
+          txtActualQty.text.isEmpty ? null : txtActualQty.text,
           txtNoofLable.text);
 
       setState(() {

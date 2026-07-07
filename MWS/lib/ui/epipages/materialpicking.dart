@@ -22,6 +22,7 @@ class _MaterialPickingState extends State<MaterialPicking> {
   late TextEditingController txtDesc;
   late TextEditingController txtQty;
   late TextEditingController txtUom;
+  late TextEditingController txtExemptionNo;
   var txtWhse = new TextEditingController();
   var txtBin = new TextEditingController();
   var txtLot = new TextEditingController();
@@ -35,6 +36,8 @@ class _MaterialPickingState extends State<MaterialPicking> {
     txtQty = TextEditingController(
         text: widget.pickerBaq.ud100aQuantityC.toString());
     txtUom = TextEditingController(text: widget.pickerBaq.ud100aUomC);
+    txtExemptionNo =
+        TextEditingController(text: widget.pickerBaq.orderRelExemptionNo);
     super.initState();
   }
 
@@ -149,6 +152,26 @@ class _MaterialPickingState extends State<MaterialPicking> {
                           keyboardType: TextInputType.text,
                           autocorrect: false,
                           controller: txtUom,
+                          enabled: false,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 10,
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ListTile(
+                        title: TextFormField(
+                          decoration:
+                              InputDecoration(labelText: 'Exemption No.'),
+                          obscureText: false,
+                          keyboardType: TextInputType.text,
+                          autocorrect: false,
+                          controller: txtExemptionNo,
                           enabled: false,
                         ),
                       ),

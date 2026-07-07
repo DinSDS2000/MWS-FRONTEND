@@ -337,6 +337,8 @@ class _MaterialpickingState extends State<MaterialList> {
     final qty = item.ud100aQuantityC;
     final orderNum = item.ud100aSoNoC;
     final comment = item.orderHedOrderComment;
+    final exemptionNo = item.orderRelExemptionNo;
+    final warehouseCode = item.warehouseCode;
 
     return Card(
       elevation: 8,
@@ -412,6 +414,22 @@ class _MaterialpickingState extends State<MaterialList> {
                 children: [
                   Text(
                     'Transporter: ' + (transporter ?? ''),
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Text(
+                    'Exemption No: ' + (exemptionNo ?? ''),
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Text(
+                    'Warehouse: ' + (warehouseCode ?? ''),
                     style: TextStyle(color: Colors.white),
                   ),
                 ],
