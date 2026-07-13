@@ -46,6 +46,7 @@ class Home extends StatelessWidget {
             textScaleFactor: textScaleFactor,
           ),
           actions: <Widget>[
+            Text(_globals.epiCompanyId),
             IconButton(
               icon: Icon(Icons.settings),
               onPressed: () => Navigator.pushNamed(context, '/settings'),

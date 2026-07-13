@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_epihhinventory/data/classes/epiporeceipt.dart';
 import 'package:flutter_epihhinventory/data/classes/epiporeceiptdtl.dart';
+import 'package:flutter_epihhinventory/data/classes/epivendorlist.dart';
 import 'package:flutter_epihhinventory/ui/epipages/poreceiptdtl.dart';
 import 'package:flutter_epihhinventory/utils/getepidata.dart';
 import 'package:flutter_epihhinventory/utils/popUp.dart';
@@ -38,6 +39,10 @@ class POReceiptListState extends State<POReceiptList> {
   FocusNode _textFocusPONo = new FocusNode();
   FocusNode _textFocusLegalNo = new FocusNode();
 
+  List<EpiVendor> _liveVendorList = [];
+  bool _isLoadingVendors = true;
+  EpiVendor? _selectedVendor;
+
   @override
   void initState() {
     txtPONo.addListener(onChangePONo);
@@ -45,7 +50,7 @@ class POReceiptListState extends State<POReceiptList> {
 
     txtLegalNo.addListener(onChangeLegalNo);
     _textFocusLegalNo.addListener(onChangeLegalNo);
-
+    _loadVendorsFromApi();
     super.initState();
   }
 
@@ -62,6 +67,15 @@ class POReceiptListState extends State<POReceiptList> {
         getPO(txtPONo.text, "");
       }
     }
+  }
+
+  void _loadVendorsFromApi() async {
+    List<EpiVendor> items = await getVendorList();
+    setState(() {
+      _liveVendorList = items;
+      print("Vendor list: $_liveVendorList");
+      _isLoadingVendors = false;
+    });
   }
 
   void onChangeLegalNo() {
@@ -199,25 +213,120 @@ class POReceiptListState extends State<POReceiptList> {
                 Row(
                   children: <Widget>[
                     Expanded(
-                      child: ListTile(
-                        title: TextFormField(
-                          decoration: InputDecoration(labelText: 'Supplier.'),
-                          obscureText: false,
-                          keyboardType: TextInputType.text,
-                          autocorrect: false,
-                          controller: txtVendorId,
+                      // FIX: Standardized the padding wrapper to match the Pack No. text box precisely
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Autocomplete<EpiVendor>(
+                          // FIX 1: Change this to vendor.name so the text field visually displays the supplier name
+                          displayStringForOption: (EpiVendor vendor) =>
+                              vendor.name,
+
+                          optionsBuilder: (TextEditingValue textEditingValue) {
+                            if (textEditingValue.text.isEmpty) {
+                              return const Iterable<EpiVendor>.empty();
+                            }
+                            return _liveVendorList.where((EpiVendor vendor) {
+                              return vendor.id.toLowerCase().contains(
+                                      textEditingValue.text.toLowerCase()) ||
+                                  vendor.name.toLowerCase().contains(
+                                      textEditingValue.text.toLowerCase());
+                            });
+                          },
+
+                          // FIX 2: Capture the item when clicked to save the hidden vendor.id
+                          onSelected: (EpiVendor selection) {
+                            setState(() {
+                              _selectedVendor = selection;
+                              txtVendorId.text = selection
+                                  .id; // Assigns ID behind the scenes for safety
+                            });
+                          },
+
+                          fieldViewBuilder: (context, textEditingController,
+                              focusNode, onFieldSubmitted) {
+                            // FIX: Clear the old listeners and bind a clean loop action to track unfocus events safely
+                            focusNode.onKeyEvent =
+                                null; // Resets key event mapping blocks
+
+                            // Safely assign an un-duplicated callback action without reading protected properties
+                            focusNode
+                                .unfocus(); // Clear active states if needed
+
+                            return Focus(
+                              onFocusChange: (hasFocus) {
+                                if (!hasFocus) {
+                                  onFieldSubmitted(); // Closes the dropdown list overlay instantly when user clicks away
+                                }
+                              },
+                              child: TextFormField(
+                                controller: textEditingController,
+                                focusNode: focusNode,
+                                style: const TextStyle(
+                                    color: Color.fromARGB(255, 0, 0, 0)),
+                                decoration: const InputDecoration(
+                                  labelText: 'Supplier Name',
+                                  enabledBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: Color.fromARGB(137, 0, 0, 0))),
+                                  focusedBorder: UnderlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.blue)),
+                                ),
+                              ),
+                            );
+                          },
+
+                          optionsViewBuilder: (context, onSelected, options) {
+                            return Align(
+                              alignment: Alignment.topLeft,
+                              child: Material(
+                                elevation: 4.0,
+                                color: Colors.grey[850],
+                                child: Container(
+                                  width: 300,
+                                  constraints:
+                                      const BoxConstraints(maxHeight: 250),
+                                  child: ListView.builder(
+                                    padding: EdgeInsets.zero,
+                                    shrinkWrap: true,
+                                    itemCount: options.length,
+                                    itemBuilder:
+                                        (BuildContext context, int index) {
+                                      final EpiVendor option =
+                                          options.elementAt(index);
+                                      return ListTile(
+                                        title: Text(
+                                          option.name,
+                                          style: const TextStyle(
+                                              color: Color.fromARGB(
+                                                  255, 255, 255, 255)),
+                                        ),
+                                        subtitle: Text(
+                                          option.id,
+                                          style: const TextStyle(
+                                              color: Colors.white60),
+                                        ),
+                                        onTap: () {
+                                          onSelected(option);
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     SizedBox(
                       width: 54,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           padding: EdgeInsets.zero,
                         ),
-                        // Job No.
-                        child: Icon(Icons.camera_alt),
+                        child: const Icon(Icons.camera_alt),
                         onPressed: barcodeScanningPackNo,
                       ),
                     ),
@@ -256,7 +365,7 @@ class POReceiptListState extends State<POReceiptList> {
 
                             List<dynamic> _result =
                                 await getEpiPOReceiptDtlList(txtPONo.text,
-                                    txtLegalNo.text, txtVendorId.text);
+                                    txtLegalNo.text, _selectedVendor?.id ?? "");
                             if (_result[0] == false) {
                               _listPO = _result[1];
                             } else {
@@ -309,25 +418,29 @@ class POReceiptListState extends State<POReceiptList> {
 
   Widget _getPOReceiptDtlListValue(BuildContext context, int index) {
     String _listPOLine = '';
+    String _listPONum = '';
     String _listPOLineRel = '';
     String _listPartNum = '';
     String _listPartDesc = '';
     String _listPORelQty = '';
     String _listVendorId = '';
-    String _listWhse = '';
-    String _listBin = '';
-    String _listLot = '';
+    // String _listWhse = '';
+    // String _listBin = '';
+    // String _listLot = '';
+    String _listLegalNo;
     String _listExemptionNo;
 
+    _listPONum = _listPO.epiporeceiptdtllist[index].ponum.toString();
     _listPOLine = _listPO.epiporeceiptdtllist[index].poline.toString();
     _listPOLineRel = _listPO.epiporeceiptdtllist[index].polinerel.toString();
     _listPartNum = _listPO.epiporeceiptdtllist[index].partnum;
     _listPartDesc = _listPO.epiporeceiptdtllist[index].partdesc;
     _listPORelQty = _listPO.epiporeceiptdtllist[index].porelqty.toString();
     _listVendorId = _listPO.epiporeceiptdtllist[index].vendorid;
-    _listWhse = _listPO.epiporeceiptdtllist[index].whse ?? ' ';
-    _listBin = _listPO.epiporeceiptdtllist[index].bin ?? ' ';
-    _listLot = _listPO.epiporeceiptdtllist[index].lotnum ?? ' ';
+    // _listWhse = _listPO.epiporeceiptdtllist[index].whse ?? ' ';
+    // _listBin = _listPO.epiporeceiptdtllist[index].bin ?? ' ';
+    // _listLot = _listPO.epiporeceiptdtllist[index].lotnum ?? ' ';
+    _listLegalNo = _listPO.epiporeceiptdtllist[index].legalnumber ?? '';
     _listExemptionNo = _listPO.epiporeceiptdtllist[index].exemptionno ?? '';
     return new Card(
       elevation: 8.0,
@@ -352,6 +465,12 @@ class POReceiptListState extends State<POReceiptList> {
             children: <Widget>[
               Row(
                 children: <Widget>[
+                  Text('PO Num: ' + _listPONum,
+                      style: TextStyle(color: Colors.white)),
+                ],
+              ),
+              Row(
+                children: <Widget>[
                   Text('Line/Rel: ' + _listPOLine + '/' + _listPOLineRel,
                       style: TextStyle(color: Colors.white)),
                 ],
@@ -368,15 +487,21 @@ class POReceiptListState extends State<POReceiptList> {
                       style: TextStyle(color: Colors.white)),
                 ],
               ),
+              // Row(
+              //   children: <Widget>[
+              //     Text(
+              //         'WH/Bin/Lot: ' +
+              //             _listWhse +
+              //             '/' +
+              //             _listBin +
+              //             '/' +
+              //             _listLot,
+              //         style: TextStyle(color: Colors.white)),
+              //   ],
+              // ),
               Row(
                 children: <Widget>[
-                  Text(
-                      'WH/Bin/Lot: ' +
-                          _listWhse +
-                          '/' +
-                          _listBin +
-                          '/' +
-                          _listLot,
+                  Text('Legal Number: ' + _listLegalNo,
                       style: TextStyle(color: Colors.white)),
                 ],
               ),
@@ -509,4 +634,16 @@ class POReceiptListState extends State<POReceiptList> {
     }
     if (_barcodeError != '') showAlertPopup(context, 'Error', _barcodeError);
   }
+}
+
+class Supplier {
+  final String id;
+  final String name;
+  Supplier({required this.id, required this.name});
+
+  // This defines what the popup list looks like (Name + ID)
+  String userAsString() => "$name ($id)";
+
+  // This defines what is displayed inside the field after selection (ID only)
+  String idAsString() => id;
 }

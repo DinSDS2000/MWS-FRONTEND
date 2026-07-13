@@ -17,6 +17,7 @@ import 'package:flutter_epihhinventory/data/classes/epishipdtl.dart';
 import 'package:flutter_epihhinventory/data/classes/episplitmergeuom.dart';
 import 'package:flutter_epihhinventory/data/classes/epitrxinfo.dart';
 import 'package:flutter_epihhinventory/data/classes/epiuom.dart';
+import 'package:flutter_epihhinventory/data/classes/epivendorlist.dart';
 import 'package:flutter_epihhinventory/data/classes/epiworkqueue.dart';
 import 'package:flutter_epihhinventory/data/classes/user.dart';
 import 'package:flutter_epihhinventory/data/web_client.dart';
@@ -767,5 +768,34 @@ Future<List<dynamic>> getEpiWorkGroupList(String empId, String jobNo,
     EpiWorkQueueList _envData = EpiWorkQueueList.fromJson(_data);
 
     return [false, _envData];
+  }
+}
+
+Future<List<EpiVendor>> getVendorList() async {
+  String _params = '?strUID=' +
+      _globals.epiUsername +
+      '&strPass=' +
+      Uri.encodeComponent(_globals.epiPassword) +
+      '&strEnvId=' +
+      _globals.epiEnvId +
+      '&strCurCompany=' +
+      _globals.epiCompanyId +
+      '&strCurPlant=' +
+      _globals.epiSiteId;
+
+  try {
+    var _data = await WebClient(User(token: ''))
+        .get(_globals.epiApiBaseUrl + '/api/Receipt/GetVendorList' + _params);
+
+    // If your backend returns the raw JSON array wrapped inside a specific structure or directly as an array:
+    if (_data == null) {
+      return [];
+    }
+
+    EpiVendorList _envData = EpiVendorList.fromJson(_data);
+    return _envData.epiVendorList; // Returns a clean List<EpiVendor>
+  } catch (e) {
+    print("Error fetching vendor list: $e");
+    return []; // Return empty list on failure gracefully
   }
 }

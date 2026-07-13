@@ -21,6 +21,16 @@ class AuthModel extends Model {
   User? _user;
 
   bool get rememberMe => _rememberMe;
+  String get epiCompanyId => _globals.epiCompanyId;
+  String get epiCompanyName => _globals.epiCompanyName;
+
+  void updateSelectedCompany(String id, String name) {
+    _globals.epiCompanyId = id;
+    _globals.epiCompanyName = name;
+
+    // Crucial step: This forces all ScopedModelDescendants to rebuild!
+    notifyListeners();
+  }
 
   void handleRememberMe(bool value) {
     _rememberMe = value;
@@ -217,7 +227,7 @@ class AuthModel extends Model {
       prefs.setString("user_data", _save);
     });
 
-    //if (_newUser?.token == null || _newUser.token.isEmpty) return false;
+    if (_newUser?.token == null || _newUser!.token.isEmpty) return false;
 
     return true;
   }

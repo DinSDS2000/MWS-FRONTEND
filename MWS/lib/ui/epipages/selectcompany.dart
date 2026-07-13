@@ -3,9 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_epihhinventory/data/classes/epicompany.dart';
 import 'package:flutter_epihhinventory/data/classes/user.dart';
+import 'package:flutter_epihhinventory/data/models/auth.dart';
 import 'package:flutter_epihhinventory/data/web_client.dart';
 import 'package:flutter_epihhinventory/ui/epipages/selectsite.dart';
 import 'package:flutter_epihhinventory/utils/popUp.dart';
+import 'package:scoped_model/scoped_model.dart';
 // import 'package:global_configuration/global_configuration.dart';
 
 import '../../constants.dart';
@@ -138,11 +140,13 @@ class SelectCompanyState extends State<SelectCompany> {
                           showAlertPopup(
                               context, 'Warning', 'Please select Company...');
                         } else {
-                          setState(() {
-                            _globals.epiCompanyId = _selectedCompamy.id;
-                            _globals.epiCompanyName = _selectedCompamy.name;
-                          });
-
+                          // setState(() {
+                          //   _globals.epiCompanyId = _selectedCompamy.id;
+                          //   _globals.epiCompanyName = _selectedCompamy.name;
+                          // });
+                          final authModel = ScopedModel.of<AuthModel>(context);
+                          authModel.updateSelectedCompany(
+                              _selectedCompamy.id, _selectedCompamy.name);
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
