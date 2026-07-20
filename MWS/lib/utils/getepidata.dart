@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_epihhinventory/data/classes/epidocustinfo.dart';
 import 'package:flutter_epihhinventory/data/classes/epiemployee.dart';
 import 'package:flutter_epihhinventory/data/classes/epijobasm.dart';
@@ -17,6 +19,7 @@ import 'package:flutter_epihhinventory/data/classes/epishipdtl.dart';
 import 'package:flutter_epihhinventory/data/classes/episplitmergeuom.dart';
 import 'package:flutter_epihhinventory/data/classes/epitrxinfo.dart';
 import 'package:flutter_epihhinventory/data/classes/epiuom.dart';
+import 'package:flutter_epihhinventory/data/classes/epiusercodes.dart';
 import 'package:flutter_epihhinventory/data/classes/epivendorlist.dart';
 import 'package:flutter_epihhinventory/data/classes/epiworkqueue.dart';
 import 'package:flutter_epihhinventory/data/classes/user.dart';
@@ -797,5 +800,103 @@ Future<List<EpiVendor>> getVendorList() async {
   } catch (e) {
     print("Error fetching vendor list: $e");
     return []; // Return empty list on failure gracefully
+  }
+}
+
+Future<UserCodesResponse> getUserCodes({
+  required String codeTypeId,
+}) async {
+  String _params = '?strUID=' +
+      _globals.epiUsername +
+      '&strPass=' +
+      Uri.encodeComponent(_globals.epiPassword) +
+      '&strEnvId=' +
+      _globals.epiEnvId +
+      '&strCurCompany=' +
+      _globals.epiCompanyId +
+      '&strCurPlant=' +
+      _globals.epiSiteId +
+      '&CodeTypeId=' +
+      codeTypeId;
+
+  try {
+    var _data = await WebClient(User(token: ''))
+        .get(_globals.epiApiBaseUrl + '/api/Receipt/GetUserCodes' + _params);
+    if (_data == null) {
+      return UserCodesResponse(
+        value: [],
+        success: false,
+        errors: ['User Code Not Found'],
+      );
+    }
+    Map<String, dynamic> jsonMap;
+
+    if (_data is String) {
+      // If WebClient returns a raw string body, decode it first
+      jsonMap = jsonDecode(_data);
+    } else if (_data is Map<String, dynamic>) {
+      // If WebClient already decodes JSON automatically inside its .get method
+      jsonMap = _data;
+    } else {
+      throw Exception('Unexpected data format returned from server');
+    }
+
+    // Return the successfully mapped object
+    return UserCodesResponse.fromJson(jsonMap);
+  } catch (e) {
+    // Return error state if something crashes during extraction or network request
+    return UserCodesResponse(
+      value: [],
+      success: false,
+      errors: ['Failed to extract codes: $e'],
+    );
+  }
+}
+
+Future<bool> checkHeaderExist({
+  required String packSlip,
+  required int vendorNum,
+  required String purPoint,
+}) async {
+  String _params = '?strUID=' +
+      _globals.epiUsername +
+      '&strPass=' +
+      Uri.encodeComponent(_globals.epiPassword) +
+      '&strEnvId=' +
+      _globals.epiEnvId +
+      '&strCurCompany=' +
+      _globals.epiCompanyId +
+      '&strCurPlant=' +
+      _globals.epiSiteId +
+      '&strPackSlip=' +
+      Uri.encodeComponent(packSlip) +
+      '&vendorNum=' +
+      vendorNum.toString() +
+      '&purPoint=' +
+      Uri.encodeComponent(purPoint);
+
+  try {
+    var _data = await WebClient(User(token: '')).get(
+        _globals.epiApiBaseUrl + '/api/Receipt/CheckHeaderExist' + _params);
+
+    // If data is null or execution fails, it dropped into the backend catch block
+    if (_data == null) {
+      return false;
+    }
+
+    if (_data is Map<String, dynamic>) {
+      return _data['exists'] ?? false;
+    }
+
+    if (_data is String) {
+      final Map<String, dynamic> parsedJson = jsonDecode(_data);
+      return parsedJson['exists'] ?? false;
+    }
+
+    return false;
+  } catch (e) {
+    // If WebClient throws a 404/400 exception error, the header does not exist
+    print('CheckHeaderExist Error: $e');
+    return false;
   }
 }

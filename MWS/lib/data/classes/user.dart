@@ -38,6 +38,7 @@ class User {
     this.epienableworkqueue = false,
     this.epienabledefaultlabelqty = false,
     this.epiprinter = '',
+    this.epiprinterpath = '',
   });
 
   @JsonKey(name: 'Epic_UserId')
@@ -135,6 +136,9 @@ class User {
 
   @JsonKey(name: 'Printer')
   final String epiprinter;
+
+  @JsonKey(name: 'PrinterPath')
+  final String epiprinterpath;
 
   String token;
 

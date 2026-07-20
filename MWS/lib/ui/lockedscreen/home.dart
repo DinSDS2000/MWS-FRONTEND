@@ -931,7 +931,7 @@ class Home extends StatelessWidget {
                                     color: Colors.blue[900]!),
                               ),
                               title: Text(
-                                "Material Picking",
+                                "Order Picking",
                                 style: TextStyle(
                                     color: Colors.blue[900]!,
                                     fontWeight: FontWeight.bold),
@@ -987,7 +987,7 @@ class Home extends StatelessWidget {
                                     color: Colors.blue[900]!),
                               ),
                               title: Text(
-                                "Material Loading",
+                                "Shipment Loading",
                                 style: TextStyle(
                                     color: Colors.blue[900]!,
                                     fontWeight: FontWeight.bold),

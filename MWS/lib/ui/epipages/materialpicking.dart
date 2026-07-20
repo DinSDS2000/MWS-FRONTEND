@@ -1,7 +1,9 @@
 import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_epihhinventory/data/classes/epipart.dart';
 import 'package:flutter_epihhinventory/data/classes/epipickerbaq.dart';
+import 'package:flutter_epihhinventory/utils/getepidata.dart';
 import 'package:flutter_epihhinventory/utils/globals.dart' as _globals;
 import 'package:flutter_epihhinventory/utils/popUp.dart';
 import 'package:flutter_epihhinventory/utils/postepidata.dart';
@@ -18,6 +20,7 @@ class MaterialPicking extends StatefulWidget {
 class _MaterialPickingState extends State<MaterialPicking> {
   bool _saving = false;
   String _barcodeError = '';
+  bool _lotEnabled = false;
   late TextEditingController txtPart;
   late TextEditingController txtDesc;
   late TextEditingController txtQty;
@@ -28,6 +31,7 @@ class _MaterialPickingState extends State<MaterialPicking> {
   var txtLot = new TextEditingController();
 
   var _txtFocusPartNo = new FocusNode();
+  FocusNode _textFocusWhse = new FocusNode();
 
   @override
   void initState() {
@@ -38,7 +42,17 @@ class _MaterialPickingState extends State<MaterialPicking> {
     txtUom = TextEditingController(text: widget.pickerBaq.ud100aUomC);
     txtExemptionNo =
         TextEditingController(text: widget.pickerBaq.orderRelExemptionNo);
+
+    txtWhse.addListener(onChangeWhse);
+    _textFocusWhse.addListener(onChangeWhse);
+    setTrackLot();
     super.initState();
+  }
+
+  void onChangeWhse() {
+    if (!_textFocusWhse.hasFocus && txtWhse.text != '') {
+      splitWhse(txtWhse.text);
+    }
   }
 
   bool splitWhse(String txt) {
@@ -74,7 +88,7 @@ class _MaterialPickingState extends State<MaterialPicking> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Material Picking'),
+        title: Text('Order Picking'),
         automaticallyImplyLeading: false,
       ),
       body: ModalProgressHUD(
@@ -191,6 +205,7 @@ class _MaterialPickingState extends State<MaterialPicking> {
                           keyboardType: TextInputType.text,
                           autocorrect: false,
                           controller: txtWhse,
+                          focusNode: _textFocusWhse,
                         ),
                       ),
                     ),
@@ -249,6 +264,7 @@ class _MaterialPickingState extends State<MaterialPicking> {
                           keyboardType: TextInputType.text,
                           autocorrect: false,
                           controller: txtLot,
+                          enabled: _lotEnabled,
                         ),
                       ),
                     ),
@@ -323,6 +339,29 @@ class _MaterialPickingState extends State<MaterialPicking> {
     );
   }
 
+  Future<bool> showInventoryWarning(String message) async {
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text("Inventory Warning"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("No"),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Yes"),
+          ),
+        ],
+      ),
+    );
+
+    return result ?? false;
+  }
+
   Future<void> submitPickerUpdate() async {
     setState(() {
       _saving = true;
@@ -338,19 +377,53 @@ class _MaterialPickingState extends State<MaterialPicking> {
       );
       print("response shiphead: ${response}");
       final createLine = await createCustShipDtl(
-        packNum: response["PackNum"],
+        packNum: response["ShipHead"]["PackNum"],
         orderNum: int.parse(widget.pickerBaq.ud100aSoNoC ?? ""),
         orderLine: int.parse(widget.pickerBaq.ud100aSOLineC ?? ""),
         orderReleaseNum: int.parse(widget.pickerBaq.ud100aSOReleaseC ?? ""),
         whse: txtWhse.text,
         binNum: txtBin.text,
         lotNum: txtLot.text,
-        planID: response["SD_PlanId_c"],
+        planID: response["ShipHead"]["SD_PlanId_c"],
         childKey1: widget.pickerBaq.ud100aChildKey1 ?? "",
         quantity: widget.pickerBaq.ud100aQuantityC?.toInt() ?? 0,
+        checkQty: response["Exists"],
+        runSess: 1,
       );
 
-      print("response shipdtl: ${createLine}");
+      print("response shipdtl: ${createLine["LineDesc"]}");
+
+      if (createLine["LineDesc"] != null &&
+          createLine["LineDesc"]!.startsWith("INVENTORY_WARNING:")) {
+        bool proceed = await showInventoryWarning(
+          createLine["LineDesc"]!.replaceFirst("INVENTORY_WARNING: ", ""),
+        );
+        if (!proceed) {
+          // User clicked No
+          setState(() {
+            _saving = false;
+          });
+          return;
+        }
+        setState(() {
+          _saving = true;
+        });
+
+        await createCustShipDtl(
+          packNum: response["ShipHead"]["PackNum"],
+          orderNum: int.parse(widget.pickerBaq.ud100aSoNoC ?? ""),
+          orderLine: int.parse(widget.pickerBaq.ud100aSOLineC ?? ""),
+          orderReleaseNum: int.parse(widget.pickerBaq.ud100aSOReleaseC ?? ""),
+          whse: txtWhse.text,
+          binNum: txtBin.text,
+          lotNum: txtLot.text,
+          planID: response["ShipHead"]["SD_PlanId_c"],
+          childKey1: widget.pickerBaq.ud100aChildKey1 ?? "",
+          quantity: widget.pickerBaq.ud100aQuantityC?.toInt() ?? 0,
+          checkQty: false,
+          runSess: 2,
+        );
+      }
       setState(() {
         _saving = false;
       });
@@ -365,7 +438,7 @@ class _MaterialPickingState extends State<MaterialPicking> {
         context: context,
         builder: (_) => AlertDialog(
           title: Text("Success"),
-          content: Text("Update Material Picking Successfully"),
+          content: Text("Update Order Picking Successfully"),
           actions: [
             TextButton(
               onPressed: () {
@@ -382,6 +455,16 @@ class _MaterialPickingState extends State<MaterialPicking> {
       });
       showAlertPopup(context, 'Exception', e.toString());
     }
+  }
+
+  Future<void> setTrackLot() async {
+    EpiPart _data = await getEpiPart(widget.pickerBaq.ud100aProductC ?? "");
+    setState(() {
+      _lotEnabled = _data.tracklots;
+      if (_lotEnabled == false) {
+        txtLot.text = '';
+      }
+    });
   }
 
   Future<void> scanAndSetToController(TextEditingController controller,

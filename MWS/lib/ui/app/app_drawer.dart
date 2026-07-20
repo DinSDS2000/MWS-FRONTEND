@@ -438,7 +438,7 @@ class AppDrawer extends StatelessWidget {
               child: ListTile(
                 leading: Icon(Icons.shopping_bag),
                 title: Text(
-                  'Material Picking',
+                  'Order Picking',
                   textScaleFactor: textScaleFactor,
                 ),
                 onTap: () {
@@ -463,7 +463,7 @@ class AppDrawer extends StatelessWidget {
               child: ListTile(
                 leading: Icon(Icons.shopping_bag),
                 title: Text(
-                  'Material Loading',
+                  'Shipment Loading',
                   textScaleFactor: textScaleFactor,
                 ),
                 onTap: () {

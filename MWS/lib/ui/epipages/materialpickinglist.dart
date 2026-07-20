@@ -76,7 +76,7 @@ class _MaterialpickingState extends State<MaterialList> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Material List",
+          "Order List",
         ),
         automaticallyImplyLeading: false,
       ),

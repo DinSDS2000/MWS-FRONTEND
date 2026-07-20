@@ -59,6 +59,8 @@ Future<List<dynamic>> postIssueMaterial(
       _globals.epiSiteId +
       '&path=' +
       _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&iLabelCount=' +
       noofLabel +
       '&strReference=' +
@@ -129,6 +131,8 @@ Future<List<dynamic>> postReturnMaterial(
       _globals.epiSiteId +
       '&path=' +
       _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&iLabelCount=' +
       noofLabel +
       '&strReference=' +
@@ -203,33 +207,45 @@ Future<Map<String, dynamic>> createCustShipDtl({
   required int orderReleaseNum,
   required String whse,
   required String binNum,
-  required String lotNum,
+  String? lotNum, // Keep as nullable string
   required String planID,
   required String childKey1,
   required int quantity,
+  required bool checkQty,
+  required int runSess,
 }) async {
+  // 1. Build the base parameters map
+  final Map<String, String> queryParams = {
+    'username': _globals.epiUsername,
+    'password': _globals.epiPassword,
+    'company': _globals.epiCompanyId,
+    'plant': _globals.epiSiteId,
+    'envID': _globals.epiEnvId,
+    'packNum': packNum.toString(),
+    'orderNum': orderNum.toString(),
+    'orderLine': orderLine.toString(),
+    'orderReleaseNum': orderReleaseNum.toString(),
+    'whse': whse,
+    'binNum': binNum,
+    'planId': planID,
+    'childKey': childKey1,
+    'quantity': quantity.toString(),
+    'checkQty': checkQty.toString(),
+    'runSess': runSess.toString(),
+  };
+
+  // 2. Conditionally add lotNum only if it contains a value
+  if (lotNum != null && lotNum.isNotEmpty) {
+    queryParams['lotNum'] = lotNum;
+  }
+
+  // 3. Construct the URI with the filtered map
   final uri =
       Uri.parse('${_globals.epiApiBaseUrl}/api/CustShip/CreateCustShipDtl')
-          .replace(
-    queryParameters: {
-      'username': _globals.epiUsername,
-      'password': _globals.epiPassword,
-      'company': _globals.epiCompanyId,
-      'plant': _globals.epiSiteId,
-      'envID': _globals.epiEnvId,
-      'packNum': packNum.toString(),
-      'orderNum': orderNum.toString(),
-      'orderLine': orderLine.toString(),
-      'orderReleaseNum': orderReleaseNum.toString(),
-      'whse': whse,
-      'binNum': binNum,
-      'lotNum': lotNum,
-      'planId': planID,
-      'childKey': childKey1,
-      'quantity': quantity.toString(),
-    },
-  );
+          .replace(queryParameters: queryParams);
+
   print("url shipdtl: $uri");
+
   final response = await http.post(
     uri,
     headers: {
@@ -237,10 +253,10 @@ Future<Map<String, dynamic>> createCustShipDtl({
       HttpHeaders.contentTypeHeader: 'application/json',
     },
   );
+
   print("RESPONSE SHIPDTL1 : ${response.body}");
   if (response.statusCode == 200) {
     print("RESPONSE SHIPDTL: ${response.body}");
-
     return jsonDecode(response.body) as Map<String, dynamic>;
   } else {
     print("error creating ship dtl");
@@ -388,6 +404,8 @@ Future<List<dynamic>> postIssueMiscMaterial(
       _globals.epiSiteId +
       '&path=' +
       _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&iLabelCount=' +
       noofLabel;
 
@@ -448,6 +466,8 @@ Future<List<dynamic>> postReturnMiscMaterial(
       _globals.epiSiteId +
       '&path=' +
       _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&iLabelCount=' +
       noofLabel;
 
@@ -515,6 +535,8 @@ Future<List<dynamic>> postIssueAssembly(
       _globals.epiSiteId +
       '&path=' +
       _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&iLabelCount=' +
       noofLabel +
       '&strReference=' +
@@ -582,6 +604,8 @@ Future<List<dynamic>> postReturnAssembly(
       _globals.epiSiteId +
       '&path=' +
       _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&iLabelCount=' +
       noofLabel +
       '&strReference=' +
@@ -650,6 +674,8 @@ Future<List<dynamic>> postMoveInventory(
       _globals.epiSiteId +
       '&path=' +
       _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&iLabelCount=' +
       noofLabel;
 
@@ -717,6 +743,8 @@ Future<List<dynamic>> postJobtoInventory(
       _globals.epiSiteId +
       '&path=' +
       _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&iLabelCount=' +
       noofLabel +
       '&strReference=' +
@@ -784,6 +812,8 @@ Future<List<dynamic>> postJobtoSalvage(
       _globals.epiSiteId +
       '&path=' +
       _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&iLabelCount=' +
       noofLabel;
 
@@ -891,6 +921,8 @@ Future<List<dynamic>> postCreateLot(
       _globals.epiCompanyId +
       '&path=' +
       _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&strPartNum=' +
       partNo +
       '&strLotNum=' +
@@ -1014,6 +1046,8 @@ Future<List<dynamic>> postMoveInventoryRequestApproval(
       Uri.encodeComponent(_globals.epiPassword) +
       '&path=' +
       _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&dTranQty=' +
       trxQty +
       '&iLabelCount=' +
@@ -1045,16 +1079,17 @@ Future<List<dynamic>> postNewPOReceiptDtl(
     String partNo,
     String whse,
     String bin,
-    String lotNum,
+    String? lotNum,
     String tranQty,
     String ium,
-    String driverName,
-    String driverIC,
-    String lorry,
+    String? driverName,
+    String? driverIC,
+    String? lorry,
     String? actQty,
     String noofLabel) async {
   bool result = false;
 
+  print("LOTTT2222: ${lotNum}");
   String _params = '?strUID=' +
       _globals.epiUsername +
       '&strPass=' +
@@ -1081,26 +1116,31 @@ Future<List<dynamic>> postNewPOReceiptDtl(
       whse +
       '&strBinNum=' +
       bin +
-      '&strLotNum=' +
-      lotNum +
       '&dTranQty=' +
       tranQty +
       '&strUOM=' +
       ium +
       '&strDriverName=' +
-      driverName +
+      (driverName ?? "") +
       '&strDriverIC=' +
-      driverIC +
+      (driverIC ?? "") +
       '&strLorry=' +
-      lorry +
+      (lorry ?? "") +
       '&path=' +
       _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&iLabelCount=' +
       noofLabel;
 
   if (actQty != null) {
     _params += '&actQty=$actQty';
   }
+  if (lotNum != null) {
+    _params += '&strLotNum=$lotNum';
+  }
+
+  print("LOTTT333332: ${lotNum}");
 
   http.Response response = await WebClient(User(token: '')).getHttpReponse(
     _globals.epiApiBaseUrl + '/api/Receipt/PerformNewReceiptDetail' + _params,
@@ -1234,6 +1274,8 @@ Future<List<dynamic>> postRePrintLabel(
       _assmNo +
       '&path=' +
       _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&iLabelCount=' +
       noofLabel;
 
@@ -1292,6 +1334,8 @@ Future<List<dynamic>> postQtyAdjustment(
       _globals.epiSiteId +
       '&path=' +
       _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&iLabelCount=' +
       noofLabel;
 
@@ -1360,6 +1404,8 @@ Future<List<dynamic>> postSplitMergeUOM(
       Uri.encodeComponent(jsonEncode(_arrayJson)) +
       '&path=' +
       _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&iLabelCount=' +
       noofLabel;
 

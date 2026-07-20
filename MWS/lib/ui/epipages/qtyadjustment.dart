@@ -67,13 +67,12 @@ class QtyAdjustmentState extends State<QtyAdjustment> {
   }
 
   void onChangePartNo() {
+    // Triggers ONLY when the user finished typing and clicked away
     if (!_textFocusPartNo.hasFocus) {
-      _oldPartNo = txtPartNo.text;
-    } else {
       if (_oldPartNo != txtPartNo.text) {
-        txtPartDesc.text = '';
-        txtIUM.text = '';
-        if (txtPartNo.text != '') {
+        _oldPartNo = txtPartNo.text;
+
+        if (txtPartNo.text.isNotEmpty) {
           splitPartNo(txtPartNo.text);
         }
       }

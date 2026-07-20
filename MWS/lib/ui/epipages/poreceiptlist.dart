@@ -264,7 +264,7 @@ class POReceiptListState extends State<POReceiptList> {
                                 style: const TextStyle(
                                     color: Color.fromARGB(255, 0, 0, 0)),
                                 decoration: const InputDecoration(
-                                  labelText: 'Supplier Name',
+                                  labelText: 'Vendor Name',
                                   enabledBorder: UnderlineInputBorder(
                                       borderSide: BorderSide(
                                           color: Color.fromARGB(137, 0, 0, 0))),
@@ -429,7 +429,7 @@ class POReceiptListState extends State<POReceiptList> {
     // String _listLot = '';
     String _listLegalNo;
     String _listExemptionNo;
-
+    print("List po: ${_listPO.epiporeceiptdtllist[0]}");
     _listPONum = _listPO.epiporeceiptdtllist[index].ponum.toString();
     _listPOLine = _listPO.epiporeceiptdtllist[index].poline.toString();
     _listPOLineRel = _listPO.epiporeceiptdtllist[index].polinerel.toString();

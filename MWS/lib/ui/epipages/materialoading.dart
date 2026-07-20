@@ -38,7 +38,7 @@ class _MaterialLoadingState extends State<MaterialLoading> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Material Loading'),
+        title: Text('Shipment Loading'),
         automaticallyImplyLeading: false,
       ),
       body: ModalProgressHUD(
