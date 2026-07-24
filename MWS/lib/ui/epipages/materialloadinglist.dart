@@ -17,6 +17,7 @@ class _MaterialloadinglistState extends State<Materialloadinglist> {
   bool _saving = false;
   late EpiShipDtlList shipmentDetail = EpiShipDtlList(items: []);
   var txtPlanID = new TextEditingController();
+  var txtDONum = new TextEditingController();
   var txtLorry = new TextEditingController();
 
   @override
@@ -40,6 +41,36 @@ class _MaterialloadinglistState extends State<Materialloadinglist> {
                       keyboardType: TextInputType.text,
                       autocorrect: false,
                       controller: txtPlanID,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 10,
+                ),
+                SizedBox(
+                  width: 54,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                    ),
+                    onPressed: () async {
+                      await scanAndSetToController(txtPlanID);
+                    },
+                    child: Icon(Icons.camera_alt),
+                  ),
+                )
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: ListTile(
+                    title: TextFormField(
+                      decoration: InputDecoration(labelText: 'DO Number'),
+                      obscureText: false,
+                      keyboardType: TextInputType.text,
+                      autocorrect: false,
+                      controller: txtDONum,
                     ),
                   ),
                 ),
@@ -120,7 +151,9 @@ class _MaterialloadinglistState extends State<Materialloadinglist> {
                           _saving = true;
                         });
                         List<dynamic> _result = await getShipmentDetails(
-                            planID: txtPlanID.text, lorryID: txtLorry.text);
+                            planID: txtPlanID.text,
+                            lorryID: txtLorry.text,
+                            doNum: txtDONum.text);
                         if (_result[0] == false) {
                           shipmentDetail = _result[1];
                         } else {

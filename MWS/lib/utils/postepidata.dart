@@ -424,6 +424,42 @@ Future<List<dynamic>> postIssueMiscMaterial(
   return [result, response.body];
 }
 
+Future<List<dynamic>> getInventoryQtyAdjForPart(String partNum) async {
+  bool result = false;
+
+  // Replicate your exact style of joining configuration query parameters
+  String _params = '?strUID=' +
+      _globals.epiUsername +
+      '&strPass=' +
+      Uri.encodeComponent(_globals.epiPassword) +
+      '&strEnvId=' +
+      _globals.epiEnvId +
+      '&strCurCompany=' +
+      _globals.epiCompanyId +
+      '&strCurPlant=' +
+      _globals.epiSiteId +
+      '&partNum=' +
+      Uri.encodeComponent(partNum); // Appending your query parameter
+
+  // Execute using your exact WebClient structure and POST method configuration
+  http.Response response = await WebClient(User(token: '')).getHttpReponse(
+    _globals.epiApiBaseUrl +
+        '/api/IssueMtl/GetInventoryQtyAdjForPart' +
+        _params,
+    headers: {
+      HttpHeaders.authorizationHeader: "Bearer ",
+    },
+    method: HttpMethod.post, // Keeping POST action as defined in your C# route
+  );
+
+  if (response.statusCode == 200) {
+    result = true;
+  }
+
+  // Returns [true, jsonStringData] or [false, errorBody]
+  return [result, response.body];
+}
+
 Future<List<dynamic>> postReturnMiscMaterial(
     String partNo,
     String ium,
@@ -1028,8 +1064,8 @@ Future<List<dynamic>> postNewLot(String partNo) async {
   return [result, response.body];
 }
 
-Future<List<dynamic>> postMoveInventoryRequestApproval(
-    String reqNo, String reqStatus, String trxQty, String noofLabel) async {
+Future<List<dynamic>> postMoveInventoryRequestApproval(String reqNo,
+    String reqStatus, String trxQty, String binNum, String noofLabel) async {
   bool result = false;
 
   String _params = '?strEnvId=' +
@@ -1048,6 +1084,8 @@ Future<List<dynamic>> postMoveInventoryRequestApproval(
       _globals.epiPrinter +
       '&printerPath=' +
       _globals.epiPrinterPath +
+      '&binNum=' +
+      binNum +
       '&dTranQty=' +
       trxQty +
       '&iLabelCount=' +

@@ -73,7 +73,7 @@ class AcceptInventoryRequestListState
       key: _scaffoldKey,
       appBar: AppBar(
         title: Text(
-          "Inventory Request List",
+          "Accept Inventory Request",
           textScaleFactor: textScaleFactor,
         ),
         automaticallyImplyLeading: false,

@@ -39,6 +39,7 @@ class EpiPOReceiptDtl {
     this.packline = 0,
     this.exemptionno,
     this.purpoint,
+    this.ourQty,
   });
 
   @JsonKey(name: 'Company')
@@ -133,6 +134,9 @@ class EpiPOReceiptDtl {
 
   @JsonKey(name: 'ExemptionNo')
   final String? exemptionno;
+
+  @JsonKey(name: 'OurQty')
+  final double? ourQty;
 
   @JsonKey(ignore: true)
   String token;

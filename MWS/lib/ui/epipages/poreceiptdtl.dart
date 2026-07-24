@@ -1,5 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
+import 'dart:convert';
+
 import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -671,7 +673,7 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                             child: Autocomplete<UserCodes>(
                               // Displays the ID code (e.g., Plate Number) inside the text box when selected
                               displayStringForOption: (UserCodes code) =>
-                                  code.codeId,
+                                  code.codeDesc,
 
                               optionsBuilder:
                                   (TextEditingValue textEditingValue) {
@@ -692,7 +694,7 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                               onSelected: (UserCodes selection) {
                                 setState(() {
                                   txtLorry.text = selection
-                                      .codeId; // Assigns selected Lorry plate/ID directly
+                                      .codeDesc; // Assigns selected Lorry plate/ID directly
                                 });
                               },
 
@@ -946,7 +948,6 @@ class POReceiptDtlState extends State<POReceiptDtl> {
       setState(() {
         _saving = false;
       });
-
       if (_result[0] == false) {
         showAlertPopup(
             context, 'Error', 'Process PO Receipt Detail: ' + _result[1]);
@@ -962,7 +963,72 @@ class POReceiptDtlState extends State<POReceiptDtl> {
       return;
     }
 
-    Navigator.pop(context, 'A');
+    String legalNumber = "";
+    try {
+      if (_result.length > 1 && _result[1] != null) {
+        var rawData = _result[1];
+
+        // 1. If it's a raw JSON text string, decode it into a map structure first
+        if (rawData is String) {
+          var parsedJson = json.decode(rawData);
+          legalNumber = parsedJson['LegalNumber'] ?? 'Unknown';
+        } else {
+          // 2. If it's already an active Map object data type container
+          legalNumber = rawData['LegalNumber'] ?? 'Unknown';
+        }
+      } else {
+        legalNumber = 'Processed';
+      }
+    } catch (e) {
+      print("Extraction Error: $e");
+      legalNumber = 'Processed';
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              SizedBox(width: 10),
+              Text('Receipt Successful'),
+            ],
+          ),
+          content: RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(
+              style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 16), // Default style for standard text
+              children: <TextSpan>[
+                const TextSpan(text: 'The Legal Number generated is:\n'),
+                TextSpan(
+                  text: legalNumber,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold, // Makes the legal number bold
+                    fontSize: 18, // Slightly larger to make it stand out
+                    color: Colors
+                        .blueAccent, // Optional: add color accent to make it pop
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              onPressed: () {
+                Navigator.of(context).pop();
+
+                Navigator.pop(context, 'A');
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future barcodeScanningLotNo() async {

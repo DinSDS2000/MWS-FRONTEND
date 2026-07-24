@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -21,6 +23,9 @@ class _MaterialPickingState extends State<MaterialPicking> {
   bool _saving = false;
   String _barcodeError = '';
   bool _lotEnabled = false;
+  List<dynamic> dropDownBins = [];
+  String? selectedBin;
+  bool isLoadingBins = true;
   late TextEditingController txtPart;
   late TextEditingController txtDesc;
   late TextEditingController txtQty;
@@ -46,6 +51,7 @@ class _MaterialPickingState extends State<MaterialPicking> {
     txtWhse.addListener(onChangeWhse);
     _textFocusWhse.addListener(onChangeWhse);
     setTrackLot();
+    fetchBinsOnLoad();
     super.initState();
   }
 
@@ -82,6 +88,35 @@ class _MaterialPickingState extends State<MaterialPicking> {
       }
     }
     return result;
+  }
+
+  void fetchBinsOnLoad() {
+    // Use the part number loaded into your controller text
+    getInventoryQtyAdjForPart(txtPart.text).then((response) {
+      bool isSuccess = response[0];
+      String rawBody = response[1];
+
+      if (isSuccess) {
+        var decodedData = jsonDecode(rawBody);
+
+        setState(() {
+          dropDownBins = decodedData['InventoryQtyAdjBrw'] ?? [];
+          isLoadingBins = false;
+          for (var item in dropDownBins) {
+            print('Bin: ${item['BinNum']}, Qty: ${item['OnHandQty']}');
+          }
+          // Pro-tip: Automatically pre-select the first bin if the list isn't empty
+          if (dropDownBins.isNotEmpty) {
+            selectedBin = dropDownBins[0]['BinNum'];
+          }
+        });
+      } else {
+        setState(() {
+          isLoadingBins = false;
+        });
+        // Handle your error case here (e.g., show snackbar)
+      }
+    });
   }
 
   @override
@@ -224,22 +259,153 @@ class _MaterialPickingState extends State<MaterialPicking> {
                     ),
                   ],
                 ),
+                // Row(
+                //   children: [
+                //     Expanded(
+                //       child: ListTile(
+                //         title: TextFormField(
+                //           decoration: InputDecoration(labelText: 'Bin'),
+                //           obscureText: false,
+                //           keyboardType: TextInputType.text,
+                //           autocorrect: false,
+                //           controller: txtBin,
+                //         ),
+                //       ),
+                //     ),
+                //     SizedBox(
+                //       width: 10,
+                //     ),
+                //     SizedBox(
+                //       width: 54,
+                //       child: ElevatedButton(
+                //         style: ElevatedButton.styleFrom(
+                //           padding: EdgeInsets.zero,
+                //         ),
+                //         onPressed: () async {
+                //           await scanAndSetToController(txtBin, type: 'bin');
+                //         },
+                //         child: Icon(Icons.camera_alt),
+                //       ),
+                //     ),
+                //   ],
+                // ),
                 Row(
-                  children: [
+                  children: <Widget>[
                     Expanded(
-                      child: ListTile(
-                        title: TextFormField(
-                          decoration: InputDecoration(labelText: 'Bin'),
-                          obscureText: false,
-                          keyboardType: TextInputType.text,
-                          autocorrect: false,
-                          controller: txtBin,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Autocomplete<Map<String, dynamic>>(
+                          // CHANGED: dynamic to Map<String, dynamic>
+                          // Displays only the BinNum string inside the text field upon selection
+                          displayStringForOption:
+                              (Map<String, dynamic> option) =>
+                                  option['BinNum'].toString(),
+
+                          optionsBuilder: (TextEditingValue textEditingValue) {
+                            // Show all items if user taps the field empty, or filter items by BinNum text match
+                            if (textEditingValue.text.isEmpty) {
+                              return const Iterable<
+                                  Map<String, dynamic>>.empty();
+                            }
+                            return dropDownBins
+                                .cast<Map<String, dynamic>>()
+                                .where((Map<String, dynamic> option) {
+                              return option['BinNum']
+                                  .toString()
+                                  .toLowerCase()
+                                  .contains(
+                                      textEditingValue.text.toLowerCase());
+                            });
+                          },
+
+                          // Capture the clicked option and explicitly map it to your main controller
+                          onSelected: (Map<String, dynamic> selection) {
+                            setState(() {
+                              txtBin.text = selection['BinNum'].toString();
+                            });
+                          },
+
+                          fieldViewBuilder: (context, textEditingController,
+                              focusNode, onFieldSubmitted) {
+                            // Ensure the dynamic autocomplete controller stays in sync with your global txtBin controller
+                            if (textEditingController.text != txtBin.text) {
+                              textEditingController.text = txtBin.text;
+                            }
+
+                            // Listen for external updates (like camera scan events) updating txtBin
+                            txtBin.addListener(() {
+                              if (textEditingController.text != txtBin.text) {
+                                textEditingController.text = txtBin.text;
+                              }
+                            });
+
+                            // REMOVED: The generic Focus widget wrapper that was forcing onFieldSubmitted() on focus loss
+                            return TextFormField(
+                              controller: textEditingController,
+                              focusNode: focusNode,
+                              style: const TextStyle(
+                                  color: Color.fromARGB(255, 0, 0, 0)),
+                              decoration: const InputDecoration(
+                                labelText: 'Bin',
+                                enabledBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Color.fromARGB(137, 0, 0, 0)),
+                                ),
+                                focusedBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.blue),
+                                ),
+                              ),
+                              // Process submission only if they explicitly press "Enter" or "Done" on their keyboard
+                              onFieldSubmitted: (String value) {
+                                onFieldSubmitted();
+                              },
+                            );
+                          },
+
+                          optionsViewBuilder: (context, onSelected, options) {
+                            return Align(
+                              alignment: Alignment.topLeft,
+                              child: Material(
+                                elevation: 4.0,
+                                color: Colors.grey,
+                                child: Container(
+                                  width: 300,
+                                  constraints:
+                                      const BoxConstraints(maxHeight: 250),
+                                  child: ListView.builder(
+                                    padding: EdgeInsets.zero,
+                                    shrinkWrap: true,
+                                    itemCount: options.length,
+                                    itemBuilder:
+                                        (BuildContext context, int index) {
+                                      final Map<String, dynamic> option =
+                                          options.elementAt(index);
+                                      return ListTile(
+                                        title: Text(
+                                          option['BinNum'].toString(),
+                                          style: const TextStyle(
+                                              color: Color.fromARGB(
+                                                  255, 255, 255, 255)),
+                                        ),
+                                        subtitle: Text(
+                                          "Qty: ${option['OnHandQty']}",
+                                          style: const TextStyle(
+                                              color: Colors.white60),
+                                        ),
+                                        onTap: () {
+                                          onSelected(option);
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ),
-                    SizedBox(
-                      width: 10,
-                    ),
+                    const SizedBox(width: 10),
                     SizedBox(
                       width: 54,
                       child: ElevatedButton(
@@ -249,7 +415,7 @@ class _MaterialPickingState extends State<MaterialPicking> {
                         onPressed: () async {
                           await scanAndSetToController(txtBin, type: 'bin');
                         },
-                        child: Icon(Icons.camera_alt),
+                        child: const Icon(Icons.camera_alt),
                       ),
                     ),
                   ],
@@ -376,7 +542,7 @@ class _MaterialPickingState extends State<MaterialPicking> {
         lineNo: int.parse(widget.pickerBaq.ud100aSOLineC ?? '0'),
       );
       print("response shiphead: ${response}");
-      final createLine = await createCustShipDtl(
+      var createLine = await createCustShipDtl(
         packNum: response["ShipHead"]["PackNum"],
         orderNum: int.parse(widget.pickerBaq.ud100aSoNoC ?? ""),
         orderLine: int.parse(widget.pickerBaq.ud100aSOLineC ?? ""),
@@ -391,12 +557,16 @@ class _MaterialPickingState extends State<MaterialPicking> {
         runSess: 1,
       );
 
-      print("response shipdtl: ${createLine["LineDesc"]}");
+      final innerResponse = createLine["Response"] as Map<String, dynamic>?;
 
-      if (createLine["LineDesc"] != null &&
-          createLine["LineDesc"]!.startsWith("INVENTORY_WARNING:")) {
+      // 2. FIX: Dig down one layer deeper into the "Value" map
+      final valueMap = innerResponse?["Value"] as Map<String, dynamic>?;
+      // 2. EXTRACT: Get the LineDesc string from the nested map
+      final String? lineDesc = valueMap?["LineDesc"];
+      print("response line desc: $lineDesc");
+      if (lineDesc != null && lineDesc.startsWith("INVENTORY_WARNING:")) {
         bool proceed = await showInventoryWarning(
-          createLine["LineDesc"]!.replaceFirst("INVENTORY_WARNING: ", ""),
+          lineDesc.replaceFirst("INVENTORY_WARNING: ", ""),
         );
         if (!proceed) {
           // User clicked No
@@ -408,8 +578,7 @@ class _MaterialPickingState extends State<MaterialPicking> {
         setState(() {
           _saving = true;
         });
-
-        await createCustShipDtl(
+        createLine = await createCustShipDtl(
           packNum: response["ShipHead"]["PackNum"],
           orderNum: int.parse(widget.pickerBaq.ud100aSoNoC ?? ""),
           orderLine: int.parse(widget.pickerBaq.ud100aSOLineC ?? ""),
@@ -424,10 +593,12 @@ class _MaterialPickingState extends State<MaterialPicking> {
           runSess: 2,
         );
       }
+
       setState(() {
         _saving = false;
       });
-
+      final String? legalNum = createLine["LegalNum"];
+      print("Legalnum $legalNum");
       if (response[0] == false) {
         print("RESPONSE: ${response[1]}");
         showAlertPopup(context, 'Error', 'Picker BAQ update : ' + response[1]);
@@ -436,18 +607,58 @@ class _MaterialPickingState extends State<MaterialPicking> {
 
       showDialog(
         context: context,
-        builder: (_) => AlertDialog(
-          title: Text("Success"),
-          content: Text("Update Order Picking Successfully"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text("Ok"),
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          // Check if legal number exists and is not empty
+          bool hasLegalNum = legalNum != null && legalNum.isNotEmpty;
+
+          return AlertDialog(
+            title: Row(
+              children: [
+                const SizedBox(width: 10),
+                // 1. CONDITIONAL TITLE: Changes depending on legal number presence
+                Text(hasLegalNum
+                    ? 'Receipt Successful'
+                    : 'Order Picking Successful'),
+              ],
             ),
-          ],
-        ),
+            content: RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                style: const TextStyle(color: Colors.black, fontSize: 16),
+                // 2. CONDITIONAL CONTENT: Shows the legal number flow OR a simple success line
+                children: hasLegalNum
+                    ? <TextSpan>[
+                        const TextSpan(
+                            text: 'The Legal Number generated is:\n\n'),
+                        TextSpan(
+                          text: legalNum,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.blueAccent,
+                          ),
+                        ),
+                      ]
+                    : <TextSpan>[
+                        const TextSpan(
+                            text:
+                                'Your order has been successfully picked and processed.'),
+                      ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('OK',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.pop(context, 'A');
+                },
+              ),
+            ],
+          );
+        },
       );
     } catch (e) {
       setState(() {

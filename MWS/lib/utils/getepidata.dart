@@ -296,7 +296,12 @@ Future<List<dynamic>> getEpiPickerList({
   String? picker,
   String? orderNum,
   String? transporter,
-  DateTime? date,
+  DateTime? fromRelDate,
+  DateTime? toRelDate,
+  DateTime? fromOrderDate,
+  DateTime? toOrderDate,
+  String? fromLegalNum,
+  String? toLegalNum,
 }) async {
   // Base params (required)
   String params = '?strUid=' +
@@ -321,9 +326,27 @@ Future<List<dynamic>> getEpiPickerList({
     params += '&transporter=' + Uri.encodeComponent(transporter);
   }
 
-  if (date != null) {
-    final formattedDate = DateFormat('yyyy-MM-dd').format(date);
-    params += '&date=' + Uri.encodeComponent(formattedDate);
+  if (fromRelDate != null) {
+    final formattedDate = DateFormat('yyyy-MM-dd').format(fromRelDate);
+    params += '&fromRelDate=' + Uri.encodeComponent(formattedDate);
+  }
+  if (toRelDate != null) {
+    final formattedDate = DateFormat('yyyy-MM-dd').format(toRelDate);
+    params += '&toRelDate=' + Uri.encodeComponent(formattedDate);
+  }
+  if (fromOrderDate != null) {
+    final formattedDate = DateFormat('yyyy-MM-dd').format(fromOrderDate);
+    params += '&fromOrderDate=' + Uri.encodeComponent(formattedDate);
+  }
+  if (toOrderDate != null) {
+    final formattedDate = DateFormat('yyyy-MM-dd').format(toOrderDate);
+    params += '&toOrderDate=' + Uri.encodeComponent(formattedDate);
+  }
+  if (fromLegalNum != null && fromLegalNum.isNotEmpty) {
+    params += '&fromLegalNum=' + Uri.encodeComponent(fromLegalNum);
+  }
+  if (toLegalNum != null && toLegalNum.isNotEmpty) {
+    params += '&toLegalNum=' + Uri.encodeComponent(toLegalNum);
   }
   var _data = await WebClient(User(token: '')).get(_globals.epiApiBaseUrl +
       '/api/DeliveryTracking/LoadPickerDelivery' +
@@ -357,6 +380,7 @@ Future<List<Transporter>> getTransporters() async {
 Future<List<dynamic>> getShipmentDetails({
   String? lorryID,
   String? planID,
+  String? doNum,
 }) async {
   // Build base query string
   String params = '?username=' +
@@ -376,6 +400,9 @@ Future<List<dynamic>> getShipmentDetails({
   }
   if (planID != null && planID.isNotEmpty) {
     params += '&planID=' + Uri.encodeComponent(planID);
+  }
+  if (doNum != null && doNum.isNotEmpty) {
+    params += '&donum=' + Uri.encodeComponent(doNum);
   }
 
   // Call API

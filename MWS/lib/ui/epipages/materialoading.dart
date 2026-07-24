@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_epihhinventory/data/classes/epishipdtl.dart';
+import 'package:flutter_epihhinventory/data/classes/epiusercodes.dart';
 import 'package:flutter_epihhinventory/utils/getepidata.dart';
 import 'package:flutter_epihhinventory/utils/popUp.dart';
 import 'package:flutter_epihhinventory/utils/postepidata.dart';
@@ -16,6 +17,10 @@ class MaterialLoading extends StatefulWidget {
 
 class _MaterialLoadingState extends State<MaterialLoading> {
   bool _saving = false;
+  bool _isLoading = false;
+  List<UserCodes> userCodesList = [];
+  List<UserCodes> lorryCodesList = [];
+  List<Transporter> transporterList = [];
   Transporter? _selectedTransporter;
   late TextEditingController txtPart;
   late TextEditingController txtDesc;
@@ -27,11 +32,64 @@ class _MaterialLoadingState extends State<MaterialLoading> {
 
   @override
   void initState() {
+    initPageData();
     txtPart = TextEditingController(text: widget.shipmentDetail.shipDtlPartNum);
     txtDesc =
         TextEditingController(text: widget.shipmentDetail.shipDtlLineDesc);
     txtUom = TextEditingController(text: widget.shipmentDetail.shipDtlSalesUM);
     super.initState();
+  }
+
+  Future<List<UserCodes>> _loadUserCodes(String codeId) async {
+    setState(() {
+      _isLoading = true; // Turn on loader spinner
+    });
+
+    try {
+      UserCodesResponse response = await getUserCodes(codeTypeId: codeId);
+
+      if (response.success && response.value.isNotEmpty) {
+        print(
+            "$codeId Loaded: ${response.value.map((e) => 'ID: ${e.codeId} - Desc: ${e.codeDesc}').toList()}");
+        return response.value; // Return the fetched array directly
+      } else {
+        print(response.errors.isNotEmpty
+            ? response.errors.first
+            : 'No records found.');
+      }
+    } catch (e) {
+      print('Failed loading data for $codeId: $e');
+    } finally {
+      setState(() {
+        _isLoading = false; // Turn off loader spinner
+      });
+    }
+    return []; // Return empty list if request fails
+  }
+
+  Future<void> initPageData() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final results = await Future.wait<dynamic>([
+        _loadUserCodes('DriverName'),
+        _loadUserCodes('LorryNo'),
+        getTransporters(),
+      ]);
+
+      setState(() {
+        userCodesList = results[0];
+        lorryCodesList = results[1];
+        transporterList = results[2];
+      });
+    } catch (e) {
+      print('Error executing page load pipeline: $e');
+    } finally {
+      setState(() {
+        _isLoading = false; // Turn off HUD loader spinner overlay
+      });
+    }
   }
 
   @override
@@ -80,61 +138,383 @@ class _MaterialLoadingState extends State<MaterialLoading> {
                     )
                   ],
                 ),
+                // Row(
+                //   children: [
+                //     Expanded(
+                //       child: ListTile(
+                //         title: TextFormField(
+                //           decoration: InputDecoration(labelText: 'Lorry'),
+                //           obscureText: false,
+                //           keyboardType: TextInputType.text,
+                //           autocorrect: false,
+                //           controller: txtLorry,
+                //         ),
+                //       ),
+                //     )
+                //   ],
+                // ),
+                // Row(
+                //   children: [
+                //     Expanded(
+                //       child: ListTile(
+                //         title: TextFormField(
+                //           decoration: InputDecoration(labelText: 'Driver Name'),
+                //           obscureText: false,
+                //           keyboardType: TextInputType.text,
+                //           autocorrect: false,
+                //           controller: txtDriver,
+                //         ),
+                //       ),
+                //     )
+                //   ],
+                // ),
                 Row(
-                  children: [
+                  children: <Widget>[
                     Expanded(
-                      child: ListTile(
-                        title: TextFormField(
-                          decoration: InputDecoration(labelText: 'Lorry'),
-                          obscureText: false,
-                          keyboardType: TextInputType.text,
-                          autocorrect: false,
-                          controller: txtLorry,
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ListTile(
-                        title: TextFormField(
-                          decoration: InputDecoration(labelText: 'Driver Name'),
-                          obscureText: false,
-                          keyboardType: TextInputType.text,
-                          autocorrect: false,
-                          controller: txtDriver,
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ListTile(
-                        title: TextFormField(
-                          decoration: InputDecoration(labelText: 'Transporter'),
-                          obscureText: false,
-                          keyboardType: TextInputType.text,
-                          autocorrect: false,
-                          controller: txtTransporter,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Autocomplete<UserCodes>(
+                          // Displays the ID code (e.g., Plate Number) inside the text box when selected
+                          displayStringForOption: (UserCodes code) =>
+                              code.codeDesc,
+
+                          optionsBuilder: (TextEditingValue textEditingValue) {
+                            if (textEditingValue.text.isEmpty) {
+                              return const Iterable<UserCodes>.empty();
+                            }
+                            // Filters your stored lorryCodesList locally by ID or Description
+                            return lorryCodesList.where((UserCodes code) {
+                              return code.codeId.toLowerCase().contains(
+                                      textEditingValue.text.toLowerCase()) ||
+                                  code.codeDesc.toLowerCase().contains(
+                                      textEditingValue.text.toLowerCase());
+                            });
+                          },
+
+                          // Capture item when clicked to save properties locally
+                          onSelected: (UserCodes selection) {
+                            setState(() {
+                              txtLorry.text = selection
+                                  .codeDesc; // Assigns selected Lorry plate/ID directly
+                            });
+                          },
+
+                          fieldViewBuilder: (context, textEditingController,
+                              focusNode, onFieldSubmitted) {
+                            focusNode.onKeyEvent =
+                                null; // Resets key event mapping blocks
+                            focusNode
+                                .unfocus(); // Clear active states if needed
+
+                            return Focus(
+                              onFocusChange: (hasFocus) {
+                                if (!hasFocus) {
+                                  onFieldSubmitted(); // Closes dropdown overlay instantly on unfocus
+                                }
+                              },
+                              child: TextFormField(
+                                controller: textEditingController,
+                                focusNode: focusNode,
+                                style: const TextStyle(
+                                    color: Color.fromARGB(255, 0, 0, 0)),
+                                decoration: const InputDecoration(
+                                  labelText: 'Lorry',
+                                  enabledBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: Color.fromARGB(137, 0, 0, 0))),
+                                  focusedBorder: UnderlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.blue)),
+                                ),
+                              ),
+                            );
+                          },
+
+                          optionsViewBuilder: (context, onSelected, options) {
+                            return Align(
+                              alignment: Alignment.topLeft,
+                              child: Material(
+                                elevation: 4.0,
+                                color: Colors.grey,
+                                child: Container(
+                                  width: 300,
+                                  constraints:
+                                      const BoxConstraints(maxHeight: 250),
+                                  child: ListView.builder(
+                                    padding: EdgeInsets.zero,
+                                    shrinkWrap: true,
+                                    itemCount: options.length,
+                                    itemBuilder:
+                                        (BuildContext context, int index) {
+                                      final UserCodes option =
+                                          options.elementAt(index);
+                                      return ListTile(
+                                        title: Text(
+                                          option.codeId,
+                                          style: const TextStyle(
+                                              color: Color.fromARGB(
+                                                  255, 255, 255, 255)),
+                                        ),
+                                        subtitle: Text(
+                                          option.codeDesc,
+                                          style: const TextStyle(
+                                              color: Colors.white60),
+                                        ),
+                                        onTap: () {
+                                          onSelected(option);
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ),
-                    SizedBox(
-                      width: 54,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.zero,
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Autocomplete<UserCodes>(
+                          // Displays the clear text description inside the input box when selected
+                          displayStringForOption: (UserCodes code) =>
+                              code.codeDesc,
+
+                          optionsBuilder: (TextEditingValue textEditingValue) {
+                            if (textEditingValue.text.isEmpty) {
+                              return const Iterable<UserCodes>.empty();
+                            }
+                            // Filters your stored userCodesList locally by ID or Description
+                            return userCodesList.where((UserCodes code) {
+                              return code.codeId.toLowerCase().contains(
+                                      textEditingValue.text.toLowerCase()) ||
+                                  code.codeDesc.toLowerCase().contains(
+                                      textEditingValue.text.toLowerCase());
+                            });
+                          },
+
+                          // Capture item when clicked to save properties locally
+                          onSelected: (UserCodes selection) {
+                            setState(() {
+                              txtDriver.text = selection.codeDesc;
+                            });
+                          },
+
+                          fieldViewBuilder: (context, textEditingController,
+                              focusNode, onFieldSubmitted) {
+                            focusNode.onKeyEvent =
+                                null; // Resets key event mapping blocks
+                            focusNode
+                                .unfocus(); // Clear active states if needed
+
+                            return Focus(
+                              onFocusChange: (hasFocus) {
+                                if (!hasFocus) {
+                                  onFieldSubmitted(); // Closes dropdown overlay instantly on unfocus
+                                }
+                              },
+                              child: TextFormField(
+                                controller: textEditingController,
+                                focusNode: focusNode,
+                                style: const TextStyle(
+                                    color: Color.fromARGB(255, 0, 0, 0)),
+                                decoration: const InputDecoration(
+                                  labelText: 'Driver Name',
+                                  enabledBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: Color.fromARGB(137, 0, 0, 0))),
+                                  focusedBorder: UnderlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.blue)),
+                                ),
+                              ),
+                            );
+                          },
+
+                          optionsViewBuilder: (context, onSelected, options) {
+                            return Align(
+                              alignment: Alignment.topLeft,
+                              child: Material(
+                                elevation: 4.0,
+                                color: Colors.grey[850],
+                                child: Container(
+                                  width: 300,
+                                  constraints:
+                                      const BoxConstraints(maxHeight: 250),
+                                  child: ListView.builder(
+                                    padding: EdgeInsets.zero,
+                                    shrinkWrap: true,
+                                    itemCount: options.length,
+                                    itemBuilder:
+                                        (BuildContext context, int index) {
+                                      final UserCodes option =
+                                          options.elementAt(index);
+                                      return ListTile(
+                                        title: Text(
+                                          option.codeDesc,
+                                          style: const TextStyle(
+                                              color: Color.fromARGB(
+                                                  255, 255, 255, 255)),
+                                        ),
+                                        subtitle: Text(
+                                          option.codeId,
+                                          style: const TextStyle(
+                                              color: Colors.white60),
+                                        ),
+                                        onTap: () {
+                                          onSelected(option);
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                        child: Icon(Icons.search),
-                        onPressed: () => _showTransporterDialog(context),
                       ),
                     ),
                   ],
                 ),
+
+                // Row(
+                //   children: [
+                //     Expanded(
+                //       child: ListTile(
+                //         title: TextFormField(
+                //           decoration: InputDecoration(labelText: 'Transporter'),
+                //           obscureText: false,
+                //           keyboardType: TextInputType.text,
+                //           autocorrect: false,
+                //           controller: txtTransporter,
+                //         ),
+                //       ),
+                //     ),
+                // SizedBox(
+                //   width: 54,
+                //   child: ElevatedButton(
+                //     style: ElevatedButton.styleFrom(
+                //       padding: EdgeInsets.zero,
+                //     ),
+                //     child: Icon(Icons.search),
+                //     onPressed: () => _showTransporterDialog(context),
+                //   ),
+                // ),
+                //   ],
+                // ),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Autocomplete<Transporter>(
+                          // Displays the ID code (e.g., Plate Number) inside the text box when selected
+                          displayStringForOption: (Transporter trans) =>
+                              trans.name,
+
+                          optionsBuilder: (TextEditingValue textEditingValue) {
+                            if (textEditingValue.text.isEmpty) {
+                              return const Iterable<Transporter>.empty();
+                            }
+                            // Filters your stored lorryCodesList locally by ID or Description
+                            return transporterList.where((Transporter trans) {
+                              return trans.id.toLowerCase().contains(
+                                      textEditingValue.text.toLowerCase()) ||
+                                  trans.name.toLowerCase().contains(
+                                      textEditingValue.text.toLowerCase());
+                            });
+                          },
+
+                          // Capture item when clicked to save properties locally
+                          onSelected: (Transporter selection) {
+                            setState(() {
+                              txtTransporter.text = selection
+                                  .name; // Assigns selected Lorry plate/ID directly
+                            });
+                          },
+
+                          fieldViewBuilder: (context, textEditingController,
+                              focusNode, onFieldSubmitted) {
+                            focusNode.onKeyEvent =
+                                null; // Resets key event mapping blocks
+                            focusNode
+                                .unfocus(); // Clear active states if needed
+
+                            return Focus(
+                              onFocusChange: (hasFocus) {
+                                if (!hasFocus) {
+                                  onFieldSubmitted(); // Closes dropdown overlay instantly on unfocus
+                                }
+                              },
+                              child: TextFormField(
+                                controller: textEditingController,
+                                focusNode: focusNode,
+                                style: const TextStyle(
+                                    color: Color.fromARGB(255, 0, 0, 0)),
+                                decoration: const InputDecoration(
+                                  labelText: 'Transporter',
+                                  enabledBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: Color.fromARGB(137, 0, 0, 0))),
+                                  focusedBorder: UnderlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.blue)),
+                                ),
+                              ),
+                            );
+                          },
+
+                          optionsViewBuilder: (context, onSelected, options) {
+                            return Align(
+                              alignment: Alignment.topLeft,
+                              child: Material(
+                                elevation: 4.0,
+                                color: Colors.grey,
+                                child: Container(
+                                  width: 300,
+                                  constraints:
+                                      const BoxConstraints(maxHeight: 250),
+                                  child: ListView.builder(
+                                    padding: EdgeInsets.zero,
+                                    shrinkWrap: true,
+                                    itemCount: options.length,
+                                    itemBuilder:
+                                        (BuildContext context, int index) {
+                                      final Transporter option =
+                                          options.elementAt(index);
+                                      return ListTile(
+                                        title: Text(
+                                          option.id,
+                                          style: const TextStyle(
+                                              color: Color.fromARGB(
+                                                  255, 255, 255, 255)),
+                                        ),
+                                        subtitle: Text(
+                                          option.name,
+                                          style: const TextStyle(
+                                              color: Colors.white60),
+                                        ),
+                                        onTap: () {
+                                          onSelected(option);
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
                 Row(
                   children: [
                     Expanded(

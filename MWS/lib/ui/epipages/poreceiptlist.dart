@@ -188,7 +188,7 @@ class POReceiptListState extends State<POReceiptList> {
                     Expanded(
                       child: ListTile(
                         title: TextFormField(
-                          decoration: InputDecoration(labelText: 'Pack No.'),
+                          decoration: InputDecoration(labelText: 'DO Number'),
                           obscureText: false,
                           keyboardType: TextInputType.text,
                           autocorrect: false,
@@ -422,26 +422,28 @@ class POReceiptListState extends State<POReceiptList> {
     String _listPOLineRel = '';
     String _listPartNum = '';
     String _listPartDesc = '';
-    String _listPORelQty = '';
+    // String _listPORelQty = '';
     String _listVendorId = '';
     // String _listWhse = '';
     // String _listBin = '';
     // String _listLot = '';
     String _listLegalNo;
     String _listExemptionNo;
+    String _listOurQty = '';
     print("List po: ${_listPO.epiporeceiptdtllist[0]}");
     _listPONum = _listPO.epiporeceiptdtllist[index].ponum.toString();
     _listPOLine = _listPO.epiporeceiptdtllist[index].poline.toString();
     _listPOLineRel = _listPO.epiporeceiptdtllist[index].polinerel.toString();
     _listPartNum = _listPO.epiporeceiptdtllist[index].partnum;
     _listPartDesc = _listPO.epiporeceiptdtllist[index].partdesc;
-    _listPORelQty = _listPO.epiporeceiptdtllist[index].porelqty.toString();
+    _listOurQty = _listPO.epiporeceiptdtllist[index].ourQty.toString();
     _listVendorId = _listPO.epiporeceiptdtllist[index].vendorid;
     // _listWhse = _listPO.epiporeceiptdtllist[index].whse ?? ' ';
     // _listBin = _listPO.epiporeceiptdtllist[index].bin ?? ' ';
     // _listLot = _listPO.epiporeceiptdtllist[index].lotnum ?? ' ';
     _listLegalNo = _listPO.epiporeceiptdtllist[index].legalnumber ?? '';
     _listExemptionNo = _listPO.epiporeceiptdtllist[index].exemptionno ?? '';
+
     return new Card(
       elevation: 8.0,
       margin: new EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
@@ -477,7 +479,7 @@ class POReceiptListState extends State<POReceiptList> {
               ),
               Row(
                 children: <Widget>[
-                  Text('Rel Qty: ' + _listPORelQty,
+                  Text('Req Qty: ' + _listOurQty,
                       style: TextStyle(color: Colors.white)),
                 ],
               ),
@@ -517,7 +519,7 @@ class POReceiptListState extends State<POReceiptList> {
               Icon(Icons.keyboard_arrow_right, color: Colors.white, size: 30.0),
           onTap: () async {
             if (txtPackNo.text == '') {
-              showAlertPopup(context, 'Error', 'Please provide pack no.');
+              showAlertPopup(context, 'Error', 'Please provide DO Number.');
               return;
             }
             Navigator.push(

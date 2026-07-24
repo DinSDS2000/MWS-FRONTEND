@@ -475,7 +475,7 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
                               keyboardType: TextInputType.text,
                               autocorrect: false,
                               controller: txtToBin,
-                              enabled: false,
+                              enabled: true,
                             ),
                           ),
                         ),
@@ -722,7 +722,7 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
     }
 
     _result = await postMoveInventoryRequestApproval(
-        _reqNum, _reqStatus, txtQty.text, txtNoofLable.text);
+        _reqNum, _reqStatus, txtQty.text, txtToBin.text, txtNoofLable.text);
     if (_result[0] == false) {
       showAlertPopup(
           context, 'Error', 'Process Accept Inventory Request : ' + _result[1]);

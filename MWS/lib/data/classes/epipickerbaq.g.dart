@@ -29,6 +29,8 @@ Epipickerbaq _$EpipickerbaqFromJson(Map<String, dynamic> json) => Epipickerbaq(
       orderHedOrderComment: json['OrderHed_OrderComment'] as String?,
       orderRelExemptionNo: json['OrderRel_SD_ExemptionNo_c'] as String?,
       warehouseCode: json['OrderRel_WarehouseCode'] as String?,
+      taxCatID: json['OrderDtl_TaxCatID'] as String?,
+      orderDate: json['OrderHed_OrderDate'] as String?,
       rowIdent: json['RowIdent'] as String?,
     );
 
@@ -56,5 +58,7 @@ Map<String, dynamic> _$EpipickerbaqToJson(Epipickerbaq instance) =>
       'OrderHed_OrderComment': instance.orderHedOrderComment,
       'OrderRel_SD_ExemptionNo_c': instance.orderRelExemptionNo,
       'OrderRel_WarehouseCode': instance.warehouseCode,
+      'OrderDtl_TaxCatID': instance.taxCatID,
+      'OrderHed_OrderDate': instance.orderDate,
       'RowIdent': instance.rowIdent,
     };

@@ -23,11 +23,21 @@ class _MaterialpickingState extends State<MaterialList> {
   var txtPickerNo = new TextEditingController();
   var txtOrderNo = new TextEditingController();
   var txtTransporterNo = new TextEditingController();
-  var txtNeedByDate = new TextEditingController();
+  var txtFromRelNeedByDate = new TextEditingController();
+  var txtToRelNeedByDate = new TextEditingController();
+  var txtFromOrderDate = new TextEditingController();
+  var txtToOrderDate = new TextEditingController();
+  var txtFromLegalNum = new TextEditingController();
+  var txtToLegalNum = new TextEditingController();
   FocusNode _textFocusPickerNo = new FocusNode();
   FocusNode _textFocusOrderNo = new FocusNode();
   FocusNode _textFocusTransporterNo = new FocusNode();
-  FocusNode _textFocusNeedByDate = new FocusNode();
+  FocusNode _textFocusFromRelNeedByDate = new FocusNode();
+  FocusNode _textFocusToRelNeedByDate = new FocusNode();
+  FocusNode _textFocusFromOrderDate = new FocusNode();
+  FocusNode _textFocusToOrderDate = new FocusNode();
+  FocusNode _textFocusFromLegalNum = new FocusNode();
+  FocusNode _textFocusToLegalNum = new FocusNode();
 
   @override
   void initState() {
@@ -85,75 +95,75 @@ class _MaterialpickingState extends State<MaterialList> {
         child: SafeArea(
           child: Column(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: ListTile(
-                      title: TextFormField(
-                        decoration: InputDecoration(labelText: 'Picker'),
-                        obscureText: false,
-                        keyboardType: TextInputType.text,
-                        autocorrect: false,
-                        controller: txtPickerNo,
-                        focusNode: _textFocusPickerNo,
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  SizedBox(
-                    width: 54,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        alignment: Alignment.center,
-                      ),
-                      child: Icon(Icons.camera_alt),
-                      onPressed: () async {
-                        await scanAndSetToController(txtPickerNo);
-                      },
-                    ),
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Expanded(
-                      child: ListTile(
-                    title: TextFormField(
-                      decoration: InputDecoration(labelText: 'Order No'),
-                      obscureText: false,
-                      keyboardType: TextInputType.text,
-                      autocorrect: false,
-                      controller: txtOrderNo,
-                      focusNode: _textFocusOrderNo,
-                    ),
-                  )),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  SizedBox(
-                    width: 54,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        alignment: Alignment.center,
-                      ),
-                      child: Icon(Icons.camera_alt),
-                      onPressed: () async {
-                        await scanAndSetToController(txtOrderNo);
-                      },
-                    ),
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                ],
-              ),
+              // Row(
+              //   children: [
+              //     Expanded(
+              //       child: ListTile(
+              //         title: TextFormField(
+              //           decoration: InputDecoration(labelText: 'Picker'),
+              //           obscureText: false,
+              //           keyboardType: TextInputType.text,
+              //           autocorrect: false,
+              //           controller: txtPickerNo,
+              //           focusNode: _textFocusPickerNo,
+              //         ),
+              //       ),
+              //     ),
+              //     SizedBox(
+              //       width: 10,
+              //     ),
+              //     SizedBox(
+              //       width: 54,
+              //       child: ElevatedButton(
+              //         style: ElevatedButton.styleFrom(
+              //           padding: EdgeInsets.zero,
+              //           alignment: Alignment.center,
+              //         ),
+              //         child: Icon(Icons.camera_alt),
+              //         onPressed: () async {
+              //           await scanAndSetToController(txtPickerNo);
+              //         },
+              //       ),
+              //     ),
+              //     SizedBox(
+              //       width: 10,
+              //     ),
+              //   ],
+              // ),
+              // Row(
+              //   children: [
+              //     Expanded(
+              //         child: ListTile(
+              //       title: TextFormField(
+              //         decoration: InputDecoration(labelText: 'Order No'),
+              //         obscureText: false,
+              //         keyboardType: TextInputType.text,
+              //         autocorrect: false,
+              //         controller: txtOrderNo,
+              //         focusNode: _textFocusOrderNo,
+              //       ),
+              //     )),
+              //     SizedBox(
+              //       width: 10,
+              //     ),
+              //     SizedBox(
+              //       width: 54,
+              //       child: ElevatedButton(
+              //         style: ElevatedButton.styleFrom(
+              //           padding: EdgeInsets.zero,
+              //           alignment: Alignment.center,
+              //         ),
+              //         child: Icon(Icons.camera_alt),
+              //         onPressed: () async {
+              //           await scanAndSetToController(txtOrderNo);
+              //         },
+              //       ),
+              //     ),
+              //     SizedBox(
+              //       width: 10,
+              //     ),
+              //   ],
+              // ),
               Row(
                 children: [
                   Expanded(
@@ -193,25 +203,13 @@ class _MaterialpickingState extends State<MaterialList> {
                   Expanded(
                       child: ListTile(
                     title: TextFormField(
-                      decoration: InputDecoration(labelText: 'Date'),
-                      readOnly: true,
+                      decoration:
+                          InputDecoration(labelText: 'From Legal Number'),
+                      obscureText: false,
                       keyboardType: TextInputType.text,
-                      controller: txtNeedByDate,
-                      focusNode: _textFocusNeedByDate,
-                      onTap: () async {
-                        DateTime? pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime(2100),
-                        );
-
-                        if (pickedDate != null) {
-                          String FormattedDate =
-                              DateFormat('dd-MM-yyyy').format(pickedDate);
-                          txtNeedByDate.text = FormattedDate;
-                        }
-                      },
+                      autocorrect: false,
+                      controller: txtFromLegalNum,
+                      focusNode: _textFocusFromLegalNum,
                     ),
                   )),
                   SizedBox(
@@ -226,12 +224,174 @@ class _MaterialpickingState extends State<MaterialList> {
                       ),
                       child: Icon(Icons.camera_alt),
                       onPressed: () async {
-                        await scanAndSetToController(txtTransporterNo);
+                        await scanAndSetToController(txtFromLegalNum);
                       },
                     ),
                   ),
                   SizedBox(
                     width: 10,
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Expanded(
+                      child: ListTile(
+                    title: TextFormField(
+                      decoration: InputDecoration(labelText: 'To Legal Number'),
+                      obscureText: false,
+                      keyboardType: TextInputType.text,
+                      autocorrect: false,
+                      controller: txtToLegalNum,
+                      focusNode: _textFocusToLegalNum,
+                    ),
+                  )),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  SizedBox(
+                    width: 54,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        alignment: Alignment.center,
+                      ),
+                      child: Icon(Icons.camera_alt),
+                      onPressed: () async {
+                        await scanAndSetToController(txtToLegalNum);
+                      },
+                    ),
+                  ),
+                  SizedBox(
+                    width: 10,
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: ListTile(
+                      title: TextFormField(
+                        decoration: InputDecoration(labelText: 'From Rel Date'),
+                        readOnly: true,
+                        keyboardType: TextInputType.text,
+                        controller: txtFromRelNeedByDate,
+                        focusNode: _textFocusFromRelNeedByDate,
+                        onTap: () async {
+                          DateTime? pickedDate = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2100),
+                          );
+
+                          if (pickedDate != null) {
+                            String FormattedDate =
+                                DateFormat('dd-MM-yyyy').format(pickedDate);
+                            txtFromRelNeedByDate.text = FormattedDate;
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: ListTile(
+                      title: TextFormField(
+                        decoration: InputDecoration(labelText: 'To Rel Date'),
+                        readOnly: true,
+                        keyboardType: TextInputType.text,
+                        controller: txtToRelNeedByDate,
+                        focusNode: _textFocusToRelNeedByDate,
+                        onTap: () async {
+                          DateTime? pickedDate = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2100),
+                          );
+
+                          if (pickedDate != null) {
+                            String FormattedDate =
+                                DateFormat('dd-MM-yyyy').format(pickedDate);
+                            txtToRelNeedByDate.text = FormattedDate;
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                  // SizedBox(
+                  //   width: 10,
+                  // ),
+                  // SizedBox(
+                  //   width: 54,
+                  //   child: ElevatedButton(
+                  //     style: ElevatedButton.styleFrom(
+                  //       padding: EdgeInsets.zero,
+                  //       alignment: Alignment.center,
+                  //     ),
+                  //     child: Icon(Icons.camera_alt),
+                  //     onPressed: () async {
+                  //       await scanAndSetToController(txtTransporterNo);
+                  //     },
+                  //   ),
+                  // ),
+                  // SizedBox(
+                  //   width: 10,
+                  // ),
+                ],
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: ListTile(
+                      title: TextFormField(
+                        decoration:
+                            InputDecoration(labelText: 'From Order Date'),
+                        readOnly: true,
+                        keyboardType: TextInputType.text,
+                        controller: txtFromOrderDate,
+                        focusNode: _textFocusFromOrderDate,
+                        onTap: () async {
+                          DateTime? pickedDate = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2100),
+                          );
+
+                          if (pickedDate != null) {
+                            String FormattedDate =
+                                DateFormat('dd-MM-yyyy').format(pickedDate);
+                            txtFromOrderDate.text = FormattedDate;
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: ListTile(
+                      title: TextFormField(
+                        decoration: InputDecoration(labelText: 'To Order Date'),
+                        readOnly: true,
+                        keyboardType: TextInputType.text,
+                        controller: txtToOrderDate,
+                        focusNode: _textFocusToOrderDate,
+                        onTap: () async {
+                          DateTime? pickedDate = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2100),
+                          );
+
+                          if (pickedDate != null) {
+                            String FormattedDate =
+                                DateFormat('dd-MM-yyyy').format(pickedDate);
+                            txtToOrderDate.text = FormattedDate;
+                          }
+                        },
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -268,10 +428,24 @@ class _MaterialpickingState extends State<MaterialList> {
                             picker: txtPickerNo.text,
                             orderNum: txtOrderNo.text,
                             transporter: txtTransporterNo.text,
-                            date: txtNeedByDate.text.isNotEmpty
+                            fromRelDate: txtFromRelNeedByDate.text.isNotEmpty
                                 ? DateFormat('dd-MM-yyyy')
-                                    .parse(txtNeedByDate.text)
+                                    .parse(txtFromRelNeedByDate.text)
                                 : null,
+                            toRelDate: txtToRelNeedByDate.text.isNotEmpty
+                                ? DateFormat('dd-MM-yyyy')
+                                    .parse(txtToRelNeedByDate.text)
+                                : null,
+                            fromOrderDate: txtFromOrderDate.text.isNotEmpty
+                                ? DateFormat('dd-MM-yyyy')
+                                    .parse(txtFromOrderDate.text)
+                                : null,
+                            toOrderDate: txtToOrderDate.text.isNotEmpty
+                                ? DateFormat('dd-MM-yyyy')
+                                    .parse(txtToOrderDate.text)
+                                : null,
+                            fromLegalNum: txtFromLegalNum.text,
+                            toLegalNum: txtToLegalNum.text,
                           );
                           if (_result[0] == false) {
                             _pickerBaq = _result[1];
@@ -337,9 +511,8 @@ class _MaterialpickingState extends State<MaterialList> {
     final qty = item.ud100aQuantityC;
     final orderNum = item.ud100aSoNoC;
     final comment = item.orderHedOrderComment;
-    final exemptionNo = item.orderRelExemptionNo;
     final warehouseCode = item.warehouseCode;
-
+    final taxCatid = item.taxCatID;
     return Card(
       elevation: 8,
       margin: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -421,7 +594,7 @@ class _MaterialpickingState extends State<MaterialList> {
               Row(
                 children: [
                   Text(
-                    'Exemption No: ' + (exemptionNo ?? ''),
+                    'Tax Category: ' + (taxCatid ?? ''),
                     style: TextStyle(color: Colors.white),
                   ),
                 ],
