@@ -478,25 +478,25 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                             ),
                           ),
                         ),
-                        //SizedBox(width: 10),
-                        // SizedBox(
-                        //   width: 64,
-                        //   child: ElevatedButton(
-                        //     style: ElevatedButton.styleFrom(
-                        //       padding: EdgeInsets.zero,
-                        //     ),
-                        //     child: Text(
-                        //       'Next Lot',
-                        //       textScaleFactor: textScaleFactor,
-                        //       style: TextStyle(
-                        //         color: Colors.black,
-                        //       ),
-                        //     ),
-                        //     //color: Colors.blue,
-                        //     //disabledColor: Colors.grey,
-                        //     onPressed: genLot,
-                        //   ),
-                        // ),
+                        SizedBox(width: 10),
+                        SizedBox(
+                          width: 64,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                            ),
+                            child: Text(
+                              'Next Lot',
+                              textScaleFactor: textScaleFactor,
+                              style: TextStyle(
+                                color: Colors.black,
+                              ),
+                            ),
+                            //color: Colors.blue,
+                            //disabledColor: Colors.grey,
+                            onPressed: genLot,
+                          ),
+                        ),
                         SizedBox(width: 18),
                         SizedBox(
                           width: 54,
@@ -865,10 +865,11 @@ class POReceiptDtlState extends State<POReceiptDtl> {
         _saving = false;
       });
 
-      print(_result);
+      print("NEW PART LOT: $_result");
 
       if (_result[0] == true) {
-        txtLotNo.text = _result[1].replaceAll('"', '');
+        var lotData = jsonDecode(_result[1]);
+        txtLotNo.text = lotData['LotNum'].toString();
       }
     }
   }

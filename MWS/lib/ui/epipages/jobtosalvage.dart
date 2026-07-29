@@ -1,5 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
+import 'dart:convert';
+
 import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -367,6 +369,25 @@ class JobtoSalvageState extends State<JobtoSalvage> {
                         ),
                         SizedBox(width: 10),
                         SizedBox(
+                          width: 64,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                            ),
+                            child: Text(
+                              'Next Lot',
+                              textScaleFactor: textScaleFactor,
+                              style: TextStyle(
+                                color: Colors.black,
+                              ),
+                            ),
+                            //color: Colors.blue,
+                            //disabledColor: Colors.grey,
+                            onPressed: genLot,
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        SizedBox(
                           width: 54,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
@@ -518,6 +539,29 @@ class JobtoSalvageState extends State<JobtoSalvage> {
           ),
           inAsyncCall: _saving),
     );
+  }
+
+  Future genLot() async {
+    if (txtPartNo.text != '' && _lotEnabled == true) {
+      List<dynamic> _result;
+
+      setState(() {
+        _saving = true;
+      });
+
+      _result = await postNewLot(txtPartNo.text);
+
+      setState(() {
+        _saving = false;
+      });
+
+      print("NEW PART LOT: $_result");
+
+      if (_result[0] == true) {
+        var lotData = jsonDecode(_result[1]);
+        txtLotNo.text = lotData['LotNum'].toString();
+      }
+    }
   }
 
   Future submitData() async {

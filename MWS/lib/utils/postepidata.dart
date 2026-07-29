@@ -1051,7 +1051,7 @@ Future<List<dynamic>> postNewLot(String partNo) async {
       partNo;
 
   http.Response response = await WebClient(User(token: '')).getHttpReponse(
-    _globals.epiApiBaseUrl + '/api/receipt/PerformNewLot' + _params,
+    _globals.epiApiBaseUrl + '/api/Part/PerformNewLot' + _params,
     headers: {
       HttpHeaders.authorizationHeader: "Bearer ",
     },
