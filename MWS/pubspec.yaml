@@ -1,6 +1,6 @@
 name: flutter_epihhinventory
 description: A mobile inventory application interface with Epicor.
-version: 2.1.7
+version: 2.1.7+5
 
 environment:
    sdk: ">=3.0.0 <4.0.0"
@@ -9,6 +9,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  package_info_plus: ^8.0.0
+  dio: ^5.7.0
+  open_filex: ^4.5.0
+  path_provider: ^2.1.4
   uuid: ^4.5.1
   # get_version: ^0.0.8+5
   flutter_whatsnew: ^1.0.5+2

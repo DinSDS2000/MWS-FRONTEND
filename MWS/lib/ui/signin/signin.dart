@@ -2,8 +2,10 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_epihhinventory/services/update_service.dart';
 import 'package:flutter_epihhinventory/ui/epipages/systemsetting.dart';
 import 'package:flutter_udid/flutter_udid.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:global_configuration/global_configuration.dart';
@@ -29,6 +31,7 @@ class LoginPage extends StatefulWidget {
 class LoginPageState extends State<LoginPage> {
   String _status = 'no-action';
   late String _username, _password;
+  String _appVersion = '';
   // String _refresh = '';
 
   final formKey = GlobalKey<FormState>();
@@ -50,6 +53,20 @@ class LoginPageState extends State<LoginPage> {
     print(_status);
 
     loadEpiEnv();
+    _loadAppVersion();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      UpdateService.checkAndExecuteUpdate(context);
+    });
+  }
+
+  Future<void> _loadAppVersion() async {
+    final info = await PackageInfo.fromPlatform();
+    if (mounted) {
+      setState(() {
+        _appVersion = 'v${info.version}';
+      });
+    }
   }
 
   void loadEpiEnv() {
@@ -101,6 +118,11 @@ class LoginPageState extends State<LoginPage> {
                     Icons.person,
                     size: 175.0,
                   )),
+            ),
+            Text(
+              _appVersion,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey, fontSize: 12),
             ),
             Form(
               key: formKey,
