@@ -15,6 +15,7 @@ import 'package:flutter_epihhinventory/data/classes/epipickerbaq.dart';
 import 'package:flutter_epihhinventory/data/classes/epiporeceipt.dart';
 import 'package:flutter_epihhinventory/data/classes/epiporeceiptdtl.dart';
 import 'package:flutter_epihhinventory/data/classes/epireason.dart';
+import 'package:flutter_epihhinventory/data/classes/epireprint.dart';
 import 'package:flutter_epihhinventory/data/classes/epishipdtl.dart';
 import 'package:flutter_epihhinventory/data/classes/episplitmergeuom.dart';
 import 'package:flutter_epihhinventory/data/classes/epitrxinfo.dart';
@@ -154,6 +155,56 @@ Future<List<dynamic>> getEpiMovInvPart(String partNo) async {
     return [true, _data['Message']];
   } else {
     EpiPart _envData = EpiPart.fromJson(_data['Parts']);
+    return [false, _envData];
+  }
+}
+
+Future<List<dynamic>> getReprintInfo(
+  String? partNum,
+  String? lotNum,
+  String? seqNo,
+  String? batchNum,
+) async {
+  String _params = '?strUID=' +
+      _globals.epiUsername +
+      '&strPass=' +
+      Uri.encodeComponent(_globals.epiPassword) +
+      '&strCurCompany=' +
+      _globals.epiCompanyId +
+      '&strCurPlant=' +
+      _globals.epiSiteId +
+      '&strEnvId=' +
+      _globals.epiEnvId;
+
+  if (partNum != null && partNum.isNotEmpty) {
+    _params += '&partNum=' + Uri.encodeComponent(partNum);
+  }
+  if (lotNum != null && lotNum.isNotEmpty) {
+    _params += '&lotNum=' + Uri.encodeComponent(lotNum);
+  }
+  if (seqNo != null && seqNo.isNotEmpty) {
+    _params += '&seqNo=' + Uri.encodeComponent(seqNo);
+  }
+  if (batchNum != null && batchNum.isNotEmpty) {
+    _params += '&batchNum=' + Uri.encodeComponent(batchNum);
+  }
+
+  // 1. Call your custom WebClient matching your routing endpoint path
+  // NOTE: Changed route folder to '/api/receipt/GetReprintInfo' based on your previous C# steps
+  var _data = await WebClient(User(token: ''))
+      .get(_globals.epiApiBaseUrl + '/api/Reprint/GetReprintInfo' + _params);
+
+  // 2. Mirror your pattern: check if data is null or empty
+  if (_data['value'] == null) {
+    return [
+      true,
+      _data['Errors'] != null ? _data['Errors'][0] : 'No data found.'
+    ];
+  } else {
+    // 3. Pass the array directly to your list model's fromJson method
+    EpiReprintInfoList _envData = EpiReprintInfoList.fromJson(_data['value']);
+
+    // 4. Return [false, data] to signal a successful fetch (mirroring your array return pattern)
     return [false, _envData];
   }
 }

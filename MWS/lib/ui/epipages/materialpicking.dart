@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_epihhinventory/data/classes/epipart.dart';
 import 'package:flutter_epihhinventory/data/classes/epipickerbaq.dart';
+import 'package:flutter_epihhinventory/ui/epipages/lotcreation.dart';
 import 'package:flutter_epihhinventory/utils/getepidata.dart';
 import 'package:flutter_epihhinventory/utils/globals.dart' as _globals;
 import 'package:flutter_epihhinventory/utils/popUp.dart';
 import 'package:flutter_epihhinventory/utils/postepidata.dart';
+import 'package:flutter_epihhinventory/utils/validator.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
 class MaterialPicking extends StatefulWidget {
@@ -529,6 +531,33 @@ class _MaterialPickingState extends State<MaterialPicking> {
   }
 
   Future<void> submitPickerUpdate() async {
+    List<dynamic> _result;
+
+    //Create lot if Track Lot = true and Lot does not exist
+    if (txtLot.text != '' && _lotEnabled == true) {
+      setState(() {
+        _saving = true;
+      });
+      final String capturedPartNo = txtPart.text.trim();
+      final String capturedLotNo = txtLot.text.trim();
+      _result = await isPartLotExist(capturedPartNo, capturedLotNo);
+
+      setState(() {
+        _saving = false;
+      });
+
+      print("LOTNUM PICKER: ${capturedLotNo}");
+      if (_result[0] == false) {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    LotCreation(capturedPartNo, capturedLotNo),
+                fullscreenDialog: true));
+        return;
+      }
+    }
+
     setState(() {
       _saving = true;
     });

@@ -16,6 +16,7 @@ import 'package:flutter_epihhinventory/ui/epipages/prodstartoperation.dart';
 import 'package:flutter_epihhinventory/ui/epipages/prodworkqueuelist.dart';
 import 'package:flutter_epihhinventory/ui/epipages/qtyadjustment.dart';
 import 'package:flutter_epihhinventory/ui/epipages/reprintlabel.dart';
+import 'package:flutter_epihhinventory/ui/epipages/reprintlabeldtl.dart';
 import 'package:flutter_epihhinventory/ui/epipages/returnassembly.dart';
 import 'package:flutter_epihhinventory/ui/epipages/returnmaterial.dart';
 import 'package:flutter_epihhinventory/ui/epipages/returnmiscmaterial.dart';

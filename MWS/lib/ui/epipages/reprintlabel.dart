@@ -4,7 +4,10 @@ import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_epihhinventory/data/classes/epipart.dart';
+import 'package:flutter_epihhinventory/data/classes/epireason.dart';
+import 'package:flutter_epihhinventory/data/classes/epireprint.dart';
 import 'package:flutter_epihhinventory/data/classes/epitrxinfo.dart';
+import 'package:flutter_epihhinventory/ui/epipages/reprintlabeldtl.dart';
 import 'package:flutter_epihhinventory/utils/getepidata.dart';
 import 'package:flutter_epihhinventory/utils/popUp.dart';
 import 'package:flutter_epihhinventory/utils/postepidata.dart';
@@ -27,9 +30,12 @@ class ReprintLabelState extends State<ReprintLabel> {
   String _barcodeError = '';
   bool _saving = false;
   bool _lotEnabled = false;
+  late EpiReprintInfoList _reprintList = EpiReprintInfoList(reprintList: []);
 
   var txtTrxNo = new TextEditingController();
   var txtPartNo = new TextEditingController();
+  var txtSeqNo = new TextEditingController();
+  var txtBatchNo = new TextEditingController();
   var txtLotNo = new TextEditingController();
   var txtQty = new TextEditingController();
   var txtIUM = new TextEditingController();
@@ -38,6 +44,8 @@ class ReprintLabelState extends State<ReprintLabel> {
   FocusNode _textFocusTrxNo = new FocusNode();
   FocusNode _textFocusPartNo = new FocusNode();
   FocusNode _textFocusQty = new FocusNode();
+  FocusNode _textFocusSeqNo = new FocusNode();
+  FocusNode _textFocusBatchNo = new FocusNode();
 
   String _oldTrxNo = '';
   String _oldPartNo = '';
@@ -57,6 +65,12 @@ class ReprintLabelState extends State<ReprintLabel> {
 
     txtQty.addListener(onChangeQty);
     _textFocusQty.addListener(onChangeQty);
+
+    txtSeqNo.addListener(onChangeQty);
+    _textFocusSeqNo.addListener(onChangeQty);
+
+    txtBatchNo.addListener(onChangeQty);
+    _textFocusBatchNo.addListener(onChangeQty);
 
     super.initState();
 
@@ -223,260 +237,429 @@ class ReprintLabelState extends State<ReprintLabel> {
       ),
       body: ModalProgressHUD(
           child: SafeArea(
-            child: Container(
-                margin: const EdgeInsets.all(10.0),
-                child: ListView(
+            child: Column(
+              children: <Widget>[
+                // Row(
+                //   children: <Widget>[
+                //     Expanded(
+                //       child: ListTile(
+                //         title: TextFormField(
+                //           decoration:
+                //               InputDecoration(labelText: 'Transaction No.'),
+                //           obscureText: false,
+                //           keyboardType: TextInputType.text,
+                //           autocorrect: false,
+                //           controller: txtTrxNo,
+                //           focusNode: _textFocusTrxNo,
+                //         ),
+                //       ),
+                //     ),
+                //     SizedBox(width: 10),
+                //     SizedBox(
+                //       width: 54,
+                //       child: ElevatedButton(
+                //         style: ElevatedButton.styleFrom(
+                //           padding: EdgeInsets.zero,
+                //         ),
+                //         // Part
+                //         child: Icon(Icons.camera_alt),
+                //         onPressed: barcodeScanningTrxNo,
+                //       ),
+                //     ),
+                //     SizedBox(
+                //       width: 10,
+                //     )
+                //   ],
+                // ),
+                Row(
                   children: <Widget>[
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration:
-                                  InputDecoration(labelText: 'Transaction No.'),
-                              obscureText: false,
-                              keyboardType: TextInputType.text,
-                              autocorrect: false,
-                              controller: txtTrxNo,
-                              focusNode: _textFocusTrxNo,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 10),
-                        SizedBox(
-                          width: 54,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                            ),
-                            // Part
-                            child: Icon(Icons.camera_alt),
-                            onPressed: barcodeScanningTrxNo,
-                          ),
-                        ),
-                        SizedBox(
-                          width: 10,
-                        )
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration: InputDecoration(labelText: 'Part'),
-                              obscureText: false,
-                              keyboardType: TextInputType.text,
-                              autocorrect: false,
-                              controller: txtPartNo,
-                              focusNode: _textFocusPartNo,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 10),
-                        SizedBox(
-                          width: 54,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                            ),
-                            // Part
-                            child: Icon(Icons.camera_alt),
-                            onPressed: barcodeScanningPartNo,
-                          ),
-                        ),
-                        SizedBox(
-                          width: 10,
-                        )
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration: InputDecoration(labelText: 'Lot'),
-                              obscureText: false,
-                              keyboardType: TextInputType.text,
-                              autocorrect: false,
-                              controller: txtLotNo,
-                              enabled: _lotEnabled,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 10),
-                        SizedBox(
-                          width: 54,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                            ),
-                            // Lot
-                            child: Icon(Icons.camera_alt),
-                            onPressed: barcodeScanningLotNo,
-                          ),
-                        ),
-                        SizedBox(
-                          width: 10,
-                        )
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration:
-                                  InputDecoration(labelText: 'Quantity'),
-                              obscureText: false,
-                              keyboardType: TextInputType.number,
-                              autocorrect: false,
-                              controller: txtQty,
-                              focusNode: _textFocusQty,
-                            ),
-                          ),
-                        ),
-                        //SizedBox(width: 10),
-                        SizedBox(
-                          width: 100,
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration: InputDecoration(labelText: 'UOM'),
-                              obscureText: false,
-                              keyboardType: TextInputType.text,
-                              autocorrect: false,
-                              controller: txtIUM,
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 54,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                            ),
-                            child: Icon(Icons.search),
-                            onPressed: triggerUOMDropDown,
-                          ),
-                        ),
-                        SizedBox(
-                          width: 10,
-                        )
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration:
-                                  InputDecoration(labelText: 'No. of Label'),
-                              obscureText: false,
-                              keyboardType: TextInputType.number,
-                              autocorrect: false,
-                              controller: txtNoofLable,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 30),
-                    Row(children: <Widget>[
-                      Expanded(
-                        child: ListTile(
-                          title: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue, // Button color
-                              foregroundColor: Colors.white, // Text color
-                              padding: EdgeInsets.zero,
-                            ),
-                            child: Text(
-                              'Cancel',
-                              textScaleFactor: textScaleFactor,
-                            ),
-                            onPressed: () {
-                              Navigator.pop(context, true);
-                            },
-                          ),
+                    Expanded(
+                      child: ListTile(
+                        title: TextFormField(
+                          decoration: InputDecoration(labelText: 'Part Num'),
+                          obscureText: false,
+                          keyboardType: TextInputType.text,
+                          autocorrect: false,
+                          controller: txtPartNo,
+                          focusNode: _textFocusPartNo,
                         ),
                       ),
-                      SizedBox(width: 0),
-                      Expanded(
-                        child: ListTile(
-                          title: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue, // Button color
-                              foregroundColor: Colors.white, // Text color
-                              padding: EdgeInsets.zero,
-                            ),
-                            child: Text(
-                              'Reprint',
-                              textScaleFactor: textScaleFactor,
-                            ),
-                            onPressed: submitData,
-                          ),
+                    ),
+                    SizedBox(width: 10),
+                    SizedBox(
+                      width: 54,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.zero,
                         ),
+                        // Part
+                        child: Icon(Icons.camera_alt),
+                        onPressed: barcodeScanningPartNo,
                       ),
-                    ])
+                    ),
+                    SizedBox(
+                      width: 10,
+                    )
                   ],
-                )),
+                ),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: ListTile(
+                        title: TextFormField(
+                          decoration: InputDecoration(labelText: 'Lot Num'),
+                          obscureText: false,
+                          keyboardType: TextInputType.text,
+                          autocorrect: false,
+                          controller: txtLotNo,
+                          enabled: true,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    SizedBox(
+                      width: 54,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                        ),
+                        // Lot
+                        child: Icon(Icons.camera_alt),
+                        onPressed: barcodeScanningLotNo,
+                      ),
+                    ),
+                    SizedBox(
+                      width: 10,
+                    )
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: ListTile(
+                        title: TextFormField(
+                          decoration: InputDecoration(labelText: 'Seq Num'),
+                          obscureText: false,
+                          keyboardType: TextInputType.text,
+                          autocorrect: false,
+                          controller: txtSeqNo,
+                          focusNode: _textFocusSeqNo,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    SizedBox(
+                      width: 54,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                        ),
+                        // Part
+                        child: Icon(Icons.camera_alt),
+                        onPressed: barcodeScanningPartNo,
+                      ),
+                    ),
+                    SizedBox(
+                      width: 10,
+                    )
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: ListTile(
+                        title: TextFormField(
+                          decoration: InputDecoration(labelText: 'Batch Num'),
+                          obscureText: false,
+                          keyboardType: TextInputType.text,
+                          autocorrect: false,
+                          controller: txtBatchNo,
+                          focusNode: _textFocusBatchNo,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    SizedBox(
+                      width: 54,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                        ),
+                        // Part
+                        child: Icon(Icons.camera_alt),
+                        onPressed: barcodeScanningPartNo,
+                      ),
+                    ),
+                    SizedBox(
+                      width: 10,
+                    )
+                  ],
+                ),
+                // Row(
+                //   children: <Widget>[
+                //     Expanded(
+                //       child: ListTile(
+                //         title: TextFormField(
+                //           decoration:
+                //               InputDecoration(labelText: 'Quantity'),
+                //           obscureText: false,
+                //           keyboardType: TextInputType.number,
+                //           autocorrect: false,
+                //           controller: txtQty,
+                //           focusNode: _textFocusQty,
+                //         ),
+                //       ),
+                //     ),
+                //     //SizedBox(width: 10),
+                //     SizedBox(
+                //       width: 100,
+                //       child: ListTile(
+                //         title: TextFormField(
+                //           decoration: InputDecoration(labelText: 'UOM'),
+                //           obscureText: false,
+                //           keyboardType: TextInputType.text,
+                //           autocorrect: false,
+                //           controller: txtIUM,
+                //         ),
+                //       ),
+                //     ),
+                //     SizedBox(
+                //       width: 54,
+                //       child: ElevatedButton(
+                //         style: ElevatedButton.styleFrom(
+                //           padding: EdgeInsets.zero,
+                //         ),
+                //         child: Icon(Icons.search),
+                //         onPressed: triggerUOMDropDown,
+                //       ),
+                //     ),
+                //     SizedBox(
+                //       width: 10,
+                //     )
+                //   ],
+                // ),
+                // Row(
+                //   children: <Widget>[
+                //     Expanded(
+                //       child: ListTile(
+                //         title: TextFormField(
+                //           decoration:
+                //               InputDecoration(labelText: 'No. of Label'),
+                //           obscureText: false,
+                //           keyboardType: TextInputType.number,
+                //           autocorrect: false,
+                //           controller: txtNoofLable,
+                //         ),
+                //       ),
+                //     ),
+                //   ],
+                // ),
+                SizedBox(height: 30),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: ListTile(
+                        title: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue, // Button color
+                            foregroundColor: Colors.white, // Text color
+                            padding: EdgeInsets.zero,
+                          ),
+                          child: Text(
+                            'Cancel',
+                            textScaleFactor: textScaleFactor,
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context, true);
+                          },
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 0),
+                    Expanded(
+                      child: ListTile(
+                        title: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue, // Button color
+                            foregroundColor: Colors.white, // Text color
+                            padding: EdgeInsets.zero,
+                          ),
+                          child: Text(
+                            'Retrieve',
+                            textScaleFactor: textScaleFactor,
+                          ),
+                          onPressed: () async {
+                            setState(() {
+                              _saving = true;
+                            });
+                            List<dynamic> _result = await getReprintInfo(
+                              txtPartNo.text,
+                              txtLotNo.text,
+                              txtSeqNo.text,
+                              txtBatchNo.text,
+                            );
+                            if (_result[0] == false) {
+                              _reprintList = _result[1];
+                            } else {
+                              showAlertPopup(context, 'Error',
+                                  'Reprint List: ' + _result[1]);
+                            }
+                            setState(
+                              () {
+                                _saving = false;
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
+                    child: populateMaterialPickingList(context),
+                  ),
+                ),
+              ],
+            ),
           ),
           inAsyncCall: _saving),
     );
   }
 
-  Future submitData() async {
-    List<dynamic> _result;
-
-    // if (txtLotNo.text != '' && _lotEnabled == true) {
-    //   setState(() {
-    //     _saving = true;
-    //   });
-
-    //   _result = await isPartLotExist(txtPartNo.text, txtLotNo.text);
-
-    //   setState(() {
-    //     _saving = false;
-    //   });
-
-    //   if (_result[0] == false) {
-    //     Navigator.push(
-    //         context,
-    //         MaterialPageRoute(
-    //             builder: (context) =>
-    //                 LotCreation(txtPartNo.text, txtLotNo.text),
-    //             fullscreenDialog: true));
-    //     return;
-    //   }
-    // }
-
-    setState(() {
-      _saving = true;
-    });
-
-    _result = await postRePrintLabel(
-        _sysDate,
-        txtTrxNo.text,
-        txtPartNo.text,
-        _tranType,
-        txtQty.text,
-        txtIUM.text,
-        txtLotNo.text,
-        _jobNo,
-        _assmSeq,
-        txtNoofLable.text);
-
-    setState(() {
-      _saving = false;
-    });
-
-    if (_result[0] == false) {
-      showAlertPopup(context, 'Error', 'Reprint : ' + _result[1]);
-      return;
-    }
-
-    clearAllFields();
+  populateMaterialPickingList(BuildContext context) {
+    int _rowCnt = 0;
+    _rowCnt = _reprintList.reprintList.length;
+    return ListView.builder(
+      itemCount: _rowCnt,
+      itemBuilder: _getReprintInfoListValue,
+      padding: EdgeInsets.all(0.0),
+    );
   }
+
+  Widget _getReprintInfoListValue(BuildContext context, int index) {
+    final item = _reprintList.reprintList[index];
+    final partNum = item.partNum;
+    final lotNum = item.lotNum;
+    final fromSeqNo = item.fromSeq;
+    final toSeqNo = item.toSeq;
+    return Card(
+      elevation: 8,
+      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      child: Container(
+        decoration: BoxDecoration(color: Color.fromRGBO(47, 85, 156, .9)),
+        child: ListTile(
+          contentPadding:
+              EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+          leading: Container(
+            padding: EdgeInsets.only(right: 12.0),
+            decoration: new BoxDecoration(
+              border: new Border(
+                right: new BorderSide(width: 1.0, color: Colors.white24),
+              ),
+            ),
+            child: Icon(
+              Icons.library_books,
+              color: Colors.white,
+            ),
+          ),
+          title: Text(
+            'Part: ' + (partNum ?? ''),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          subtitle: Column(
+            children: [
+              Row(
+                children: [
+                  Text(
+                    'LotNum: ' + ('${lotNum}'),
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Text(
+                    'SeqNo: ' + ('${fromSeqNo} - ${toSeqNo}'),
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          trailing:
+              Icon(Icons.keyboard_arrow_right, color: Colors.white, size: 30.0),
+          onTap: () {
+            print("printer path: ${_globals.epiPrinterPath}");
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ReprintLabelDtl(item),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  // Future submitData() async {
+  //   List<dynamic> _result;
+  // }
+
+  // Future submitData() async {
+  //   List<dynamic> _result;
+
+  //   if (txtLotNo.text != '' && _lotEnabled == true) {
+  //     setState(() {
+  //       _saving = true;
+  //     });
+
+  //     _result = await isPartLotExist(txtPartNo.text, txtLotNo.text);
+
+  //     setState(() {
+  //       _saving = false;
+  //     });
+
+  //     if (_result[0] == false) {
+  //       Navigator.push(
+  //           context,
+  //           MaterialPageRoute(
+  //               builder: (context) =>
+  //                   LotCreation(txtPartNo.text, txtLotNo.text),
+  //               fullscreenDialog: true));
+  //       return;
+  //     }
+  //   }
+
+  //   setState(() {
+  //     _saving = true;
+  //   });
+
+  //   _result = await postRePrintLabel(
+  //       _sysDate,
+  //       txtTrxNo.text,
+  //       txtPartNo.text,
+  //       _tranType,
+  //       txtQty.text,
+  //       txtIUM.text,
+  //       txtLotNo.text,
+  //       _jobNo,
+  //       _assmSeq,
+  //       txtNoofLable.text);
+
+  //   setState(() {
+  //     _saving = false;
+  //   });
+
+  //   if (_result[0] == false) {
+  //     showAlertPopup(context, 'Error', 'Reprint : ' + _result[1]);
+  //     return;
+  //   }
+
+  //   clearAllFields();
+  // }
 
   void clearAllFields() {
     txtTrxNo.text = '';

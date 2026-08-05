@@ -1265,60 +1265,55 @@ Future<List<dynamic>> postPerformReceiveTimeStamp(String legalNumber) async {
 }
 
 Future<List<dynamic>> postRePrintLabel(
-    String sysDate,
+    String? sysDate,
     String tranNo,
-    String partNo,
-    String tranType,
-    String tranQty,
-    String ium,
-    String lotNo,
-    String jobNo,
-    String assemblySeq,
-    String noofLabel) async {
+    String? partNo,
+    String? tranType,
+    String? tranQty,
+    String? ium,
+    String? lotNo,
+    String? jobNo,
+    String? assemblySeq,
+    String? noofLabel,
+    String? seqNo,
+    String? batchNo) async {
   bool result = false;
 
-  String _transNo = tranNo == '' ? '0' : tranNo;
-  String _sysDate =
-      sysDate == '' ? DateFormat('yyyy-MM-dd').format(DateTime.now()) : sysDate;
-  String _assmNo = assemblySeq == '' ? '0' : assemblySeq;
+  // 1. Process fallback values cleanly for mandatory parameters
+  String _transNo = (tranNo == '') ? '0' : tranNo;
 
-  String _params = '?strUID=' +
-      _globals.epiUsername +
-      '&strPass=' +
-      Uri.encodeComponent(_globals.epiPassword) +
-      '&strCurCompany=' +
-      _globals.epiCompanyId +
-      '&strCurPlant=' +
-      _globals.epiSiteId +
-      '&strEnvId=' +
-      _globals.epiEnvId +
-      '&SysDate=' +
-      _sysDate +
-      '&TranNum=' +
-      _transNo +
-      '&strPartNum=' +
-      partNo +
-      '&TranType=' +
-      tranType +
-      '&dtranQty=' +
-      tranQty +
-      '&strIUM=' +
-      ium +
-      '&strLotNum=' +
-      lotNo +
-      '&strJobNum=' +
-      jobNo +
-      '&iAssemblySeq=' +
-      _assmNo +
-      '&path=' +
-      _globals.epiPrinter +
-      '&printerPath=' +
-      _globals.epiPrinterPath +
-      '&iLabelCount=' +
-      noofLabel;
+  String _sysDate = (sysDate == null || sysDate.isEmpty)
+      ? DateFormat('yyyy-MM-dd').format(DateTime.now())
+      : sysDate;
 
+  String _assmNo =
+      (assemblySeq == null || assemblySeq.isEmpty) ? '0' : assemblySeq;
+
+  // 2. Safe parameter extraction formatting using string interpolation and null-fallbacks (?? '')
+  // Every textual field layout uses Uri.encodeComponent to prevent broken spaces or character exceptions.
+  String _params = '?strUID=${_globals.epiUsername}'
+      '&strPass=${Uri.encodeComponent(_globals.epiPassword)}'
+      '&strCurCompany=${_globals.epiCompanyId}'
+      '&strCurPlant=${_globals.epiSiteId}'
+      '&strEnvId=${_globals.epiEnvId}'
+      '&SysDate=$_sysDate'
+      '&TranNum=$_transNo'
+      '&strPartNum=${partNo ?? ''}'
+      '&TranType=${tranType ?? ''}'
+      '&dtranQty=${tranQty ?? '0'}'
+      '&strIUM=${ium ?? ''}'
+      '&strLotNum=${lotNo ?? ''}'
+      '&strJobNum=${jobNo ?? ''}'
+      '&seqNo=${seqNo ?? ''}'
+      '&batchNo=${batchNo ?? ''}'
+      '&iAssemblySeq=$_assmNo'
+      '&path=${_globals.epiPrinter}'
+      '&printerPath=${_globals.epiPrinterPath}'
+      '&iLabelCount=${noofLabel ?? '1'}';
+
+  // 4. Fire the network request targeting the base URL structure
   http.Response response = await WebClient(User(token: '')).getHttpReponse(
-    _globals.epiApiBaseUrl + '/api/Reprint/PerformReprint' + _params,
+    '${_globals.epiApiBaseUrl}/api/Reprint/PerformReprint$_params',
     headers: {
       HttpHeaders.authorizationHeader: "Bearer ",
     },

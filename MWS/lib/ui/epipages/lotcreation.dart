@@ -48,7 +48,7 @@ class LotCreationState extends State<LotCreation> {
   @override
   initState() {
     super.initState();
-
+    print("LOTNUM: ${widget.lotno}");
     txtNoofLable.text = '1';
     loadPartInfo();
   }
