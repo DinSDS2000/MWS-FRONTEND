@@ -321,6 +321,7 @@ class ReprintLabelDtlState extends State<ReprintLabelDtl> {
                           ),
                           onPressed: () {
                             Navigator.pop(context, true);
+                            print("test");
                           },
                         ),
                       ),
