@@ -25,6 +25,7 @@ EpiShipDtl _$EpiShipDtlFromJson(Map<String, dynamic> json) => EpiShipDtl(
       ud100aLorryC: json['UD100A_Lorry_c'] as String?,
       shipDtlShipCmpl: json['ShipDtl_ShipCmpl'] as bool?,
       shipDtlSalesUM: json['ShipDtl_SalesUM'] as String?,
+      shipDtlIUM: json['ShipDtl_IUM'] as String?,
     );
 
 Map<String, dynamic> _$EpiShipDtlToJson(EpiShipDtl instance) =>
@@ -46,4 +47,5 @@ Map<String, dynamic> _$EpiShipDtlToJson(EpiShipDtl instance) =>
       'UD100A_Lorry_c': instance.ud100aLorryC,
       'ShipDtl_ShipCmpl': instance.shipDtlShipCmpl,
       'ShipDtl_SalesUM': instance.shipDtlSalesUM,
+      'ShipDtl_IUM': instance.shipDtlIUM,
     };

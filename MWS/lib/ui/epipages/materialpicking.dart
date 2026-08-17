@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_epihhinventory/data/classes/epigetlot.dart';
 import 'package:flutter_epihhinventory/data/classes/epipart.dart';
 import 'package:flutter_epihhinventory/data/classes/epipickerbaq.dart';
 import 'package:flutter_epihhinventory/ui/epipages/lotcreation.dart';
@@ -26,8 +27,11 @@ class _MaterialPickingState extends State<MaterialPicking> {
   String _barcodeError = '';
   bool _lotEnabled = false;
   List<dynamic> dropDownBins = [];
+  List<dynamic> dropDownLots = [];
   String? selectedBin;
+  String? selectedLot;
   bool isLoadingBins = true;
+  bool isLoadingLots = true;
   late TextEditingController txtPart;
   late TextEditingController txtDesc;
   late TextEditingController txtQty;
@@ -54,6 +58,7 @@ class _MaterialPickingState extends State<MaterialPicking> {
     _textFocusWhse.addListener(onChangeWhse);
     setTrackLot();
     fetchBinsOnLoad();
+    fetchLotsOnLoad();
     super.initState();
   }
 
@@ -118,6 +123,26 @@ class _MaterialPickingState extends State<MaterialPicking> {
         });
         // Handle your error case here (e.g., show snackbar)
       }
+    });
+  }
+
+  void fetchLotsOnLoad() {
+    // Use the part number loaded into your controller text
+    getLotList(partNum: txtPart.text).then((List<EpiGetLot> responseLots) {
+      setState(() {
+        dropDownLots = responseLots;
+        isLoadingLots = false;
+
+        // Print debug logs to your output terminal console
+        for (var item in dropDownLots) {
+          print('Lot: ${item.lotNum}, Qty: ${item.onHandQty}');
+        }
+      });
+    }).catchError((error) {
+      setState(() {
+        isLoadingLots = false;
+      });
+      print("Error loading lots during initialization: $error");
     });
   }
 
@@ -425,17 +450,126 @@ class _MaterialPickingState extends State<MaterialPicking> {
                 Row(
                   children: [
                     Expanded(
-                      child: ListTile(
-                        title: TextFormField(
-                          decoration: InputDecoration(labelText: 'Lot'),
-                          obscureText: false,
-                          keyboardType: TextInputType.text,
-                          autocorrect: false,
-                          controller: txtLot,
-                          enabled: _lotEnabled,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Autocomplete<EpiGetLot>(
+                          // Displays only the lotNum string inside the active text field upon click selection
+                          displayStringForOption: (EpiGetLot option) =>
+                              option.lotNum,
+
+                          optionsBuilder: (TextEditingValue textEditingValue) {
+                            // Return empty list if user clears the text area
+                            if (textEditingValue.text.isEmpty) {
+                              return const Iterable<EpiGetLot>.empty();
+                            }
+
+                            // Filter your strongly typed objects by matching the lot text patterns
+                            return dropDownLots
+                                .whereType<EpiGetLot>()
+                                .where((EpiGetLot option) {
+                              return option.lotNum.toLowerCase().contains(
+                                  textEditingValue.text.toLowerCase());
+                            });
+                          },
+
+                          // Capture the selected model object and update your parent application states
+                          onSelected: (EpiGetLot selection) {
+                            setState(() {
+                              txtLot.text = selection.lotNum;
+                              selectedLot = selection.lotNum;
+                            });
+                          },
+
+                          fieldViewBuilder: (context, textEditingController,
+                              focusNode, onFieldSubmitted) {
+                            // Keep the interactive text controller layout in perfect parity with your state fields
+                            if (textEditingController.text != txtLot.text) {
+                              textEditingController.text = txtLot.text;
+                            }
+
+                            // Listen for background updates (like scanning barcodes or barcode triggers) updating txtLot
+                            txtLot.addListener(() {
+                              if (textEditingController.text != txtLot.text) {
+                                textEditingController.text = txtLot.text;
+                              }
+                            });
+
+                            return TextFormField(
+                              controller: textEditingController,
+                              focusNode: focusNode,
+                              style: const TextStyle(
+                                  color: Color.fromARGB(255, 0, 0, 0)),
+                              decoration: const InputDecoration(
+                                labelText: 'Lot Number',
+                                enabledBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Color.fromARGB(137, 0, 0, 0)),
+                                ),
+                                focusedBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.blue),
+                                ),
+                              ),
+                              onFieldSubmitted: (String value) {
+                                onFieldSubmitted();
+                              },
+                            );
+                          },
+
+                          optionsViewBuilder: (context, onSelected, options) {
+                            return Align(
+                              alignment: Alignment.topLeft,
+                              child: Material(
+                                elevation: 4.0,
+                                color: Colors.grey,
+                                child: Container(
+                                  width: 300,
+                                  constraints:
+                                      const BoxConstraints(maxHeight: 250),
+                                  child: ListView.builder(
+                                    padding: EdgeInsets.zero,
+                                    shrinkWrap: true,
+                                    itemCount: options.length,
+                                    itemBuilder:
+                                        (BuildContext context, int index) {
+                                      final EpiGetLot option =
+                                          options.elementAt(index);
+                                      return ListTile(
+                                        title: Text(
+                                          option.lotNum,
+                                          style: const TextStyle(
+                                              color: Color.fromARGB(
+                                                  255, 255, 255, 255)),
+                                        ),
+                                        subtitle: Text(
+                                          "Qty On Hand: ${option.onHandQty}",
+                                          style: const TextStyle(
+                                              color: Colors.white60),
+                                        ),
+                                        onTap: () {
+                                          onSelected(option);
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ),
+                    // Expanded(
+                    //   child: ListTile(
+                    //     title: TextFormField(
+                    //       decoration: InputDecoration(labelText: 'Lot'),
+                    //       obscureText: false,
+                    //       keyboardType: TextInputType.text,
+                    //       autocorrect: false,
+                    //       controller: txtLot,
+                    //       enabled: _lotEnabled,
+                    //     ),
+                    //   ),
+                    // ),
                     SizedBox(
                       width: 10,
                     ),

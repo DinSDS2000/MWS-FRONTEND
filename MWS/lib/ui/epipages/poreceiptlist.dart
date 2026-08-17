@@ -443,7 +443,6 @@ class POReceiptListState extends State<POReceiptList> {
     // _listLot = _listPO.epiporeceiptdtllist[index].lotnum ?? ' ';
     _listLegalNo = _listPO.epiporeceiptdtllist[index].legalnumber ?? '';
     _listExemptionNo = _listPO.epiporeceiptdtllist[index].exemptionno ?? '';
-
     return new Card(
       elevation: 8.0,
       margin: new EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
@@ -509,7 +508,7 @@ class POReceiptListState extends State<POReceiptList> {
               ),
               Row(
                 children: <Widget>[
-                  Text('Exemption No: ' + _listExemptionNo,
+                  Text('Exemption No1: ' + _listExemptionNo,
                       style: TextStyle(color: Colors.white)),
                 ],
               ),

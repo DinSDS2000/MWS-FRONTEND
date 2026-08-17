@@ -1,8 +1,11 @@
 // ignore_for_file: deprecated_member_use
 
+import 'dart:convert';
+
 import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_epihhinventory/data/classes/epigetlot.dart';
 import 'package:flutter_epihhinventory/data/classes/epipart.dart';
 import 'package:flutter_epihhinventory/ui/epipages/lotcreation.dart';
 import 'package:flutter_epihhinventory/utils/getepidata.dart';
@@ -23,7 +26,12 @@ class MoveInventoryRequest extends StatefulWidget {
 class MoveInventoryRequestState extends State<MoveInventoryRequest> {
   final formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-
+  List<dynamic> dropDownBins = [];
+  List<dynamic> dropDownLots = [];
+  String? selectedBin;
+  String? selectedLot;
+  bool isLoadingBins = true;
+  bool isLoadingLots = true;
   List<UOM> _uoms = List<UOM>.empty(growable: true);
 
   String _barcodeError = "";
@@ -116,6 +124,55 @@ class MoveInventoryRequestState extends State<MoveInventoryRequest> {
     }
   }
 
+  void fetchBinsOnLoad() {
+    // Use the part number loaded into your controller text
+    getInventoryQtyAdjForPart(txtPartNo.text).then((response) {
+      bool isSuccess = response[0];
+      String rawBody = response[1];
+
+      if (isSuccess) {
+        var decodedData = jsonDecode(rawBody);
+
+        setState(() {
+          dropDownBins = decodedData['InventoryQtyAdjBrw'] ?? [];
+          isLoadingBins = false;
+          for (var item in dropDownBins) {
+            print('Bin: ${item['BinNum']}, Qty: ${item['OnHandQty']}');
+          }
+          // Pro-tip: Automatically pre-select the first bin if the list isn't empty
+          if (dropDownBins.isNotEmpty) {
+            selectedBin = dropDownBins[0]['BinNum'];
+          }
+        });
+      } else {
+        setState(() {
+          isLoadingBins = false;
+        });
+        // Handle your error case here (e.g., show snackbar)
+      }
+    });
+  }
+
+  void fetchLotsOnLoad() {
+    // Use the part number loaded into your controller text
+    getLotList(partNum: txtPartNo.text).then((List<EpiGetLot> responseLots) {
+      setState(() {
+        dropDownLots = responseLots;
+        isLoadingLots = false;
+
+        // Print debug logs to your output terminal console
+        for (var item in dropDownLots) {
+          print('Lot: ${item.lotNum}, Qty: ${item.onHandQty}');
+        }
+      });
+    }).catchError((error) {
+      setState(() {
+        isLoadingLots = false;
+      });
+      print("Error loading lots during initialization: $error");
+    });
+  }
+
   displaySelUOMDialog() async {
     showDialog(
         context: context,
@@ -191,7 +248,8 @@ class MoveInventoryRequestState extends State<MoveInventoryRequest> {
     }
 
     EpiPart _data = await getEpiPart(txtPartNo.text);
-
+    fetchBinsOnLoad();
+    fetchLotsOnLoad();
     setState(() {
       _lotEnabled = _data.tracklots;
       if (_lotEnabled == false) {
@@ -396,60 +454,329 @@ class MoveInventoryRequestState extends State<MoveInventoryRequest> {
                     Row(
                       children: <Widget>[
                         Expanded(
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration:
-                                  InputDecoration(labelText: 'From Bin'),
-                              obscureText: false,
-                              keyboardType: TextInputType.text,
-                              autocorrect: false,
-                              controller: txtFrBin,
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Autocomplete<Map<String, dynamic>>(
+                              // CHANGED: dynamic to Map<String, dynamic>
+                              // Displays only the BinNum string inside the text field upon selection
+                              displayStringForOption:
+                                  (Map<String, dynamic> option) =>
+                                      option['BinNum'].toString(),
+
+                              optionsBuilder:
+                                  (TextEditingValue textEditingValue) {
+                                // Show all items if user taps the field empty, or filter items by BinNum text match
+                                if (textEditingValue.text.isEmpty) {
+                                  return const Iterable<
+                                      Map<String, dynamic>>.empty();
+                                }
+                                return dropDownBins
+                                    .cast<Map<String, dynamic>>()
+                                    .where((Map<String, dynamic> option) {
+                                  return option['BinNum']
+                                      .toString()
+                                      .toLowerCase()
+                                      .contains(
+                                          textEditingValue.text.toLowerCase());
+                                });
+                              },
+
+                              // Capture the clicked option and explicitly map it to your main controller
+                              onSelected: (Map<String, dynamic> selection) {
+                                setState(() {
+                                  txtFrBin.text =
+                                      selection['BinNum'].toString();
+                                });
+                              },
+
+                              fieldViewBuilder: (context, textEditingController,
+                                  focusNode, onFieldSubmitted) {
+                                // Ensure the dynamic autocomplete controller stays in sync with your global txtFrBin controller
+                                if (textEditingController.text !=
+                                    txtFrBin.text) {
+                                  textEditingController.text = txtFrBin.text;
+                                }
+
+                                // Listen for external updates (like camera scan events) updating txtFrBin
+                                txtFrBin.addListener(() {
+                                  if (textEditingController.text !=
+                                      txtFrBin.text) {
+                                    textEditingController.text = txtFrBin.text;
+                                  }
+                                });
+
+                                // REMOVED: The generic Focus widget wrapper that was forcing onFieldSubmitted() on focus loss
+                                return TextFormField(
+                                  controller: textEditingController,
+                                  focusNode: focusNode,
+                                  style: const TextStyle(
+                                      color: Color.fromARGB(255, 0, 0, 0)),
+                                  decoration: const InputDecoration(
+                                    labelText: 'From Bin',
+                                    enabledBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: Color.fromARGB(137, 0, 0, 0)),
+                                    ),
+                                    focusedBorder: UnderlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.blue),
+                                    ),
+                                  ),
+                                  // Process submission only if they explicitly press "Enter" or "Done" on their keyboard
+                                  onFieldSubmitted: (String value) {
+                                    onFieldSubmitted();
+                                  },
+                                );
+                              },
+
+                              optionsViewBuilder:
+                                  (context, onSelected, options) {
+                                return Align(
+                                  alignment: Alignment.topLeft,
+                                  child: Material(
+                                    elevation: 4.0,
+                                    color: Colors.grey,
+                                    child: Container(
+                                      width: 300,
+                                      constraints:
+                                          const BoxConstraints(maxHeight: 250),
+                                      child: ListView.builder(
+                                        padding: EdgeInsets.zero,
+                                        shrinkWrap: true,
+                                        itemCount: options.length,
+                                        itemBuilder:
+                                            (BuildContext context, int index) {
+                                          final Map<String, dynamic> option =
+                                              options.elementAt(index);
+                                          return ListTile(
+                                            title: Text(
+                                              option['BinNum'].toString(),
+                                              style: const TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 255, 255, 255)),
+                                            ),
+                                            subtitle: Text(
+                                              "Qty: ${option['OnHandQty']}",
+                                              style: const TextStyle(
+                                                  color: Colors.white60),
+                                            ),
+                                            onTap: () {
+                                              onSelected(option);
+                                            },
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                           ),
                         ),
-                        SizedBox(width: 10),
+                        const SizedBox(width: 10),
                         SizedBox(
                           width: 54,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               padding: EdgeInsets.zero,
                             ),
-                            // From Bin
-                            child: Icon(Icons.camera_alt),
                             onPressed: barcodeScanningFrBin,
+                            child: const Icon(Icons.camera_alt),
                           ),
                         ),
                       ],
                     ),
                     Row(
-                      children: <Widget>[
+                      children: [
                         Expanded(
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration:
-                                  InputDecoration(labelText: 'From Lot'),
-                              obscureText: false,
-                              keyboardType: TextInputType.text,
-                              autocorrect: false,
-                              controller: txtFrLotNo,
-                              enabled: _lotEnabled,
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Autocomplete<EpiGetLot>(
+                              // Displays only the lotNum string inside the active text field upon click selection
+                              displayStringForOption: (EpiGetLot option) =>
+                                  option.lotNum,
+
+                              optionsBuilder:
+                                  (TextEditingValue textEditingValue) {
+                                // Return empty list if user clears the text area
+                                if (textEditingValue.text.isEmpty) {
+                                  return const Iterable<EpiGetLot>.empty();
+                                }
+
+                                // Filter your strongly typed objects by matching the lot text patterns
+                                return dropDownLots
+                                    .whereType<EpiGetLot>()
+                                    .where((EpiGetLot option) {
+                                  return option.lotNum.toLowerCase().contains(
+                                      textEditingValue.text.toLowerCase());
+                                });
+                              },
+
+                              // Capture the selected model object and update your parent application states
+                              onSelected: (EpiGetLot selection) {
+                                setState(() {
+                                  txtFrLotNo.text = selection.lotNum;
+                                  selectedLot = selection.lotNum;
+                                });
+                              },
+
+                              fieldViewBuilder: (context, textEditingController,
+                                  focusNode, onFieldSubmitted) {
+                                // Keep the interactive text controller layout in perfect parity with your state fields
+                                if (textEditingController.text !=
+                                    txtFrLotNo.text) {
+                                  textEditingController.text = txtFrLotNo.text;
+                                }
+
+                                // Listen for background updates (like scanning barcodes or barcode triggers) updating txtFrLotNo
+                                txtFrLotNo.addListener(() {
+                                  if (textEditingController.text !=
+                                      txtFrLotNo.text) {
+                                    textEditingController.text =
+                                        txtFrLotNo.text;
+                                  }
+                                });
+
+                                return TextFormField(
+                                  controller: textEditingController,
+                                  focusNode: focusNode,
+                                  style: const TextStyle(
+                                      color: Color.fromARGB(255, 0, 0, 0)),
+                                  decoration: const InputDecoration(
+                                    labelText: 'From Lot',
+                                    enabledBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: Color.fromARGB(137, 0, 0, 0)),
+                                    ),
+                                    focusedBorder: UnderlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.blue),
+                                    ),
+                                  ),
+                                  onFieldSubmitted: (String value) {
+                                    onFieldSubmitted();
+                                  },
+                                );
+                              },
+
+                              optionsViewBuilder:
+                                  (context, onSelected, options) {
+                                return Align(
+                                  alignment: Alignment.topLeft,
+                                  child: Material(
+                                    elevation: 4.0,
+                                    color: Colors.grey,
+                                    child: Container(
+                                      width: 300,
+                                      constraints:
+                                          const BoxConstraints(maxHeight: 250),
+                                      child: ListView.builder(
+                                        padding: EdgeInsets.zero,
+                                        shrinkWrap: true,
+                                        itemCount: options.length,
+                                        itemBuilder:
+                                            (BuildContext context, int index) {
+                                          final EpiGetLot option =
+                                              options.elementAt(index);
+                                          return ListTile(
+                                            title: Text(
+                                              option.lotNum,
+                                              style: const TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 255, 255, 255)),
+                                            ),
+                                            subtitle: Text(
+                                              "Qty On Hand: ${option.onHandQty}",
+                                              style: const TextStyle(
+                                                  color: Colors.white60),
+                                            ),
+                                            onTap: () {
+                                              onSelected(option);
+                                            },
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                           ),
                         ),
-                        SizedBox(width: 10),
+                        SizedBox(
+                          width: 10,
+                        ),
                         SizedBox(
                           width: 54,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                            ),
-                            // Lot
-                            child: Icon(Icons.camera_alt),
+                                padding: EdgeInsets.zero),
                             onPressed: barcodeScanningFrLotNo,
+                            child: Icon(Icons.camera_alt),
                           ),
                         ),
                       ],
                     ),
+
+                    // Row(
+                    //   children: <Widget>[
+                    //     Expanded(
+                    //       child: ListTile(
+                    //         title: TextFormField(
+                    //           decoration:
+                    //               InputDecoration(labelText: 'From Bin'),
+                    //           obscureText: false,
+                    //           keyboardType: TextInputType.text,
+                    //           autocorrect: false,
+                    //           controller: txtFrBin,
+                    //         ),
+                    //       ),
+                    //     ),
+                    //     SizedBox(width: 10),
+                    //     SizedBox(
+                    //       width: 54,
+                    //       child: ElevatedButton(
+                    //         style: ElevatedButton.styleFrom(
+                    //           padding: EdgeInsets.zero,
+                    //         ),
+                    //         // From Bin
+                    //         child: Icon(Icons.camera_alt),
+                    //         onPressed: barcodeScanningFrBin,
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
+                    // Row(
+                    //   children: <Widget>[
+                    //     Expanded(
+                    //       child: ListTile(
+                    //         title: TextFormField(
+                    //           decoration:
+                    //               InputDecoration(labelText: 'From Lot'),
+                    //           obscureText: false,
+                    //           keyboardType: TextInputType.text,
+                    //           autocorrect: false,
+                    //           controller: txtFrLotNo,
+                    //           enabled: _lotEnabled,
+                    //         ),
+                    //       ),
+                    //     ),
+                    //     SizedBox(width: 10),
+                    //     SizedBox(
+                    //       width: 54,
+                    //       child: ElevatedButton(
+                    //         style: ElevatedButton.styleFrom(
+                    //           padding: EdgeInsets.zero,
+                    //         ),
+                    //         // Lot
+                    //         child: Icon(Icons.camera_alt),
+                    //         onPressed: barcodeScanningFrLotNo,
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
                     Row(
                       children: <Widget>[
                         Expanded(

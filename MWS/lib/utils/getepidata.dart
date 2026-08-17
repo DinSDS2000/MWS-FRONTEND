@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_epihhinventory/data/classes/epidocustinfo.dart';
 import 'package:flutter_epihhinventory/data/classes/epiemployee.dart';
+import 'package:flutter_epihhinventory/data/classes/epigetlot.dart';
 import 'package:flutter_epihhinventory/data/classes/epijobasm.dart';
 import 'package:flutter_epihhinventory/data/classes/epijobhead.dart';
 import 'package:flutter_epihhinventory/data/classes/epijobmtl.dart';
@@ -162,7 +163,8 @@ Future<List<dynamic>> getEpiMovInvPart(String partNo) async {
 Future<List<dynamic>> getReprintInfo(
   String? partNum,
   String? lotNum,
-  String? seqNo,
+  String? toSeqNo,
+  String? fromSeqNo,
   String? batchNum,
 ) async {
   String _params = '?strUID=' +
@@ -182,8 +184,11 @@ Future<List<dynamic>> getReprintInfo(
   if (lotNum != null && lotNum.isNotEmpty) {
     _params += '&lotNum=' + Uri.encodeComponent(lotNum);
   }
-  if (seqNo != null && seqNo.isNotEmpty) {
-    _params += '&seqNo=' + Uri.encodeComponent(seqNo);
+  if (toSeqNo != null && toSeqNo.isNotEmpty) {
+    _params += '&toSeqNo=' + Uri.encodeComponent(toSeqNo);
+  }
+  if (fromSeqNo != null && fromSeqNo.isNotEmpty) {
+    _params += '&fromSeqNo=' + Uri.encodeComponent(fromSeqNo);
   }
   if (batchNum != null && batchNum.isNotEmpty) {
     _params += '&batchNum=' + Uri.encodeComponent(batchNum);
@@ -976,5 +981,47 @@ Future<bool> checkHeaderExist({
     // If WebClient throws a 404/400 exception error, the header does not exist
     print('CheckHeaderExist Error: $e');
     return false;
+  }
+}
+
+Future<List<EpiGetLot>> getLotList({
+  required String partNum,
+}) async {
+  String _params = '?username=' +
+      _globals.epiUsername +
+      '&password=' +
+      Uri.encodeComponent(_globals.epiPassword) +
+      '&company=' +
+      _globals.epiCompanyId +
+      '&plant=' +
+      _globals.epiSiteId +
+      '&envId=' +
+      _globals.epiEnvId +
+      '&partNum=' +
+      partNum;
+
+  try {
+    // 1. Fetch your dynamic map response payload structure
+    var _data = await WebClient(User(token: ''))
+        .get(_globals.epiApiBaseUrl + '/api/CustShip/GetLotList' + _params);
+
+    if (_data == null) {
+      return [];
+    }
+
+    // 2. FIX: Check if the response contains the 'value' array field property
+    if (_data is Map<String, dynamic> && _data.containsKey('value')) {
+      final List<dynamic> rawLotArray = _data['value'] ?? [];
+
+      // Pass the inner array directly into your model constructor
+      EpiGetLotList _envData = EpiGetLotList.fromJson(rawLotArray);
+      return _envData.epigetliotlist;
+    }
+
+    print("Unexpected JSON response envelope format");
+    return [];
+  } catch (e) {
+    print("Error fetching Lot list: $e");
+    return [];
   }
 }

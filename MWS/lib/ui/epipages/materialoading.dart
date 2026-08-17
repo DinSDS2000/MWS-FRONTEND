@@ -36,7 +36,7 @@ class _MaterialLoadingState extends State<MaterialLoading> {
     txtPart = TextEditingController(text: widget.shipmentDetail.shipDtlPartNum);
     txtDesc =
         TextEditingController(text: widget.shipmentDetail.shipDtlLineDesc);
-    txtUom = TextEditingController(text: widget.shipmentDetail.shipDtlSalesUM);
+    txtUom = TextEditingController(text: widget.shipmentDetail.shipDtlIUM);
     super.initState();
   }
 
@@ -435,6 +435,7 @@ class _MaterialLoadingState extends State<MaterialLoading> {
                             setState(() {
                               txtTransporter.text = selection
                                   .name; // Assigns selected Lorry plate/ID directly
+                              _selectedTransporter = selection;
                             });
                           },
 
@@ -606,7 +607,7 @@ class _MaterialLoadingState extends State<MaterialLoading> {
     });
 
     try {
-      print("objecsdasdt");
+      print("objecsdasdt: ${widget.shipmentDetail.shipHeadSDPlanIdC}");
       final response = await updateShipDtlQty(
           packLine: (widget.shipmentDetail.shipDtlPackLine ?? 0),
           packNum: (widget.shipmentDetail.shipHeadPackNum ?? 0),

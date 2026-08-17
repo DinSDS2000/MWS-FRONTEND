@@ -501,7 +501,7 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
                               keyboardType: TextInputType.text,
                               autocorrect: false,
                               controller: txtToLotNo,
-                              enabled: false,
+                              enabled: _lotEnabled,
                             ),
                           ),
                         ),

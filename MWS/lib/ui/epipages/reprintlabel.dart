@@ -34,7 +34,8 @@ class ReprintLabelState extends State<ReprintLabel> {
 
   var txtTrxNo = new TextEditingController();
   var txtPartNo = new TextEditingController();
-  var txtSeqNo = new TextEditingController();
+  var txtToSeqNo = new TextEditingController();
+  var txtFromSeqNo = new TextEditingController();
   var txtBatchNo = new TextEditingController();
   var txtLotNo = new TextEditingController();
   var txtQty = new TextEditingController();
@@ -44,7 +45,8 @@ class ReprintLabelState extends State<ReprintLabel> {
   FocusNode _textFocusTrxNo = new FocusNode();
   FocusNode _textFocusPartNo = new FocusNode();
   FocusNode _textFocusQty = new FocusNode();
-  FocusNode _textFocusSeqNo = new FocusNode();
+  FocusNode _textFocusToSeqNo = new FocusNode();
+  FocusNode _textFocusFromSeqNo = new FocusNode();
   FocusNode _textFocusBatchNo = new FocusNode();
 
   String _oldTrxNo = '';
@@ -66,8 +68,11 @@ class ReprintLabelState extends State<ReprintLabel> {
     txtQty.addListener(onChangeQty);
     _textFocusQty.addListener(onChangeQty);
 
-    txtSeqNo.addListener(onChangeQty);
-    _textFocusSeqNo.addListener(onChangeQty);
+    txtToSeqNo.addListener(onChangeQty);
+    _textFocusToSeqNo.addListener(onChangeQty);
+
+    txtFromSeqNo.addListener(onChangeQty);
+    _textFocusFromSeqNo.addListener(onChangeQty);
 
     txtBatchNo.addListener(onChangeQty);
     _textFocusBatchNo.addListener(onChangeQty);
@@ -338,30 +343,43 @@ class ReprintLabelState extends State<ReprintLabel> {
                     Expanded(
                       child: ListTile(
                         title: TextFormField(
-                          decoration: InputDecoration(labelText: 'Seq Num'),
+                          decoration:
+                              InputDecoration(labelText: 'From Seq Num'),
                           obscureText: false,
                           keyboardType: TextInputType.text,
                           autocorrect: false,
-                          controller: txtSeqNo,
-                          focusNode: _textFocusSeqNo,
+                          controller: txtFromSeqNo,
+                          focusNode: _textFocusFromSeqNo,
                         ),
                       ),
                     ),
-                    SizedBox(width: 10),
-                    SizedBox(
-                      width: 54,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.zero,
+                    Expanded(
+                      child: ListTile(
+                        title: TextFormField(
+                          decoration: InputDecoration(labelText: 'To Seq Num'),
+                          obscureText: false,
+                          keyboardType: TextInputType.text,
+                          autocorrect: false,
+                          controller: txtToSeqNo,
+                          focusNode: _textFocusToSeqNo,
                         ),
-                        // Part
-                        child: Icon(Icons.camera_alt),
-                        onPressed: barcodeScanningPartNo,
                       ),
                     ),
-                    SizedBox(
-                      width: 10,
-                    )
+                    // SizedBox(width: 10),
+                    // SizedBox(
+                    //   width: 54,
+                    //   child: ElevatedButton(
+                    //     style: ElevatedButton.styleFrom(
+                    //       padding: EdgeInsets.zero,
+                    //     ),
+                    //     // Part
+                    //     child: Icon(Icons.camera_alt),
+                    //     onPressed: barcodeScanningPartNo,
+                    //   ),
+                    // ),
+                    // SizedBox(
+                    //   width: 10,
+                    // )
                   ],
                 ),
                 Row(
@@ -495,7 +513,8 @@ class ReprintLabelState extends State<ReprintLabel> {
                             List<dynamic> _result = await getReprintInfo(
                               txtPartNo.text,
                               txtLotNo.text,
-                              txtSeqNo.text,
+                              txtToSeqNo.text,
+                              txtFromSeqNo.text,
                               txtBatchNo.text,
                             );
                             if (_result[0] == false) {

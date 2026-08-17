@@ -22,6 +22,7 @@ class EpiShipDtl {
     this.ud100aLorryC,
     this.shipDtlShipCmpl,
     this.shipDtlSalesUM,
+    this.shipDtlIUM,
   });
 
   @JsonKey(name: 'ShipHead_SD_PlanId_c')
@@ -74,6 +75,9 @@ class EpiShipDtl {
 
   @JsonKey(name: 'ShipDtl_SalesUM')
   final String? shipDtlSalesUM;
+
+  @JsonKey(name: 'ShipDtl_IUM')
+  final String? shipDtlIUM;
 
   factory EpiShipDtl.fromJson(Map<String, dynamic> json) =>
       _$EpiShipDtlFromJson(json);

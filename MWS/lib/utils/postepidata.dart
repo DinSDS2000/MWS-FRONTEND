@@ -271,9 +271,10 @@ Future<List<dynamic>> updateShipDtlQty({
   required String lorry,
   required String driver,
   required String transporter,
-  required String planID,
+  String? planID,
   required String childKey,
 }) async {
+  final safePlanID = planID ?? '';
   final url = Uri.parse(
     '${_globals.epiApiBaseUrl}/api/CustShip/UpdateShipDtlQty'
     '?username=${_globals.epiUsername}'
@@ -287,7 +288,7 @@ Future<List<dynamic>> updateShipDtlQty({
     '&lorry=${Uri.encodeComponent(lorry)}'
     '&driver=${Uri.encodeComponent(driver)}'
     '&transporter=${Uri.encodeComponent(transporter)}'
-    '&planID=${Uri.encodeComponent(planID)}'
+    '&planID=${Uri.encodeComponent(safePlanID)}'
     '&childKey=${Uri.encodeComponent(childKey)}',
   );
 
@@ -875,12 +876,12 @@ Future<List<dynamic>> postMoveInventoryRequest(
     String frBin,
     String frLotNo,
     String toWhse,
-    String toBin,
+    String? toBin,
     String toLotNo,
     String refNo,
     String noofLabel) async {
   bool result = false;
-
+  final safeToBin = toBin ?? '';
   String _params = '?strEnvId=' +
       _globals.epiEnvId +
       '&strCurCompany=' +
@@ -900,7 +901,7 @@ Future<List<dynamic>> postMoveInventoryRequest(
       '&strToWarehouseCode=' +
       toWhse +
       '&strToBinNum=' +
-      toBin +
+      safeToBin +
       '&strToLotNum=' +
       toLotNo +
       '&strReference=' +
@@ -1120,9 +1121,9 @@ Future<List<dynamic>> postNewPOReceiptDtl(
     String? lotNum,
     String tranQty,
     String ium,
-    String? driverName,
-    String? driverIC,
-    String? lorry,
+    String driverName,
+    String driverIC,
+    String lorry,
     String? actQty,
     String noofLabel) async {
   bool result = false;
@@ -1159,11 +1160,11 @@ Future<List<dynamic>> postNewPOReceiptDtl(
       '&strUOM=' +
       ium +
       '&strDriverName=' +
-      (driverName ?? "") +
+      driverName +
       '&strDriverIC=' +
-      (driverIC ?? "") +
+      driverIC +
       '&strLorry=' +
-      (lorry ?? "") +
+      lorry +
       '&path=' +
       _globals.epiPrinter +
       '&printerPath=' +

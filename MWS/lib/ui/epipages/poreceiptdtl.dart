@@ -43,7 +43,8 @@ class POReceiptDtlState extends State<POReceiptDtl> {
   List<UserCodes> lorryCodesList = [];
 
   var txtPartNo = new TextEditingController();
-  var txtExemptionNo = new TextEditingController();
+  // var txtExemptionNo = new TextEditingController();
+  var txtTaxCatId = new TextEditingController();
   var txtPartDesc = new TextEditingController();
   var txtQty = new TextEditingController();
   var txtIUM = new TextEditingController();
@@ -68,15 +69,21 @@ class POReceiptDtlState extends State<POReceiptDtl> {
 
     txtQty.addListener(onChangeQty);
     _textFocusQty.addListener(onChangeQty);
+    print("TEST: ${widget.epiporeceiptdtl.lorry}");
 
     super.initState();
 
+    txtDriverIC.text = widget.epiporeceiptdtl.driverIc ?? "";
+    txtLorry.text = widget.epiporeceiptdtl.lorry ?? "";
+    txtDriverName.text = widget.epiporeceiptdtl.driverName ?? "";
     _uoms.add(new UOM('0', 'Not found'));
 
     _packno = widget.packno;
     txtPartNo.text = widget.epiporeceiptdtl.partnum;
     txtPartDesc.text = widget.epiporeceiptdtl.partdesc;
-    txtExemptionNo.text = widget.epiporeceiptdtl.exemptionno ?? '';
+    txtTaxCatId.text = widget.epiporeceiptdtl.taxCatId ?? "";
+    print("TAX ${widget.epiporeceiptdtl.taxCatId}");
+    // txtExemptionNo.text = widget.epiporeceiptdtl.exemptionno ?? '';
     /* txtWhse.text = widget.epiporeceiptdtl.whse;
     txtBin.text = widget.epiporeceiptdtl.bin;
     txtLotNo.text = widget.epiporeceiptdtl.lotnum; */
@@ -338,11 +345,11 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                           child: ListTile(
                             title: TextFormField(
                               decoration:
-                                  InputDecoration(labelText: 'Exemption No.'),
+                                  InputDecoration(labelText: 'Tax Category'),
                               obscureText: false,
                               keyboardType: TextInputType.text,
                               autocorrect: false,
-                              controller: txtExemptionNo,
+                              controller: txtTaxCatId,
                               enabled: false,
                             ),
                           ),
@@ -518,6 +525,9 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 16.0),
                             child: Autocomplete<UserCodes>(
+                              initialValue: TextEditingValue(
+                                text: widget.epiporeceiptdtl.driverName ?? "",
+                              ),
                               // Displays the clear text description inside the input box when selected
                               displayStringForOption: (UserCodes code) =>
                                   code.codeDesc,
@@ -671,6 +681,8 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 16.0),
                             child: Autocomplete<UserCodes>(
+                              initialValue: TextEditingValue(
+                                  text: widget.epiporeceiptdtl.lorry ?? ""),
                               // Displays the ID code (e.g., Plate Number) inside the text box when selected
                               displayStringForOption: (UserCodes code) =>
                                   code.codeDesc,

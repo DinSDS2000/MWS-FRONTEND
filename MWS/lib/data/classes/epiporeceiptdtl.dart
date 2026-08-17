@@ -40,6 +40,10 @@ class EpiPOReceiptDtl {
     this.exemptionno,
     this.purpoint,
     this.ourQty,
+    this.lorry,
+    this.driverIc,
+    this.driverName,
+    this.taxCatId,
   });
 
   @JsonKey(name: 'Company')
@@ -137,6 +141,18 @@ class EpiPOReceiptDtl {
 
   @JsonKey(name: 'OurQty')
   final double? ourQty;
+
+  @JsonKey(name: 'Lorry')
+  final String? lorry;
+
+  @JsonKey(name: 'DriverIc')
+  final String? driverIc;
+
+  @JsonKey(name: 'DriverName')
+  final String? driverName;
+
+  @JsonKey(name: 'TaxCatID')
+  final String? taxCatId;
 
   @JsonKey(ignore: true)
   String token;
