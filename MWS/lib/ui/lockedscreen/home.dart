@@ -1039,7 +1039,7 @@ class Home extends StatelessWidget {
                                         right: new BorderSide(
                                             width: 1.0,
                                             color: Colors.blue[900]!))),
-                                child: Icon(Icons.launch,
+                                child: Icon(Icons.inventory,
                                     color: Colors.blue[900]!),
                               ),
                               title: Text(
@@ -1095,7 +1095,7 @@ class Home extends StatelessWidget {
                                         right: new BorderSide(
                                             width: 1.0,
                                             color: Colors.blue[900]!))),
-                                child: Icon(Icons.launch,
+                                child: Icon(Icons.local_shipping,
                                     color: Colors.blue[900]!),
                               ),
                               title: Text(
@@ -1151,7 +1151,7 @@ class Home extends StatelessWidget {
                                         right: new BorderSide(
                                             width: 1.0,
                                             color: Colors.blue[900]!))),
-                                child: Icon(Icons.launch,
+                                child: Icon(Icons.swap_horiz,
                                     color: Colors.blue[900]!),
                               ),
                               title: Text(
@@ -1207,7 +1207,7 @@ class Home extends StatelessWidget {
                                         right: new BorderSide(
                                             width: 1.0,
                                             color: Colors.blue[900]!))),
-                                child: Icon(Icons.launch,
+                                child: Icon(Icons.warehouse,
                                     color: Colors.blue[900]!),
                               ),
                               title: Text(
