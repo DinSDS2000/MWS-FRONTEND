@@ -16,6 +16,7 @@ import 'package:flutter_epihhinventory/data/classes/epipickerbaq.dart';
 import 'package:flutter_epihhinventory/data/classes/epiporeceipt.dart';
 import 'package:flutter_epihhinventory/data/classes/epiporeceiptdtl.dart';
 import 'package:flutter_epihhinventory/data/classes/epireason.dart';
+import 'package:flutter_epihhinventory/data/classes/epireceiptheaderinfo.dart';
 import 'package:flutter_epihhinventory/data/classes/epireprint.dart';
 import 'package:flutter_epihhinventory/data/classes/epishipdtl.dart';
 import 'package:flutter_epihhinventory/data/classes/episplitmergeuom.dart';
@@ -936,7 +937,7 @@ Future<UserCodesResponse> getUserCodes({
   }
 }
 
-Future<bool> checkHeaderExist({
+Future<ReceiptHeaderInfo?> checkHeaderExist({
   required String packSlip,
   required int vendorNum,
   required String purPoint,
@@ -962,25 +963,23 @@ Future<bool> checkHeaderExist({
     var _data = await WebClient(User(token: '')).get(
         _globals.epiApiBaseUrl + '/api/Receipt/CheckHeaderExist' + _params);
 
-    // If data is null or execution fails, it dropped into the backend catch block
     if (_data == null) {
-      return false;
+      return null;
     }
 
     if (_data is Map<String, dynamic>) {
-      return _data['exists'] ?? false;
+      return ReceiptHeaderInfo.fromJson(_data);
     }
 
     if (_data is String) {
       final Map<String, dynamic> parsedJson = jsonDecode(_data);
-      return parsedJson['exists'] ?? false;
+      return ReceiptHeaderInfo.fromJson(parsedJson);
     }
 
-    return false;
+    return null;
   } catch (e) {
-    // If WebClient throws a 404/400 exception error, the header does not exist
     print('CheckHeaderExist Error: $e');
-    return false;
+    return null;
   }
 }
 
@@ -1014,6 +1013,59 @@ Future<List<EpiGetLot>> getLotList({
       final List<dynamic> rawLotArray = _data['value'] ?? [];
 
       // Pass the inner array directly into your model constructor
+      EpiGetLotList _envData = EpiGetLotList.fromJson(rawLotArray);
+      return _envData.epigetliotlist;
+    }
+
+    print("Unexpected JSON response envelope format");
+    return [];
+  } catch (e) {
+    print("Error fetching Lot list: $e");
+    return [];
+  }
+}
+
+Future<List<EpiGetLot>> getInventoryLot({
+  required String partNum,
+  required String warehouseCode,
+  required String binNum,
+  int attributeSetID = 0, // Added optional attributeSetID parameter
+}) async {
+  // Construct the updated query parameter string matching the new backend signature
+  String _params = '?username=' +
+      _globals.epiUsername +
+      '&password=' +
+      Uri.encodeComponent(_globals.epiPassword) +
+      '&company=' +
+      _globals.epiCompanyId +
+      '&plant=' +
+      _globals.epiSiteId +
+      '&envId=' +
+      _globals.epiEnvId +
+      '&partNum=' +
+      Uri.encodeComponent(partNum) + // Added encoding for safety
+      '&warehouseCode=' +
+      Uri.encodeComponent(warehouseCode) +
+      '&binNum=' +
+      Uri.encodeComponent(binNum) +
+      '&attributeSetID=' +
+      attributeSetID.toString(); // Added new param
+
+  try {
+    // 1. Updated endpoint path from 'GetLotList' to 'GetInventoryQtyAdj'
+    var _data = await WebClient(User(token: '')).get(
+        _globals.epiApiBaseUrl + '/api/CustShip/GetInventoryQtyAdj' + _params);
+
+    if (_data == null) {
+      return [];
+    }
+
+    // 2. Processes the backend's standard { "value": [...] } return structure
+    if (_data is Map<String, dynamic> && _data.containsKey('value')) {
+      final List<dynamic> rawLotArray = _data['value'] ?? [];
+
+      // Your existing EpiGetLotList mapping structure remains unchanged
+      // because the backend still outputs the exact same 'value' schema
       EpiGetLotList _envData = EpiGetLotList.fromJson(rawLotArray);
       return _envData.epigetliotlist;
     }

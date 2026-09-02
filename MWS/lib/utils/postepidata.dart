@@ -288,6 +288,7 @@ Future<List<dynamic>> updateShipDtlQty({
     '&lorry=${Uri.encodeComponent(lorry)}'
     '&driver=${Uri.encodeComponent(driver)}'
     '&transporter=${Uri.encodeComponent(transporter)}'
+    '&pickerName=${_globals.epiUsername}'
     '&planID=${Uri.encodeComponent(safePlanID)}'
     '&childKey=${Uri.encodeComponent(childKey)}',
   );

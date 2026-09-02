@@ -214,8 +214,13 @@ class IssueMaterialState extends State<IssueMaterial> {
   }
 
   void fetchLotsOnLoad() {
+    print("test lot on load");
     // Use the part number loaded into your controller text
-    getLotList(partNum: txtPartNo.text).then((List<EpiGetLot> responseLots) {
+    getInventoryLot(
+            warehouseCode: txtFrWhse.text,
+            binNum: txtFrBin.text,
+            partNum: txtPartNo.text)
+        .then((List<EpiGetLot> responseLots) {
       setState(() {
         dropDownLots = responseLots;
         isLoadingLots = false;
@@ -407,7 +412,6 @@ class IssueMaterialState extends State<IssueMaterial> {
     print("acu: ${txtPartNo.text}");
     EpiPart _data = await getEpiPart(txtPartNo.text);
     fetchBinsOnLoad();
-    fetchLotsOnLoad();
     setState(() {
       _lotEnabled = _data.tracklots;
       txtPartDesc.text = _data.partdescription;
@@ -855,6 +859,7 @@ class IssueMaterialState extends State<IssueMaterial> {
                                             ),
                                             onTap: () {
                                               onSelected(option);
+                                              fetchLotsOnLoad();
                                             },
                                           );
                                         },

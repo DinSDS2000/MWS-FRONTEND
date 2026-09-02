@@ -73,9 +73,9 @@ class POReceiptDtlState extends State<POReceiptDtl> {
 
     super.initState();
 
-    txtDriverIC.text = widget.epiporeceiptdtl.driverIc ?? "";
-    txtLorry.text = widget.epiporeceiptdtl.lorry ?? "";
-    txtDriverName.text = widget.epiporeceiptdtl.driverName ?? "";
+    // txtDriverIC.text = widget.epiporeceiptdtl.driverIc ?? "";
+    // txtLorry.text = widget.epiporeceiptdtl.lorry ?? "";
+    // txtDriverName.text = widget.epiporeceiptdtl.driverName ?? "";
     _uoms.add(new UOM('0', 'Not found'));
 
     _packno = widget.packno;
@@ -172,23 +172,32 @@ class POReceiptDtlState extends State<POReceiptDtl> {
     });
 
     try {
-      // 1. STEP ONE: Check if the header exists right away
-      headerExists = await checkHeaderExist(
+      // 1. STEP ONE: Fetch the full receipt info object
+      final receiptInfo = await checkHeaderExist(
         packSlip: widget.packno,
         vendorNum: widget.epiporeceiptdtl.vendornum,
         purPoint: '', // Pass default value or variable
       );
 
+      // Evaluate the boolean condition from the returned object
+      headerExists = receiptInfo != null && receiptInfo.exists;
+
       if (headerExists) {
         print("Header exists! Skipping user and lorry code download.");
-
-        // Optional: Put any logic here that needs to run when the record already exists
-        // (e.g., loading line details instead)
+        print(
+            "Receipt info ${receiptInfo!.driverName} and ${receiptInfo.lorry}");
+        setState(() {
+          // 2. STEP TWO: Assign the fetched fields to your state variables or controllers
+          // Replace these names with your actual page variables/controllers if named differently
+          txtDriverName.text = receiptInfo!.driverName;
+          txtLorry.text = receiptInfo.lorry;
+          txtDriverIC.text = receiptInfo.driverIC;
+        });
 
         return; // 🛑 EXIT EARLY: This stops the function here. The codes below will not run.
       }
 
-      // 2. STEP TWO: If header does NOT exist, download the lists in parallel
+      // 3. STEP THREE: If header does NOT exist, download the lists in parallel
       print("Header does not exist. Fetching driver and lorry lists...");
 
       final results = await Future.wait([
@@ -525,8 +534,10 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 16.0),
                             child: Autocomplete<UserCodes>(
+                              key: Key(
+                                  'driver_autocomplete_${headerExists}_${txtDriverName.text}'),
                               initialValue: TextEditingValue(
-                                text: widget.epiporeceiptdtl.driverName ?? "",
+                                text: txtDriverName.text,
                               ),
                               // Displays the clear text description inside the input box when selected
                               displayStringForOption: (UserCodes code) =>
@@ -572,8 +583,12 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                                     enabled: !headerExists,
                                     controller: textEditingController,
                                     focusNode: focusNode,
-                                    style: const TextStyle(
-                                        color: Color.fromARGB(255, 0, 0, 0)),
+                                    style: TextStyle(
+                                      color: headerExists
+                                          ? const Color.fromARGB(
+                                              255, 156, 156, 156)
+                                          : Colors.black,
+                                    ),
                                     decoration: const InputDecoration(
                                       labelText: 'Driver Name',
                                       enabledBorder: UnderlineInputBorder(
@@ -681,8 +696,10 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 16.0),
                             child: Autocomplete<UserCodes>(
-                              initialValue: TextEditingValue(
-                                  text: widget.epiporeceiptdtl.lorry ?? ""),
+                              key: Key(
+                                  'driver_autocomplete_${headerExists}_${txtLorry.text}'),
+                              initialValue:
+                                  TextEditingValue(text: txtLorry.text),
                               // Displays the ID code (e.g., Plate Number) inside the text box when selected
                               displayStringForOption: (UserCodes code) =>
                                   code.codeDesc,
@@ -727,8 +744,12 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                                     enabled: !headerExists,
                                     controller: textEditingController,
                                     focusNode: focusNode,
-                                    style: const TextStyle(
-                                        color: Color.fromARGB(255, 0, 0, 0)),
+                                    style: TextStyle(
+                                      color: headerExists
+                                          ? const Color.fromARGB(
+                                              255, 156, 156, 156)
+                                          : Colors.black,
+                                    ),
                                     decoration: const InputDecoration(
                                       labelText: 'Lorry',
                                       enabledBorder: UnderlineInputBorder(
@@ -801,16 +822,51 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                       ],
                     ),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
                         Expanded(
                           child: ListTile(
                             title: TextFormField(
-                              decoration:
-                                  InputDecoration(labelText: 'No. of Label'),
+                              decoration: const InputDecoration(
+                                  labelText: 'No. of Label'),
                               obscureText: false,
                               keyboardType: TextInputType.number,
                               autocorrect: false,
                               controller: txtNoofLable,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        // Wrapped in Padding to vertically align with the ListTile's default text baseline offset
+                        Padding(
+                          padding: const EdgeInsets.only(top: 12.0),
+                          child: SizedBox(
+                            width:
+                                100, // Increased from 64 so "Follow Qty" fits cleanly on one line
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    Colors.blue, // Sets button color properly
+                                foregroundColor: Colors.white, // Text color
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 12), // Adds breathing room
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  txtNoofLable.text = txtQty.text;
+                                });
+                              },
+                              child: Text(
+                                'Follow Qty',
+                                textAlign: TextAlign.center,
+                                textScaler: TextScaler.linear(textScaleFactor),
+                                style: const TextStyle(
+                                    fontSize:
+                                        12), // Sized down slightly to ensure it fits the width
+                              ),
                             ),
                           ),
                         ),

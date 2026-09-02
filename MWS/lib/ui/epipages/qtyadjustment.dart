@@ -151,7 +151,11 @@ class QtyAdjustmentState extends State<QtyAdjustment> {
 
   void fetchLotsOnLoad() {
     // Use the part number loaded into your controller text
-    getLotList(partNum: txtPartNo.text).then((List<EpiGetLot> responseLots) {
+    getInventoryLot(
+            warehouseCode: txtWhse.text,
+            binNum: txtBin.text,
+            partNum: txtPartNo.text)
+        .then((List<EpiGetLot> responseLots) {
       setState(() {
         dropDownLots = responseLots;
         isLoadingLots = false;
@@ -287,7 +291,6 @@ class QtyAdjustmentState extends State<QtyAdjustment> {
     print("object3 ${txtPartNo.text}");
     EpiPart _data = await getEpiPart(txtPartNo.text);
     fetchBinsOnLoad();
-    fetchLotsOnLoad();
     setState(() {
       _lotEnabled = _data.tracklots;
       txtIUM.text = _data.ium;
@@ -578,6 +581,7 @@ class QtyAdjustmentState extends State<QtyAdjustment> {
                                             ),
                                             onTap: () {
                                               onSelected(option);
+                                              fetchLotsOnLoad();
                                             },
                                           );
                                         },

@@ -508,7 +508,7 @@ class POReceiptListState extends State<POReceiptList> {
               ),
               Row(
                 children: <Widget>[
-                  Text('Exemption No1: ' + _listExemptionNo,
+                  Text('Exemption No: ' + _listExemptionNo,
                       style: TextStyle(color: Colors.white)),
                 ],
               ),

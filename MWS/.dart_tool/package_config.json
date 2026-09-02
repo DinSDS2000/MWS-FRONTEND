@@ -236,6 +236,12 @@
       "languageVersion": "3.7"
     },
     {
+      "name": "flutter_typeahead",
+      "rootUri": "file:///C:/Users/Smart%20Agility/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_typeahead-6.0.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
       "name": "flutter_udid",
       "rootUri": "file:///C:/Users/Smart%20Agility/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_udid-4.0.0",
       "packageUri": "lib/",
@@ -746,7 +752,7 @@
       "languageVersion": "3.0"
     }
   ],
-  "generated": "2026-08-06T07:18:45.836573Z",
+  "generated": "2026-08-26T07:19:02.139079Z",
   "generator": "pub",
   "generatorVersion": "3.7.0",
   "flutterRoot": "file:///C:/flutter",

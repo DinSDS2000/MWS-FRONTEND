@@ -60,8 +60,17 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
 
   @override
   void initState() {
-    txtPartNo.addListener(onChangePartNo);
-    _textFocusPartNo.addListener(onChangePartNo);
+    super.initState();
+
+    _textFocusPartNo.addListener(() {
+      if (!_textFocusPartNo.hasFocus) {
+        final value = txtPartNo.text.trim();
+
+        if (value.isNotEmpty) {
+          splitPartNo(value);
+        }
+      }
+    });
 
     txtQty.addListener(onChangeQty);
     _textFocusQty.addListener(onChangeQty);
@@ -72,9 +81,7 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
     txtToWhse.addListener(onChangeToWhse);
     _textFocusToWhse.addListener(onChangeToWhse);
 
-    super.initState();
-
-    _uoms.add(new UOM('0', 'Not found'));
+    _uoms.add(UOM('0', 'Not found'));
 
     txtQty.text = '1';
     txtNoofLable.text = '1';
@@ -164,7 +171,11 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
 
   void fetchLotsOnLoad() {
     // Use the part number loaded into your controller text
-    getLotList(partNum: txtPartNo.text).then((List<EpiGetLot> responseLots) {
+    getInventoryLot(
+            warehouseCode: txtFrWhse.text,
+            binNum: txtFrBin.text,
+            partNum: txtPartNo.text)
+        .then((List<EpiGetLot> responseLots) {
       setState(() {
         dropDownLots = responseLots;
         isLoadingLots = false;
@@ -298,7 +309,6 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
 
     EpiPart _data = await getEpiPart(txtPartNo.text);
     fetchBinsOnLoad();
-    fetchLotsOnLoad();
     setState(() {
       _lotEnabled = _data.tracklots;
       txtIUM.text = _data.ium;
@@ -601,6 +611,7 @@ class IssueMiscMaterialState extends State<IssueMiscMaterial> {
                                             ),
                                             onTap: () {
                                               onSelected(option);
+                                              fetchLotsOnLoad();
                                             },
                                           );
                                         },

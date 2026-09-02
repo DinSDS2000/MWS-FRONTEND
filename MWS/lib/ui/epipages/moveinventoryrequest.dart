@@ -70,6 +70,9 @@ class MoveInventoryRequestState extends State<MoveInventoryRequest> {
     txtToWhse.addListener(onChangeToWhse);
     _textFocusToWhse.addListener(onChangeToWhse);
 
+    txtFrBin.addListener(checkAndFetchLots);
+    txtToBin.addListener(checkAndFetchLots);
+
     super.initState();
 
     _uoms.add(new UOM('0', 'Not found'));
@@ -81,6 +84,7 @@ class MoveInventoryRequestState extends State<MoveInventoryRequest> {
   void onChangePartNo() {
     if (!_textFocusPartNo.hasFocus && txtPartNo.text != '') {
       splitPartNo(txtPartNo.text);
+      checkAndFetchLots();
       getMovePart();
     }
   }
@@ -97,6 +101,7 @@ class MoveInventoryRequestState extends State<MoveInventoryRequest> {
 
   void onChangeFrWhse() {
     if (!_textFocusFrWhse.hasFocus && txtFrWhse.text != '') {
+      checkAndFetchLots();
       splitFrWhse(txtFrWhse.text);
     }
   }
@@ -104,6 +109,7 @@ class MoveInventoryRequestState extends State<MoveInventoryRequest> {
   void onChangeToWhse() {
     if (!_textFocusToWhse.hasFocus && txtToWhse.text != '') {
       splitToWhse(txtToWhse.text);
+      checkAndFetchLots();
     }
   }
 
@@ -153,9 +159,11 @@ class MoveInventoryRequestState extends State<MoveInventoryRequest> {
     });
   }
 
-  void fetchLotsOnLoad() {
+  void fetchLotsOnLoad(String whseCode, String binNo) {
     // Use the part number loaded into your controller text
-    getLotList(partNum: txtPartNo.text).then((List<EpiGetLot> responseLots) {
+    getInventoryLot(
+            warehouseCode: whseCode, partNum: txtPartNo.text, binNum: binNo)
+        .then((List<EpiGetLot> responseLots) {
       setState(() {
         dropDownLots = responseLots;
         isLoadingLots = false;
@@ -171,6 +179,30 @@ class MoveInventoryRequestState extends State<MoveInventoryRequest> {
       });
       print("Error loading lots during initialization: $error");
     });
+  }
+
+  void checkAndFetchLots() {
+    final partNo = txtPartNo.text.trim();
+
+    // From Warehouse + From Bin
+    if (partNo.isNotEmpty &&
+        txtFrWhse.text.trim().isNotEmpty &&
+        txtFrBin.text.trim().isNotEmpty) {
+      fetchLotsOnLoad(
+        txtFrWhse.text.trim(),
+        txtFrBin.text.trim(),
+      );
+    }
+
+    // To Warehouse + To Bin
+    if (partNo.isNotEmpty &&
+        txtToWhse.text.trim().isNotEmpty &&
+        txtToBin.text.trim().isNotEmpty) {
+      fetchLotsOnLoad(
+        txtToWhse.text.trim(),
+        txtToBin.text.trim(),
+      );
+    }
   }
 
   displaySelUOMDialog() async {
@@ -249,7 +281,7 @@ class MoveInventoryRequestState extends State<MoveInventoryRequest> {
 
     EpiPart _data = await getEpiPart(txtPartNo.text);
     fetchBinsOnLoad();
-    fetchLotsOnLoad();
+    // fetchLotsOnLoad();
     setState(() {
       _lotEnabled = _data.tracklots;
       if (_lotEnabled == false) {

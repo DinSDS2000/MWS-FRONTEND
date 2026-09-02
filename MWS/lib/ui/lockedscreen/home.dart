@@ -1016,7 +1016,7 @@ class Home extends StatelessWidget {
                           ),
                         )),
                     Visibility(
-                        visible: true,
+                        visible: false,
                         child: Card(
                           elevation: 8.0,
                           shape: RoundedRectangleBorder(
@@ -1072,7 +1072,7 @@ class Home extends StatelessWidget {
                           ),
                         )),
                     Visibility(
-                        visible: true,
+                        visible: false,
                         child: Card(
                           elevation: 8.0,
                           shape: RoundedRectangleBorder(
@@ -1128,7 +1128,7 @@ class Home extends StatelessWidget {
                           ),
                         )),
                     Visibility(
-                        visible: true,
+                        visible: false,
                         child: Card(
                           elevation: 8.0,
                           shape: RoundedRectangleBorder(
@@ -1184,7 +1184,7 @@ class Home extends StatelessWidget {
                           ),
                         )),
                     Visibility(
-                        visible: true,
+                        visible: false,
                         child: Card(
                           elevation: 8.0,
                           shape: RoundedRectangleBorder(
