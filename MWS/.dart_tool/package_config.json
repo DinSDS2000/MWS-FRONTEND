@@ -146,6 +146,12 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "data_table_2",
+      "rootUri": "file:///C:/Users/Smart%20Agility/AppData/Local/Pub/Cache/hosted/pub.dev/data_table_2-2.7.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
       "name": "decimal",
       "rootUri": "file:///C:/Users/Smart%20Agility/AppData/Local/Pub/Cache/hosted/pub.dev/decimal-3.0.2",
       "packageUri": "lib/",
@@ -752,7 +758,7 @@
       "languageVersion": "3.0"
     }
   ],
-  "generated": "2026-08-26T07:19:02.139079Z",
+  "generated": "2026-09-25T02:09:16.632826Z",
   "generator": "pub",
   "generatorVersion": "3.7.0",
   "flutterRoot": "file:///C:/flutter",

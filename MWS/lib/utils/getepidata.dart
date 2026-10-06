@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_epihhinventory/data/classes/epidocustinfo.dart';
 import 'package:flutter_epihhinventory/data/classes/epiemployee.dart';
+import 'package:flutter_epihhinventory/data/classes/epigetbin.dart';
 import 'package:flutter_epihhinventory/data/classes/epigetlot.dart';
 import 'package:flutter_epihhinventory/data/classes/epijobasm.dart';
 import 'package:flutter_epihhinventory/data/classes/epijobhead.dart';
@@ -12,6 +13,7 @@ import 'package:flutter_epihhinventory/data/classes/epimoveinvreq.dart';
 import 'package:flutter_epihhinventory/data/classes/epipart.dart';
 import 'package:flutter_epihhinventory/data/classes/epipartwhse.dart';
 import 'package:flutter_epihhinventory/data/classes/epipartwhsebin.dart';
+import 'package:flutter_epihhinventory/data/classes/epipickedtable.dart';
 import 'package:flutter_epihhinventory/data/classes/epipickerbaq.dart';
 import 'package:flutter_epihhinventory/data/classes/epiporeceipt.dart';
 import 'package:flutter_epihhinventory/data/classes/epiporeceiptdtl.dart';
@@ -357,8 +359,9 @@ Future<List<dynamic>> getEpiPickerList({
   DateTime? toRelDate,
   DateTime? fromOrderDate,
   DateTime? toOrderDate,
-  String? fromLegalNum,
-  String? toLegalNum,
+  String? legalNum,
+  // String? fromLegalNum,
+  // String? toLegalNum,
 }) async {
   // Base params (required)
   String params = '?strUid=' +
@@ -399,12 +402,15 @@ Future<List<dynamic>> getEpiPickerList({
     final formattedDate = DateFormat('yyyy-MM-dd').format(toOrderDate);
     params += '&toOrderDate=' + Uri.encodeComponent(formattedDate);
   }
-  if (fromLegalNum != null && fromLegalNum.isNotEmpty) {
-    params += '&fromLegalNum=' + Uri.encodeComponent(fromLegalNum);
+  if (legalNum != null) {
+    params += '&legalNum=' + Uri.encodeComponent(legalNum);
   }
-  if (toLegalNum != null && toLegalNum.isNotEmpty) {
-    params += '&toLegalNum=' + Uri.encodeComponent(toLegalNum);
-  }
+  // if (fromLegalNum != null && fromLegalNum.isNotEmpty) {
+  //   params += '&fromLegalNum=' + Uri.encodeComponent(fromLegalNum);
+  // }
+  // if (toLegalNum != null && toLegalNum.isNotEmpty) {
+  //   params += '&toLegalNum=' + Uri.encodeComponent(toLegalNum);
+  // }
   var _data = await WebClient(User(token: '')).get(_globals.epiApiBaseUrl +
       '/api/DeliveryTracking/LoadPickerDelivery' +
       params);
@@ -1025,6 +1031,57 @@ Future<List<EpiGetLot>> getLotList({
   }
 }
 
+Future<List<EpiGetBin>> getInventoryBin({
+  required String partNum,
+  required String warehouseCode,
+  int attributeSetID = 0, // Added optional attributeSetID parameter
+}) async {
+  // Construct the updated query parameter string matching the new backend signature
+  String _params = '?username=' +
+      _globals.epiUsername +
+      '&password=' +
+      Uri.encodeComponent(_globals.epiPassword) +
+      '&company=' +
+      _globals.epiCompanyId +
+      '&plant=' +
+      _globals.epiSiteId +
+      '&envId=' +
+      _globals.epiEnvId +
+      '&partNum=' +
+      Uri.encodeComponent(partNum) + // Added encoding for safety
+      '&warehouseCode=' +
+      Uri.encodeComponent(warehouseCode) +
+      '&attributeSetID=' +
+      attributeSetID.toString(); // Added new param
+
+  try {
+    // 1. Updated endpoint path from 'GetLotList' to 'GetInventoryQtyAdj'
+    var _data = await WebClient(User(token: '')).get(_globals.epiApiBaseUrl +
+        '/api/CustShip/GetInventoryQtyAdjForBin' +
+        _params);
+
+    if (_data == null) {
+      return [];
+    }
+
+    // 2. Processes the backend's standard { "value": [...] } return structure
+    if (_data is Map<String, dynamic> && _data.containsKey('value')) {
+      final List<dynamic> rawLotArray = _data['value'] ?? [];
+
+      // Your existing EpiGetLotList mapping structure remains unchanged
+      // because the backend still outputs the exact same 'value' schema
+      EpiGetBinList _envData = EpiGetBinList.fromJson(rawLotArray);
+      return _envData.epigetbinlist;
+    }
+
+    print("Unexpected JSON response envelope format");
+    return [];
+  } catch (e) {
+    print("Error fetching Lot list: $e");
+    return [];
+  }
+}
+
 Future<List<EpiGetLot>> getInventoryLot({
   required String partNum,
   required String warehouseCode,
@@ -1053,8 +1110,9 @@ Future<List<EpiGetLot>> getInventoryLot({
 
   try {
     // 1. Updated endpoint path from 'GetLotList' to 'GetInventoryQtyAdj'
-    var _data = await WebClient(User(token: '')).get(
-        _globals.epiApiBaseUrl + '/api/CustShip/GetInventoryQtyAdj' + _params);
+    var _data = await WebClient(User(token: '')).get(_globals.epiApiBaseUrl +
+        '/api/CustShip/GetInventoryQtyAdjForLot' +
+        _params);
 
     if (_data == null) {
       return [];
@@ -1075,5 +1133,98 @@ Future<List<EpiGetLot>> getInventoryLot({
   } catch (e) {
     print("Error fetching Lot list: $e");
     return [];
+  }
+}
+
+Future<List<EpiPickedTable>> getPickedTable({
+  required String key3,
+  String key4 = '',
+  String character01 = '',
+  String character02 = '',
+  String character03 = '',
+}) async {
+  String _params = '?username=' +
+      _globals.epiUsername +
+      '&password=' +
+      Uri.encodeComponent(_globals.epiPassword) +
+      '&company=' +
+      _globals.epiCompanyId +
+      '&plant=' +
+      _globals.epiSiteId +
+      '&envId=' +
+      _globals.epiEnvId +
+      '&key3=' +
+      Uri.encodeComponent(key3) +
+      '&key4=' +
+      Uri.encodeComponent(key4) +
+      '&character01=' +
+      Uri.encodeComponent(character01) +
+      '&character02=' +
+      Uri.encodeComponent(character02) +
+      '&character03=' +
+      Uri.encodeComponent(character03);
+
+  try {
+    var _data = await WebClient(User(token: '')).get(
+      _globals.epiApiBaseUrl + '/api/CustShip/GetPickedTable' + _params,
+    );
+
+    if (_data == null) {
+      return [];
+    }
+
+    // Process backend { "value": [...] } response
+    if (_data is Map<String, dynamic> && _data.containsKey('value')) {
+      final List<dynamic> rawPickedArray = _data['value'] ?? [];
+
+      EpiPickedTableList _envData = EpiPickedTableList.fromJson(rawPickedArray);
+
+      return _envData.epipickedtablelist;
+    }
+
+    print("Unexpected JSON response envelope format");
+    return [];
+  } catch (e) {
+    print("Error fetching Picked Table: $e");
+    return [];
+  }
+}
+
+Future<double> getRemainingQty({
+  required String key1,
+  required String key3,
+}) async {
+  String _params = '?username=' +
+      _globals.epiUsername +
+      '&password=' +
+      Uri.encodeComponent(_globals.epiPassword) +
+      '&company=' +
+      _globals.epiCompanyId +
+      '&plant=' +
+      _globals.epiSiteId +
+      '&envId=' +
+      _globals.epiEnvId +
+      '&key1=' +
+      Uri.encodeComponent(key1) +
+      '&key3=' +
+      Uri.encodeComponent(key3);
+
+  try {
+    var _data = await WebClient(User(token: '')).get(
+      _globals.epiApiBaseUrl + '/api/CustShip/GetRemainingQty' + _params,
+    );
+
+    if (_data == null) {
+      throw Exception('No records found or invalid response.');
+    }
+
+    if (_data is Map<String, dynamic> && _data['success'] == true) {
+      return double.tryParse(_data['remainingQty']?.toString() ?? '0.0') ?? 0.0;
+    }
+
+    throw Exception('Failed to get validation success status.');
+  } catch (e) {
+    print("Error fetching Remaining Qty: $e");
+    rethrow;
   }
 }

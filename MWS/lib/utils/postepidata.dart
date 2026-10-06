@@ -213,6 +213,7 @@ Future<Map<String, dynamic>> createCustShipDtl({
   required int quantity,
   required bool checkQty,
   required int runSess,
+  required String remainingQty,
 }) async {
   // 1. Build the base parameters map
   final Map<String, String> queryParams = {
@@ -232,6 +233,7 @@ Future<Map<String, dynamic>> createCustShipDtl({
     'quantity': quantity.toString(),
     'checkQty': checkQty.toString(),
     'runSess': runSess.toString(),
+    'remainingQty': remainingQty.toString(),
   };
 
   // 2. Conditionally add lotNum only if it contains a value
@@ -423,42 +425,6 @@ Future<List<dynamic>> postIssueMiscMaterial(
     result = true;
   }
 
-  return [result, response.body];
-}
-
-Future<List<dynamic>> getInventoryQtyAdjForPart(String partNum) async {
-  bool result = false;
-
-  // Replicate your exact style of joining configuration query parameters
-  String _params = '?strUID=' +
-      _globals.epiUsername +
-      '&strPass=' +
-      Uri.encodeComponent(_globals.epiPassword) +
-      '&strEnvId=' +
-      _globals.epiEnvId +
-      '&strCurCompany=' +
-      _globals.epiCompanyId +
-      '&strCurPlant=' +
-      _globals.epiSiteId +
-      '&partNum=' +
-      Uri.encodeComponent(partNum); // Appending your query parameter
-
-  // Execute using your exact WebClient structure and POST method configuration
-  http.Response response = await WebClient(User(token: '')).getHttpReponse(
-    _globals.epiApiBaseUrl +
-        '/api/IssueMtl/GetInventoryQtyAdjForPart' +
-        _params,
-    headers: {
-      HttpHeaders.authorizationHeader: "Bearer ",
-    },
-    method: HttpMethod.post, // Keeping POST action as defined in your C# route
-  );
-
-  if (response.statusCode == 200) {
-    result = true;
-  }
-
-  // Returns [true, jsonStringData] or [false, errorBody]
   return [result, response.body];
 }
 
@@ -1066,8 +1032,15 @@ Future<List<dynamic>> postNewLot(String partNo) async {
   return [result, response.body];
 }
 
-Future<List<dynamic>> postMoveInventoryRequestApproval(String reqNo,
-    String reqStatus, String trxQty, String binNum, String noofLabel) async {
+Future<List<dynamic>> postMoveInventoryRequestApproval(
+    String reqNo,
+    String reqStatus,
+    String trxQty,
+    String binNum,
+    String discrepQty,
+    String transQty,
+    String reference,
+    String noofLabel) async {
   bool result = false;
 
   String _params = '?strEnvId=' +
@@ -1088,8 +1061,14 @@ Future<List<dynamic>> postMoveInventoryRequestApproval(String reqNo,
       _globals.epiPrinterPath +
       '&binNum=' +
       binNum +
+      '&reference=' +
+      reference +
       '&dTranQty=' +
       trxQty +
+      '&discrepQty=' +
+      discrepQty +
+      '&transQty=' +
+      transQty +
       '&iLabelCount=' +
       noofLabel;
 
@@ -1126,6 +1105,7 @@ Future<List<dynamic>> postNewPOReceiptDtl(
     String driverIC,
     String lorry,
     String? actQty,
+    String? discrepQty,
     String noofLabel) async {
   bool result = false;
 
@@ -1178,6 +1158,10 @@ Future<List<dynamic>> postNewPOReceiptDtl(
   }
   if (lotNum != null) {
     _params += '&strLotNum=$lotNum';
+  }
+
+  if (discrepQty != null) {
+    _params += '&discrepQty=$discrepQty';
   }
 
   print("LOTTT333332: ${lotNum}");
@@ -1787,5 +1771,175 @@ Future<List<dynamic>> postPerformEmptyPackagingReturn({
     result = true;
   }
 
+  return [result, response.body];
+}
+
+Future<List<dynamic>> postUpdateReadyToInvoice({
+  required int packNum,
+}) async {
+  bool result = false;
+
+  // 1. Build query parameters following your standard pattern rules
+  final Map<String, String> params = {
+    'username': _globals.epiUsername,
+    'password': _globals.epiPassword,
+    'company': _globals.epiCompanyId,
+    'plant': _globals.epiSiteId,
+    'envID': _globals.epiEnvId,
+    'packNum': packNum.toString(),
+  };
+
+  // 2. Parse base path URI targeting your local server endpoint route context
+  final Uri uri = Uri.parse(
+    _globals.epiApiBaseUrl +
+        '/api/CustShip/UpdateReadyToInvoice', // Adjust path if your controller route differs
+  ).replace(queryParameters: params);
+
+  // 3. Fire the request matching your application's WebClient architecture
+  http.Response response = await WebClient(User(token: '')).getHttpReponse(
+    uri.toString(),
+    headers: {
+      HttpHeaders.authorizationHeader: "Bearer ",
+      HttpHeaders.contentTypeHeader: "application/json",
+    },
+    method: HttpMethod.post,
+  );
+
+  if (response.statusCode == 200) {
+    result = true;
+  }
+
+  // Returns [true/false, Server Json String / Error Message Payload]
+  return [result, response.body];
+}
+
+Future<List<dynamic>> CreatePickedTable({
+  required String partNum,
+  required String packLine,
+  required double pickedQty,
+  required double qty,
+  required double remainingQty,
+  required String uom,
+  required String taxCatId,
+  required String whse,
+  required String bin,
+  required String lot,
+  required String doLine,
+  required int packNum,
+  required String legalNum,
+  required String timeStamp,
+}) async {
+  bool result = false;
+
+  // 1. Build query parameters following your standard pattern rules
+  final Map<String, String> params = {
+    'strUID': _globals.epiUsername,
+    'strPass': _globals.epiPassword,
+    'strCurCompany': _globals.epiCompanyId,
+    'strCurPlant': _globals.epiSiteId,
+    'strEnvId': _globals.epiEnvId,
+  };
+
+  // 2. Parse base path URI targeting your custom API controller endpoint layout context
+  final Uri uri = Uri.parse(
+    _globals.epiApiBaseUrl + '/api/DeliveryTracking/CreatePickerHeaderAndLine',
+  ).replace(queryParameters: params);
+
+  // 3. Construct your structured payload JSON map matching your C# Body classes
+  final Map<String, dynamic> jsonBodyPayload = {
+    'Company': _globals.epiCompanyId,
+    'Key1': packNum.toString(), // Parent PackNum Key1 mapping
+    'Key2': packLine,
+    'Key3': legalNum,
+    'Key4': partNum,
+    'Key5': '',
+    'UD103As': [
+      {
+        'Company': _globals.epiCompanyId,
+        'Key1': packNum.toString(),
+        'Key2': packLine, // Your PackLine target assignment identification
+        'Key3': legalNum,
+        'Key4': partNum,
+        'Key5': '',
+        'ChildKey1': timeStamp,
+        'Character01': whse,
+        'Character02': bin,
+        'Character03': lot,
+        'Number01': pickedQty,
+        'Number02': qty,
+        'Number03': remainingQty,
+        'Character04': uom,
+        'Character05': taxCatId,
+        'Character06': doLine,
+      }
+    ]
+  };
+
+  // 4. Fire the request matching your application's WebClient architecture
+  http.Response response = await WebClient(User(token: '')).getHttpReponse(
+    uri.toString(),
+    headers: {
+      HttpHeaders.authorizationHeader: "Bearer ",
+      HttpHeaders.contentTypeHeader: "application/json",
+    },
+    method: HttpMethod.post,
+    body: jsonEncode(
+        jsonBodyPayload), // Passes serialized body configuration data cleanly
+  );
+
+  // 5. Match your application return rule format checking response validity boundaries
+  if (response.statusCode == 200 || response.statusCode == 201) {
+    result = true;
+  }
+
+  // Returns matching array structure: [true/false, Server Json String / Error Message Payload]
+  return [result, response.body];
+}
+
+Future<List<dynamic>> DeletePickedLine({
+  required int packNum,
+  required String packLine,
+  required String legalNum,
+  required String childKey1,
+  required String partNum,
+}) async {
+  bool result = false;
+
+  // 1. Build query parameters following your standard pattern rules
+  final Map<String, String> params = {
+    'strUID': _globals.epiUsername,
+    'strPass': _globals.epiPassword,
+    'strCurCompany': _globals.epiCompanyId,
+    'strCurPlant': _globals.epiSiteId,
+    'strEnvId': _globals.epiEnvId,
+    'key1': packNum.toString(),
+    'key2': packLine,
+    'key3': legalNum,
+    'key4': partNum,
+    'childKey1': childKey1,
+  };
+
+  // 2. Parse base path URI targeting your new API delete controller endpoint
+  final Uri uri = Uri.parse(
+    _globals.epiApiBaseUrl + '/api/DeliveryTracking/DeletePickerLine',
+  ).replace(queryParameters: params);
+
+  // 3. Fire the request matching your application's WebClient architecture
+  // Note: Method is changed to HttpMethod.delete and body is omitted
+  http.Response response = await WebClient(User(token: '')).getHttpReponse(
+    uri.toString(),
+    headers: {
+      HttpHeaders.authorizationHeader: "Bearer ",
+      HttpHeaders.contentTypeHeader: "application/json",
+    },
+    method: HttpMethod.delete,
+  );
+
+  // 4. Match your application return rule format checking response validity boundaries
+  if (response.statusCode == 200 || response.statusCode == 204) {
+    result = true;
+  }
+
+  // Returns matching array structure: [true/false, Server Json String / Error Message Payload]
   return [result, response.body];
 }

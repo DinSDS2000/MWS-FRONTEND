@@ -16,6 +16,7 @@ class EpiMoveInvReq {
     required this.towhse,
     required this.tobin,
     required this.tolotnum,
+    required this.reference,
     required this.labelcount,
   });
 
@@ -48,6 +49,9 @@ class EpiMoveInvReq {
 
   @JsonKey(name: 'ToLotNum')
   final String tolotnum;
+
+  @JsonKey(name: 'Reference')
+  final String reference;
 
   @JsonKey(name: 'LabelCount')
   final int labelcount;

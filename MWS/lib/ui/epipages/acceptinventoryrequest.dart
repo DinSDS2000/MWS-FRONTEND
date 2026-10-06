@@ -1,6 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_epihhinventory/data/classes/epimoveinvreq.dart';
 import 'package:flutter_epihhinventory/data/classes/epipart.dart';
 import 'package:flutter_epihhinventory/utils/getepidata.dart';
@@ -29,11 +30,16 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
   String _reqNum = '';
   bool _saving = false;
   bool _lotEnabled = false;
+  List<ReasonItem> _reasons = List<ReasonItem>.empty(growable: true);
 
   var txtPartNo = new TextEditingController();
   var txtPartDesc = new TextEditingController();
   var txtQty = new TextEditingController();
+  var txtTransQty = new TextEditingController();
+  var txtDiscrepQty = new TextEditingController();
   var txtIUM = new TextEditingController();
+  var txtTransIum = new TextEditingController();
+  var txtDiscrepIum = new TextEditingController();
   var txtFrWhse = new TextEditingController();
   var txtFrBin = new TextEditingController();
   var txtFrLotNo = new TextEditingController();
@@ -62,20 +68,21 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
     txtToWhse.addListener(onChangeToWhse);
     _textFocusToWhse.addListener(onChangeToWhse);
 
+    txtTransQty.addListener(_calculateDiscrepancy);
     super.initState();
 
     _uoms.add(new UOM('0', 'Not found'));
-
     _reqNum = widget.epimoveinvreq.reqnum;
     txtPartNo.text = widget.epimoveinvreq.partnum;
     txtPartDesc.text = widget.epimoveinvreq.partdesc;
-    txtQty.text = widget.epimoveinvreq.dtranqty.toString();
+    txtTransQty.text = widget.epimoveinvreq.dtranqty.toString();
     txtFrWhse.text = widget.epimoveinvreq.frwhse;
     txtFrBin.text = widget.epimoveinvreq.frbin;
     txtFrLotNo.text = widget.epimoveinvreq.frlotnum;
     txtToWhse.text = widget.epimoveinvreq.towhse;
     txtToBin.text = widget.epimoveinvreq.tobin;
     txtToLotNo.text = widget.epimoveinvreq.tolotnum;
+    txtRef.text = widget.epimoveinvreq.reference;
     txtNoofLable.text = widget.epimoveinvreq.labelcount.toString();
   }
 
@@ -87,13 +94,15 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
   }
 
   void onChangeQty() {
-    if (!_textFocusQty.hasFocus && txtQty.text != '') {
-      if (_globals.epiisenableusedefaultlabelqty == false) {
-        setState(() {
+    setState(() {
+      _calculateDiscrepancy();
+
+      if (!_textFocusQty.hasFocus && txtQty.text.isNotEmpty) {
+        if (_globals.epiisenableusedefaultlabelqty == false) {
           txtNoofLable.text = txtQty.text;
-        });
+        }
       }
-    }
+    });
   }
 
   void onChangeFrWhse() {
@@ -108,24 +117,24 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
     }
   }
 
-  void triggerUOMDropDown() {
+  void triggerUOMDropDown(TextEditingController targetController) {
     _uoms.clear();
 
     if (txtPartNo.text != '') {
       _uoms.add(new UOM('0', 'Select UOM'));
       getEpiUOMList(txtPartNo.text, _uoms)
           .then((List<UOM> list) => setState(() {
-                displaySelUOMDialog();
+                displaySelUOMDialog(targetController);
               }));
     } else {
       _uoms.add(new UOM('0', 'Not found'));
       setState(() {
-        displaySelUOMDialog();
+        displaySelUOMDialog(targetController);
       });
     }
   }
 
-  displaySelUOMDialog() async {
+  displaySelUOMDialog(TextEditingController targetController) async {
     showDialog(
         context: context,
         builder: (context) {
@@ -137,7 +146,7 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
               onChanged: (UOM? _newValue) {
                 setState(() {
                   if (_newValue != null && _newValue.id != '0') {
-                    txtIUM.text = _newValue.id;
+                    targetController.text = _newValue.id;
                   }
                 });
                 Navigator.of(context).pop();
@@ -174,7 +183,36 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
 
       txtIUM.text = '';
       txtIUM.text = _data.ium;
+      txtTransIum.text = _data.ium;
+      txtDiscrepIum.text = _data.ium;
     }
+  }
+
+  void _calculateDiscrepancy() {
+    final transText = txtTransQty.text;
+    final actualText = txtQty.text;
+
+    // Rule: Only calculate if Transferred Quantity has an input
+    if (transText.isEmpty) {
+      setState(() {
+        txtDiscrepQty.text = ''; // Keep it empty if no trans qty
+      });
+      return;
+    }
+
+    // Parse strings to numbers (int or double depending on your needs)
+    final double transQty = double.tryParse(transText) ?? 0.0;
+    final double actualQty = double.tryParse(actualText) ?? 0.0;
+
+    // Formula: Discrepancy = Actual - Transferred
+    final double discrepancy = actualQty - transQty;
+
+    setState(() {
+      // Format to remove trailing zeros if they are integers (e.g., 5.0 -> 5)
+      txtDiscrepQty.text = discrepancy % 1 == 0
+          ? discrepancy.toInt().toString()
+          : discrepancy.toString();
+    });
   }
 
   Future<bool> splitPartNo(String txt) async {
@@ -318,7 +356,7 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
                           child: ListTile(
                             title: TextFormField(
                               decoration:
-                                  InputDecoration(labelText: 'Quantity'),
+                                  InputDecoration(labelText: 'Actual Quantity'),
                               obscureText: false,
                               keyboardType: TextInputType.number,
                               autocorrect: false,
@@ -345,12 +383,74 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
                         SizedBox(
                           width: 54,
                           child: ElevatedButton(
-                            onPressed: triggerUOMDropDown,
+                            onPressed: () => triggerUOMDropDown(txtIUM),
                             style: ElevatedButton.styleFrom(
                               padding:
                                   EdgeInsets.zero, // Removes default padding
                             ),
                             child: const Icon(Icons.search),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: ListTile(
+                            title: TextFormField(
+                              decoration: InputDecoration(
+                                  labelText: 'Transferred Quantity'),
+                              obscureText: false,
+                              keyboardType: TextInputType.number,
+                              autocorrect: false,
+                              controller: txtTransQty,
+                              enabled: true,
+                            ),
+                          ),
+                        ),
+                        //SizedBox(width: 10),
+                        SizedBox(
+                          width: 100,
+                          child: ListTile(
+                            title: TextFormField(
+                              decoration: InputDecoration(labelText: 'UOM'),
+                              obscureText: false,
+                              keyboardType: TextInputType.text,
+                              autocorrect: false,
+                              controller: txtTransIum,
+                              enabled: false,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: ListTile(
+                            title: TextFormField(
+                              decoration: InputDecoration(
+                                  labelText: 'Discrepancy Quantity'),
+                              obscureText: false,
+                              keyboardType: TextInputType.number,
+                              autocorrect: false,
+                              controller: txtDiscrepQty,
+                              enabled: false,
+                            ),
+                          ),
+                        ),
+                        //SizedBox(width: 10),
+                        SizedBox(
+                          width: 100,
+                          child: ListTile(
+                            title: TextFormField(
+                              decoration: InputDecoration(labelText: 'UOM'),
+                              obscureText: false,
+                              keyboardType: TextInputType.text,
+                              autocorrect: false,
+                              controller: txtDiscrepIum,
+                              enabled: false,
+                            ),
                           ),
                         ),
                       ],
@@ -517,7 +617,7 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
                         ),
                       ],
                     ),
-/*                     Row(
+                    Row(
                       children: <Widget>[
                         Expanded(
                           child: ListTile(
@@ -534,15 +634,14 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
                         SizedBox(width: 10),
                         SizedBox(
                           width: 54,
-                          child: RaisedButton(
-                            // Lot
-                            child: Icon(Icons.camera_alt),
-                            onPressed: barcodeScanningRef,
-                          ),
+                          // child: ElevatedButton(
+                          //   // Lot
+                          //   child: Icon(Icons.camera_alt),
+                          //   onPressed: barcodeScanningRef,
+                          // ),
                         ),
                       ],
                     ),
- */
                     Row(
                       children: <Widget>[
                         Expanded(
@@ -556,6 +655,9 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
                               controller: txtNoofLable,
                             ),
                           ),
+                        ),
+                        SizedBox(
+                          width: 64,
                         ),
                       ],
                     ),
@@ -711,22 +813,52 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
       _saving = true;
     });
 
-    String _reqStatus = '';
+    try {
+      if (txtDiscrepQty.text != "0") {
+        List<ReasonItem> reasonList = await getEpiReasonList('M', _reasons);
+        String reasonCode =
+            reasonList.isNotEmpty ? reasonList.first.name : "DEFAULT";
+        await postQtyAdjustment(
+            txtPartNo.text,
+            txtIUM.text,
+            txtDiscrepQty.text,
+            txtFrWhse.text,
+            txtFrBin.text,
+            txtFrLotNo.text,
+            reasonCode,
+            txtRef.text,
+            txtNoofLable.text);
+      }
 
-    if (isApproved == true) {
-      _reqStatus = '1';
-      _returnData = 'A';
-    } else {
-      _reqStatus = '2';
-      _returnData = 'R';
-    }
+      String _reqStatus = '';
 
-    _result = await postMoveInventoryRequestApproval(
-        _reqNum, _reqStatus, txtQty.text, txtToBin.text, txtNoofLable.text);
-    if (_result[0] == false) {
-      showAlertPopup(
-          context, 'Error', 'Process Accept Inventory Request : ' + _result[1]);
-      return;
+      if (isApproved == true) {
+        _reqStatus = '1';
+        _returnData = 'A';
+      } else {
+        _reqStatus = '2';
+        _returnData = 'R';
+      }
+
+      _result = await postMoveInventoryRequestApproval(
+          _reqNum,
+          _reqStatus,
+          txtQty.text,
+          txtToBin.text,
+          txtDiscrepQty.text,
+          txtTransQty.text,
+          txtRef.text,
+          txtNoofLable.text);
+      if (_result[0] == false) {
+        showAlertPopup(context, 'Error',
+            'Process Accept Inventory Request : ' + _result[1]);
+        return;
+      }
+    } catch (error) {
+      print("Inventory transaction failed:" + error.toString());
+      showAlertPopup(context, 'Error',
+          'Network or system error occurred: ' + error.toString());
+      // Alert user that a failure occurred mid-transaction
     }
 
     setState(() {
@@ -894,6 +1026,7 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
     }
   }
 
+
   Future barcodeScanningRef() async {
     try {
       String barcode = await BarcodeScanner.scan();
@@ -913,5 +1046,5 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
     } catch (e) {
       setState(() => _barcodeError = 'Unknown error: $e');
     }
-  } */
+  }  */
 }

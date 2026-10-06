@@ -203,8 +203,7 @@ class _MaterialpickingState extends State<MaterialList> {
                   Expanded(
                       child: ListTile(
                     title: TextFormField(
-                      decoration:
-                          InputDecoration(labelText: 'From Legal Number'),
+                      decoration: InputDecoration(labelText: 'Legal Number'),
                       obscureText: false,
                       keyboardType: TextInputType.text,
                       autocorrect: false,
@@ -233,40 +232,75 @@ class _MaterialpickingState extends State<MaterialList> {
                   ),
                 ],
               ),
-              Row(
-                children: [
-                  Expanded(
-                      child: ListTile(
-                    title: TextFormField(
-                      decoration: InputDecoration(labelText: 'To Legal Number'),
-                      obscureText: false,
-                      keyboardType: TextInputType.text,
-                      autocorrect: false,
-                      controller: txtToLegalNum,
-                      focusNode: _textFocusToLegalNum,
-                    ),
-                  )),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  SizedBox(
-                    width: 54,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        alignment: Alignment.center,
-                      ),
-                      child: Icon(Icons.camera_alt),
-                      onPressed: () async {
-                        await scanAndSetToController(txtToLegalNum);
-                      },
-                    ),
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                ],
-              ),
+              // Row(
+              //   children: [
+              //     Expanded(
+              //         child: ListTile(
+              //       title: TextFormField(
+              //         decoration:
+              //             InputDecoration(labelText: 'From Legal Number'),
+              //         obscureText: false,
+              //         keyboardType: TextInputType.text,
+              //         autocorrect: false,
+              //         controller: txtFromLegalNum,
+              //         focusNode: _textFocusFromLegalNum,
+              //       ),
+              //     )),
+              //     SizedBox(
+              //       width: 10,
+              //     ),
+              //     SizedBox(
+              //       width: 54,
+              //       child: ElevatedButton(
+              //         style: ElevatedButton.styleFrom(
+              //           padding: EdgeInsets.zero,
+              //           alignment: Alignment.center,
+              //         ),
+              //         child: Icon(Icons.camera_alt),
+              //         onPressed: () async {
+              //           await scanAndSetToController(txtFromLegalNum);
+              //         },
+              //       ),
+              //     ),
+              //     SizedBox(
+              //       width: 10,
+              //     ),
+              //   ],
+              // ),
+              // Row(
+              //   children: [
+              //     Expanded(
+              //         child: ListTile(
+              //       title: TextFormField(
+              //         decoration: InputDecoration(labelText: 'To Legal Number'),
+              //         obscureText: false,
+              //         keyboardType: TextInputType.text,
+              //         autocorrect: false,
+              //         controller: txtToLegalNum,
+              //         focusNode: _textFocusToLegalNum,
+              //       ),
+              //     )),
+              //     SizedBox(
+              //       width: 10,
+              //     ),
+              //     SizedBox(
+              //       width: 54,
+              //       child: ElevatedButton(
+              //         style: ElevatedButton.styleFrom(
+              //           padding: EdgeInsets.zero,
+              //           alignment: Alignment.center,
+              //         ),
+              //         child: Icon(Icons.camera_alt),
+              //         onPressed: () async {
+              //           await scanAndSetToController(txtToLegalNum);
+              //         },
+              //       ),
+              //     ),
+              //     SizedBox(
+              //       width: 10,
+              //     ),
+              //   ],
+              // ),
               Row(
                 children: [
                   Expanded(
@@ -444,8 +478,9 @@ class _MaterialpickingState extends State<MaterialList> {
                                 ? DateFormat('dd-MM-yyyy')
                                     .parse(txtToOrderDate.text)
                                 : null,
-                            fromLegalNum: txtFromLegalNum.text,
-                            toLegalNum: txtToLegalNum.text,
+                            legalNum: txtFromLegalNum.text,
+                            // fromLegalNum: txtFromLegalNum.text,
+                            // toLegalNum: txtToLegalNum.text,
                           );
                           if (_result[0] == false) {
                             _pickerBaq = _result[1];

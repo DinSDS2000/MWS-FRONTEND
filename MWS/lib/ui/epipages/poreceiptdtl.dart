@@ -56,6 +56,8 @@ class POReceiptDtlState extends State<POReceiptDtl> {
   var txtDriverIC = new TextEditingController();
   var txtLorry = new TextEditingController();
   var txtActualQty = new TextEditingController();
+  var txtDiscrepQty = new TextEditingController();
+  var txtDiscrepIum = new TextEditingController();
 
   FocusNode _textFocusWhse = new FocusNode();
   FocusNode _textFocusQty = new FocusNode();
@@ -69,8 +71,8 @@ class POReceiptDtlState extends State<POReceiptDtl> {
 
     txtQty.addListener(onChangeQty);
     _textFocusQty.addListener(onChangeQty);
-    print("TEST: ${widget.epiporeceiptdtl.lorry}");
 
+    txtActualQty.addListener(_calculateDiscrepancy);
     super.initState();
 
     // txtDriverIC.text = widget.epiporeceiptdtl.driverIc ?? "";
@@ -107,13 +109,15 @@ class POReceiptDtlState extends State<POReceiptDtl> {
   }
 
   void onChangeQty() {
-    if (!_textFocusQty.hasFocus && txtQty.text != '') {
-      if (_globals.epiisenableusedefaultlabelqty == false) {
-        setState(() {
+    setState(() {
+      _calculateDiscrepancy();
+
+      if (!_textFocusQty.hasFocus && txtQty.text.isNotEmpty) {
+        if (_globals.epiisenableusedefaultlabelqty == false) {
           txtNoofLable.text = txtQty.text;
-        });
+        }
       }
-    }
+    });
   }
 
   void onChangeWhse() {
@@ -218,6 +222,33 @@ class POReceiptDtlState extends State<POReceiptDtl> {
     }
   }
 
+  void _calculateDiscrepancy() {
+    final transText = txtActualQty.text;
+    final actualText = txtQty.text;
+
+    // Rule: Only calculate if Transferred Quantity has an input
+    if (transText.isEmpty) {
+      setState(() {
+        txtDiscrepQty.text = ''; // Keep it empty if no trans qty
+      });
+      return;
+    }
+
+    // Parse strings to numbers (int or double depending on your needs)
+    final double transQty = double.tryParse(transText) ?? 0.0;
+    final double actualQty = double.tryParse(actualText) ?? 0.0;
+
+    // Formula: Discrepancy = Actual - Transferred
+    final double discrepancy = transQty - actualQty;
+
+    setState(() {
+      // Format to remove trailing zeros if they are integers (e.g., 5.0 -> 5)
+      txtDiscrepQty.text = discrepancy % 1 == 0
+          ? discrepancy.toInt().toString()
+          : discrepancy.toString();
+    });
+  }
+
   displaySelUOMDialog() async {
     showDialog(
         context: context,
@@ -291,6 +322,7 @@ class POReceiptDtlState extends State<POReceiptDtl> {
 
     setState(() {
       txtIUM.text = _data.ium;
+      txtDiscrepIum.text = _data.ium;
       _lotEnabled = _data.tracklots;
       if (_lotEnabled == false) {
         txtLotNo.text = '';
@@ -370,8 +402,8 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                         Expanded(
                           child: ListTile(
                             title: TextFormField(
-                              decoration:
-                                  InputDecoration(labelText: 'Quantity'),
+                              decoration: InputDecoration(
+                                  labelText: 'Supplier Quantity'),
                               obscureText: false,
                               keyboardType: TextInputType.number,
                               autocorrect: false,
@@ -417,6 +449,36 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                               keyboardType: TextInputType.number,
                               autocorrect: false,
                               controller: txtActualQty,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: ListTile(
+                            title: TextFormField(
+                              decoration: InputDecoration(
+                                  labelText: 'Discrepency Quantity'),
+                              obscureText: false,
+                              keyboardType: TextInputType.number,
+                              autocorrect: false,
+                              controller: txtDiscrepQty,
+                              enabled: false,
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 100,
+                          child: ListTile(
+                            title: TextFormField(
+                              decoration: InputDecoration(labelText: 'UOM'),
+                              obscureText: false,
+                              keyboardType: TextInputType.text,
+                              autocorrect: false,
+                              controller: txtDiscrepIum,
+                              enabled: false,
                             ),
                           ),
                         ),
@@ -1012,6 +1074,7 @@ class POReceiptDtlState extends State<POReceiptDtl> {
           txtDriverIC.text,
           txtLorry.text,
           txtActualQty.text.isEmpty ? null : txtActualQty.text,
+          txtDiscrepQty.text.isEmpty ? null : txtDiscrepQty.text,
           txtNoofLable.text);
 
       setState(() {

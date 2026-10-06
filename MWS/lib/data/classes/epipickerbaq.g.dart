@@ -27,9 +27,10 @@ Epipickerbaq _$EpipickerbaqFromJson(Map<String, dynamic> json) => Epipickerbaq(
       ud100aSOLineC: json['UD100A_SOLine_c'] as String?,
       orderRelNeedByDate: json['OrderRel_NeedByDate'] as String?,
       orderHedOrderComment: json['OrderHed_OrderComment'] as String?,
-      orderRelExemptionNo: json['OrderRel_SD_ExemptionNo_c'] as String?,
+      orderRelExemptionNo: json['OrderDtl_SD_ExemptionNo_c'] as String?,
       warehouseCode: json['OrderRel_WarehouseCode'] as String?,
       taxCatID: json['OrderDtl_TaxCatID'] as String?,
+      legalNum: json['OrderHed_LegalNumber'] as String?,
       orderDate: json['OrderHed_OrderDate'] as String?,
       rowIdent: json['RowIdent'] as String?,
     );
@@ -56,9 +57,10 @@ Map<String, dynamic> _$EpipickerbaqToJson(Epipickerbaq instance) =>
       'UD100A_SOLine_c': instance.ud100aSOLineC,
       'OrderRel_NeedByDate': instance.orderRelNeedByDate,
       'OrderHed_OrderComment': instance.orderHedOrderComment,
-      'OrderRel_SD_ExemptionNo_c': instance.orderRelExemptionNo,
+      'OrderDtl_SD_ExemptionNo_c': instance.orderRelExemptionNo,
       'OrderRel_WarehouseCode': instance.warehouseCode,
       'OrderDtl_TaxCatID': instance.taxCatID,
       'OrderHed_OrderDate': instance.orderDate,
+      'OrderHed_LegalNumber': instance.legalNum,
       'RowIdent': instance.rowIdent,
     };

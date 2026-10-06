@@ -19,6 +19,7 @@ EpiMoveInvReq _$EpiMoveInvReqFromJson(Map<String, dynamic> json) =>
       towhse: json['ToWarehouseCode'] as String,
       tobin: json['ToBinNum'] as String,
       tolotnum: json['ToLotNum'] as String,
+      reference: json['Reference'] as String,
       labelcount: (json['LabelCount'] as num).toInt(),
     );
 
@@ -34,6 +35,7 @@ Map<String, dynamic> _$EpiMoveInvReqToJson(EpiMoveInvReq instance) =>
       'ToWarehouseCode': instance.towhse,
       'ToBinNum': instance.tobin,
       'ToLotNum': instance.tolotnum,
+      'Reference': instance.reference,
       'LabelCount': instance.labelcount,
       'token': instance.token,
     };

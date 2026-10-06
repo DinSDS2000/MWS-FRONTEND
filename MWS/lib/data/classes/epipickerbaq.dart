@@ -28,6 +28,7 @@ class Epipickerbaq {
     this.orderRelExemptionNo,
     this.warehouseCode,
     this.taxCatID,
+    this.legalNum,
     this.orderDate,
     this.rowIdent,
   });
@@ -92,7 +93,7 @@ class Epipickerbaq {
   @JsonKey(name: 'OrderHed_OrderComment')
   final String? orderHedOrderComment;
 
-  @JsonKey(name: 'OrderRel_SD_ExemptionNo_c')
+  @JsonKey(name: 'OrderDtl_SD_ExemptionNo_c')
   final String? orderRelExemptionNo;
 
   @JsonKey(name: 'OrderRel_WarehouseCode')
@@ -103,6 +104,9 @@ class Epipickerbaq {
 
   @JsonKey(name: 'OrderHed_OrderDate')
   final String? orderDate;
+
+  @JsonKey(name: 'OrderHed_LegalNumber')
+  final String? legalNum;
 
   @JsonKey(name: 'RowIdent')
   final String? rowIdent;
