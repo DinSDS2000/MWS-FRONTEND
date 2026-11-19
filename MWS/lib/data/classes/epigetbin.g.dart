@@ -7,11 +7,11 @@ part of 'epigetbin.dart';
 // **************************************************************************
 
 EpiGetBin _$EpiGetBinFromJson(Map<String, dynamic> json) => EpiGetBin(
-      binNum: json['BinNum'] as String,
-      onHandQty: (json['OnHandQty'] as num).toDouble(),
+      binNum: json['PartBin_BinNum'] as String,
+      onHandQty: (json['Calculated_SumOnHandQty'] as num).toDouble(),
     );
 
 Map<String, dynamic> _$EpiGetBinToJson(EpiGetBin instance) => <String, dynamic>{
-      'BinNum': instance.binNum,
-      'OnHandQty': instance.onHandQty,
+      'PartBin_BinNum': instance.binNum,
+      'Calculated_SumOnHandQty': instance.onHandQty,
     };

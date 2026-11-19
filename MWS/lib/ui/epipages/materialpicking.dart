@@ -48,6 +48,7 @@ class _MaterialPickingState extends State<MaterialPicking> {
   late TextEditingController txtPickedQty;
   late TextEditingController txtLegalNum;
   var txtRemainingQty = new TextEditingController();
+  var txtDummyPart = new TextEditingController();
   var txtWhse = new TextEditingController();
   var txtBin = new TextEditingController();
   var txtLot = new TextEditingController();
@@ -56,11 +57,14 @@ class _MaterialPickingState extends State<MaterialPicking> {
   var _txtFocusBinNo = new FocusNode();
   FocusNode _textFocusWhse = new FocusNode();
   FocusNode _textFocusPickedQty = new FocusNode();
+  final FocusNode _scannerFocusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
-
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scannerFocusNode.requestFocus();
+    });
     txtPart = TextEditingController(text: widget.pickerBaq.ud100aProductC);
     txtDesc = TextEditingController(text: widget.pickerBaq.ud100aProductDescC);
     txtQty = TextEditingController(
@@ -95,6 +99,12 @@ class _MaterialPickingState extends State<MaterialPicking> {
     loadExistingPickedItems();
   }
 
+  @override
+  void dispose() {
+    _scannerFocusNode.dispose();
+    super.dispose();
+  }
+
   void onChangeWhse() {
     if (!_textFocusWhse.hasFocus && txtWhse.text.isNotEmpty) {
       splitWhse(txtWhse.text);
@@ -102,6 +112,61 @@ class _MaterialPickingState extends State<MaterialPicking> {
         _lastFetchedWhse = txtWhse.text; // Cache the new value
       }
     }
+  }
+
+  bool splitDummyPart(String rawBarcode) {
+    txtDummyPart.value = TextEditingValue.empty;
+    final pattern = RegExp(
+        '${RegExp.escape(_globals.epibarcodeseperator)}|${RegExp.escape(_globals.epibarcodeseperator2)}');
+
+    var strSplit = rawBarcode.split(pattern);
+
+    if (strSplit.length >= 2) {
+      String scannedPart = strSplit[0]; // The first split value
+      String expectedPart = txtPart.text; // The original part number in txtPart
+
+      if (scannedPart != expectedPart) {
+        txtDummyPart.clear();
+
+        // Show the Error Alert Dialog
+        showDialog(
+          context: context,
+          barrierDismissible: false, // Prevents closing by tapping outside
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Error', style: TextStyle(color: Colors.red)),
+              content: Text(
+                  'Scanned part ($scannedPart) does not match expected part ($expectedPart)!'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Dismisses the dialog
+
+                    // Re-lock focus onto the hidden field so they can scan again immediately
+                    _scannerFocusNode.requestFocus();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+
+        return false; // Stop execution here so the wrong code doesn't fill the fields
+      }
+
+      setState(() {
+        txtDummyPart.text = scannedPart;
+        print("scanned: $scannedPart");
+        txtLot.text = strSplit[1]; // Second value goes to lot field
+      });
+
+      return true;
+    }
+
+    // If the barcode doesn't even have a valid separator format, clear it out too!
+    txtDummyPart.clear();
+    return false;
   }
 
   bool splitWhse(String txt) {
@@ -192,7 +257,7 @@ class _MaterialPickingState extends State<MaterialPicking> {
       print('Found ${result.length} previous picked records: $result');
       final latestRemainingQty = result.last.remQty;
       txtRemainingQty.text = latestRemainingQty.toString();
-      txtLegalNum.text = widget.pickerBaq.legalNum.toString();
+      txtLegalNum.text = result.last.key5;
       final List<Map<String, dynamic>> loadedItems = [];
 
       for (final item in result) {
@@ -324,533 +389,30 @@ class _MaterialPickingState extends State<MaterialPicking> {
         title: Text('Order Picking'),
         automaticallyImplyLeading: false,
       ),
-      body: ModalProgressHUD(
-        inAsyncCall: _saving,
-        child: SafeArea(
-          child: Container(
-            margin: const EdgeInsets.all(10.0),
-            child: ListView(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: ListTile(
-                        title: TextFormField(
-                          decoration: InputDecoration(labelText: 'Part'),
-                          obscureText: false,
-                          keyboardType: TextInputType.text,
-                          autocorrect: false,
-                          controller: txtPart,
-                          focusNode: _txtFocusPartNo,
-                          enabled: false,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 10,
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ListTile(
-                        title: TextFormField(
-                          decoration: InputDecoration(labelText: 'Description'),
-                          obscureText: false,
-                          keyboardType: TextInputType.text,
-                          autocorrect: false,
-                          controller: txtDesc,
-                          enabled: false,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 10,
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ListTile(
-                        title: TextFormField(
-                          decoration: InputDecoration(labelText: 'Quantity'),
-                          obscureText: false,
-                          keyboardType: TextInputType.text,
-                          autocorrect: false,
-                          controller: txtQty,
-                          enabled: false,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 10,
-                    ),
-                    SizedBox(
-                      width: 100,
-                      child: ListTile(
-                        title: TextFormField(
-                          decoration: InputDecoration(labelText: 'UOM'),
-                          obscureText: false,
-                          keyboardType: TextInputType.text,
-                          autocorrect: false,
-                          controller: txtUom,
-                          enabled: false,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ListTile(
-                        title: TextFormField(
-                          decoration:
-                              InputDecoration(labelText: 'Picked Quantity'),
-                          obscureText: false,
-                          keyboardType: TextInputType.text,
-                          autocorrect: false,
-                          controller: txtPickedQty,
-                          enabled: true,
-                          focusNode: _textFocusPickedQty,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 10,
-                    ),
-                    SizedBox(
-                      width: 100,
-                      child: ListTile(
-                        title: TextFormField(
-                          decoration: InputDecoration(labelText: 'UOM'),
-                          obscureText: false,
-                          keyboardType: TextInputType.text,
-                          autocorrect: false,
-                          controller: txtUom,
-                          enabled: false,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ListTile(
-                        title: TextFormField(
-                          decoration:
-                              InputDecoration(labelText: 'Remaining Quantity'),
-                          obscureText: false,
-                          keyboardType: TextInputType.text,
-                          autocorrect: false,
-                          controller: txtRemainingQty,
-                          enabled: false,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 10,
-                    ),
-                    SizedBox(
-                      width: 100,
-                      child: ListTile(
-                        title: TextFormField(
-                          decoration: InputDecoration(labelText: 'UOM'),
-                          obscureText: false,
-                          keyboardType: TextInputType.text,
-                          autocorrect: false,
-                          controller: txtUom,
-                          enabled: false,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                // Row(
-                //   children: [
-                //     Expanded(
-                //       child: ListTile(
-                //         title: TextFormField(
-                //           decoration: InputDecoration(labelText: 'UOM'),
-                //           obscureText: false,
-                //           keyboardType: TextInputType.text,
-                //           autocorrect: false,
-                //           controller: txtUom,
-                //           enabled: false,
-                //         ),
-                //       ),
-                //     ),
-                //     SizedBox(
-                //       width: 10,
-                //     ),
-                //   ],
-                // ),
-                Row(
-                  children: [
-                    // Tax Category takes 1/3 of the space
-                    Expanded(
-                      flex: 1,
-                      child: ListTile(
-                        title: TextFormField(
-                          decoration:
-                              const InputDecoration(labelText: 'Tax Category'),
-                          obscureText: false,
-                          keyboardType: TextInputType.text,
-                          autocorrect: false,
-                          controller: txtTaxCat,
-                          enabled: false,
-                        ),
-                      ),
-                    ),
-                    // const SizedBox(width: 10), // Spacing between the fields
-                    // Exemption No. takes 2/3 of the space
-                    Expanded(
-                      flex: 2,
-                      child: ListTile(
-                        title: TextFormField(
-                          decoration:
-                              const InputDecoration(labelText: 'Exemption No.'),
-                          obscureText: false,
-                          keyboardType: TextInputType.text,
-                          autocorrect: false,
-                          controller: txtExemptionNo,
-                          enabled: false,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ListTile(
-                        title: TextFormField(
-                          decoration: InputDecoration(labelText: 'Warehouse'),
-                          obscureText: false,
-                          keyboardType: TextInputType.text,
-                          autocorrect: false,
-                          controller: txtWhse,
-                          focusNode: _textFocusWhse,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 10,
-                    ),
-                    SizedBox(
-                      width: 54,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                        ),
-                        onPressed: barcodeScanningWhse,
-                        child: Icon(Icons.camera_alt),
-                      ),
-                    ),
-                  ],
-                ),
-                // Row(
-                //   children: [
-                //     Expanded(
-                //       child: ListTile(
-                //         title: TextFormField(
-                //           decoration: InputDecoration(labelText: 'Bin'),
-                //           obscureText: false,
-                //           keyboardType: TextInputType.text,
-                //           autocorrect: false,
-                //           controller: txtBin,
-                //         ),
-                //       ),
-                //     ),
-                //     SizedBox(
-                //       width: 10,
-                //     ),
-                //     SizedBox(
-                //       width: 54,
-                //       child: ElevatedButton(
-                //         style: ElevatedButton.styleFrom(
-                //           padding: EdgeInsets.zero,
-                //         ),
-                //         onPressed: () async {
-                //           await scanAndSetToController(txtBin, type: 'bin');
-                //         },
-                //         child: Icon(Icons.camera_alt),
-                //       ),
-                //     ),
-                //   ],
-                // ),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: TypeAheadField<EpiGetBin>(
-                          key: ValueKey(
-                              'bins_${dropDownBins.length}_${txtWhse.text}'),
-                          controller:
-                              txtBin, // Connects directly to your global controller
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
 
-                          // Modern 5.x layout sizing parameters
-                          constraints: const BoxConstraints(maxHeight: 250),
-
-                          // Replaces TypeAheadModifiers to build your grey background container
-                          decorationBuilder: (context, child) {
-                            return Material(
-                              elevation: 4.0,
-                              color: Colors.grey,
-                              child: child,
-                            );
-                          },
-
-                          builder: (context, controller, focusNode) {
-                            return TextFormField(
-                              controller: controller,
-                              focusNode: focusNode,
-                              style: const TextStyle(color: Colors.black),
-                              decoration: const InputDecoration(
-                                labelText: 'Bin',
-                                enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Color.fromARGB(137, 0, 0, 0)),
-                                ),
-                                focusedBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.blue),
-                                ),
-                              ),
-                            );
-                          },
-
-                          suggestionsCallback: (search) {
-                            if (search.isEmpty) {
-                              return dropDownBins.cast<EpiGetBin>().toList();
-                            }
-                            return dropDownBins
-                                .cast<EpiGetBin>()
-                                .where((option) => option.binNum
-                                    .toLowerCase()
-                                    .contains(search.toLowerCase()))
-                                .toList();
-                          },
-
-                          itemBuilder: (context, option) {
-                            return ListTile(
-                              title: Text(
-                                option.binNum,
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                              subtitle: Text(
-                                "Qty: ${option.onHandQty}",
-                                style: const TextStyle(color: Colors.white60),
-                              ),
-                            );
-                          },
-
-                          onSelected: (option) {
-                            setState(() {
-                              txtBin.text = option.binNum;
-                            });
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    SizedBox(
-                      width: 54,
-                      child: ElevatedButton(
-                        style:
-                            ElevatedButton.styleFrom(padding: EdgeInsets.zero),
-                        onPressed: () async {
-                          await scanAndSetToController(txtBin, type: 'bin');
-                        },
-                        child: const Icon(Icons.camera_alt),
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: TypeAheadField<EpiGetLot>(
-                          controller: txtLot,
-                          constraints: const BoxConstraints(
-                            maxHeight: 250,
-                          ),
-                          decorationBuilder: (context, child) {
-                            return Material(
-                              elevation: 4.0,
-                              color: Colors.grey,
-                              child: child,
-                            );
-                          },
-                          builder: (context, controller, focusNode) {
-                            return TextFormField(
-                              controller: controller,
-                              focusNode: focusNode,
-                              enabled: _lotEnabled,
-                              style: const TextStyle(
-                                color: Colors.black,
-                              ),
-                              decoration: const InputDecoration(
-                                labelText: 'Lot Number',
-                                enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Color.fromARGB(137, 0, 0, 0),
-                                  ),
-                                ),
-                                focusedBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                          suggestionsCallback: (search) {
-                            if (search.isEmpty) {
-                              return [];
-                            }
-
-                            return dropDownLots
-                                .whereType<EpiGetLot>()
-                                .where((option) {
-                              return option.lotNum
-                                  .toLowerCase()
-                                  .contains(search.toLowerCase());
-                            }).toList();
-                          },
-                          itemBuilder: (context, option) {
-                            return ListTile(
-                              title: Text(
-                                option.lotNum,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                ),
-                              ),
-                              subtitle: Text(
-                                "Qty On Hand: ${option.onHandQty}",
-                                style: const TextStyle(
-                                  color: Colors.white60,
-                                ),
-                              ),
-                            );
-                          },
-                          onSelected: (option) {
-                            setState(() {
-                              txtLot.text = option.lotNum;
-                              selectedLot = option.lotNum;
-                            });
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    SizedBox(
-                      width: 54,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                        ),
-                        onPressed: _lotEnabled
-                            ? () async {
-                                await scanAndSetToController(
-                                  txtLot,
-                                  type: 'lot',
-                                );
-                              }
-                            : null,
-                        child: const Icon(Icons.camera_alt),
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: ListTile(
-                        title: ElevatedButton(
-                          onPressed: () async {
-                            Navigator.pop(context, true);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue, // Button color
-                            disabledBackgroundColor:
-                                Colors.grey, // Disabled button color
-                            padding: EdgeInsets.zero,
-                          ),
-                          child: Text(
-                            'Cancel',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 0),
-                    Expanded(
-                      child: ListTile(
-                        title: ElevatedButton(
-                          // onPressed: () {},
-                          onPressed: () async {
-                            double remQty =
-                                double.tryParse(txtRemainingQty.text) ?? 0.0;
-                            double pickedQty =
-                                double.tryParse(txtPickedQty.text) ?? 0.0;
-
-                            double remaining = remQty - pickedQty;
-
-                            try {
-                              // 2. Attempt the backend submission first
-                              bool isSuccess = await submitPickerUpdate();
-
-                              // 3. If it succeeds, update the text field inside setState
-                              if (isSuccess) {
-                                setState(() {
-                                  txtRemainingQty.text =
-                                      remaining.toInt().toString();
-                                });
-                              }
-                            } catch (error) {
-                              // 4. Handle the error gracefully (the UI field remains untouched)
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content: Text(
-                                        'Failed to update picker: $error')),
-                              );
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue, // Button color
-                            disabledBackgroundColor:
-                                Colors.grey, // Disabled button color
-                            padding: EdgeInsets.zero,
-                          ),
-                          child: Text(
-                            'Pick',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                if (pickedItems.isNotEmpty) ...[
+          _scannerFocusNode.requestFocus();
+        },
+        child: ModalProgressHUD(
+          inAsyncCall: _saving,
+          child: SafeArea(
+            child: Container(
+              margin: const EdgeInsets.all(10.0),
+              child: ListView(
+                children: [
                   Row(
                     children: [
                       Expanded(
                         child: ListTile(
                           title: TextFormField(
-                            decoration:
-                                InputDecoration(labelText: 'DO Legal Number'),
+                            decoration: InputDecoration(labelText: 'Part'),
                             obscureText: false,
                             keyboardType: TextInputType.text,
                             autocorrect: false,
-                            controller: txtLegalNum,
+                            controller: txtPart,
+                            focusNode: _txtFocusPartNo,
                             enabled: false,
                           ),
                         ),
@@ -860,166 +422,543 @@ class _MaterialPickingState extends State<MaterialPicking> {
                       ),
                     ],
                   ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    child: Row(
-                      children: [
-                        Checkbox(
-                          value: _isAllSelected,
-                          onChanged: _toggleSelectAll,
-                        ),
-                        const Text(
-                          'Select All',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                  SizedBox(
+                    width: 0,
+                    height: 0,
+                    child: TextFormField(
+                      controller: txtDummyPart,
+                      focusNode: _scannerFocusNode,
+                      autofocus: true,
+                      keyboardType:
+                          TextInputType.none, // Keeps screen keyboard hidden
+                      showCursor: false,
+                      style: const TextStyle(color: Colors.transparent),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      // 1. ADD THIS ONCHANGED LISTENER:
+                      onChanged: (value) {
+                        // If the field contains data but doesn't have our barcode separator yet,
+                        // it means it's the start of a brand new scan building up.
+                        // If the field currently holds the old successfully scanned part from the previous run,
+                        // clear it immediately so the scanner doesn't append to it.
+                        final separator = _globals.epibarcodeseperator;
+                        final separator2 = _globals.epibarcodeseperator2;
+
+                        if (!value.contains(separator) &&
+                            !value.contains(separator2) &&
+                            value.length > 1) {
+                          // The user started scanning a new code, but the field still had the old part text.
+                          // We extract only the newly typed characters by removing the old part text prefix.
+                          String expected = txtPart.text;
+                          if (value.startsWith(expected) && value != expected) {
+                            txtDummyPart.text =
+                                value.substring(expected.length);
+                            txtDummyPart.selection = TextSelection.collapsed(
+                                offset: txtDummyPart.text.length);
+                          }
+                        }
+                      },
+                      onFieldSubmitted: (value) {
+                        print("Complete raw barcode received picking: $value");
+
+                        if (value.isNotEmpty) {
+                          // 2. Safe local variable snapshot
+                          final scanData = value;
+
+                          // 3. WIPE it instantly before running logic
+                          txtDummyPart.clear();
+
+                          // 4. Run your split function
+                          splitDummyPart(scanData);
+                        }
+
+                        _scannerFocusNode.requestFocus();
+                      },
                     ),
                   ),
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      maxHeight: 500,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
-                      child: populateMaterialPickingList(context),
-                    ),
-                  ),
+
                   Row(
-                    children: <Widget>[
+                    children: [
                       Expanded(
                         child: ListTile(
-                          title: ElevatedButton(
-                            // Only enable the button if at least one card is checked
-                            onPressed: _selectedCards.values
-                                    .any((checked) => checked)
-                                ? () async {
-                                    List<int> indexesToDelete = [];
-                                    _selectedCards.forEach((index, isChecked) {
-                                      if (isChecked) {
-                                        indexesToDelete.add(index);
-                                      }
-                                    });
-
-                                    indexesToDelete
-                                        .sort((a, b) => b.compareTo(a));
-                                    bool allSucceeded = true;
-
-                                    for (int index in indexesToDelete) {
-                                      final item = pickedItems[index];
-
-                                      // 1. Safely handle potential null or missing values with fallback defaults
-                                      final int packNum = int.tryParse(
-                                              item['packNum']?.toString() ??
-                                                  '') ??
-                                          0;
-                                      final String packLine =
-                                          item['packLine']?.toString() ?? '';
-                                      final String legalNum =
-                                          item['legalNum']?.toString() ?? '';
-                                      final String childKey1 =
-                                          item['childKey1']?.toString() ?? '';
-
-                                      // 2. Prevent sending the request if key identifiers are completely missing
-                                      if (packNum == 0 || childKey1.isEmpty) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                              content: Text(
-                                                  'Cannot delete row: Missing reference data at item #$index.')),
-                                        );
-                                        allSucceeded = false;
-                                        continue;
-                                      }
-
-                                      // 3. Execute Delete API Request
-                                      List<dynamic> deleteResult =
-                                          await DeletePickedLine(
-                                        packNum: packNum,
-                                        packLine: packLine,
-                                        legalNum: legalNum,
-                                        childKey1: childKey1,
-                                        partNum:
-                                            widget.pickerBaq.ud100aProductC ??
-                                                '',
-                                      );
-                                      print("DELETED RESULT: ${item}");
-                                      bool isSuccess = deleteResult[
-                                          0]; // Extract the boolean status from the response array
-
-                                      if (isSuccess) {
-                                        setState(() {
-                                          double currentRemaining =
-                                              double.tryParse(
-                                                      txtRemainingQty.text) ??
-                                                  0.0;
-                                          double itemQty = double.tryParse(
-                                                  item["qty"]?.toString() ??
-                                                      '') ??
-                                              0.0;
-
-                                          txtRemainingQty.text =
-                                              (currentRemaining + itemQty)
-                                                  .toInt()
-                                                  .toString();
-                                          pickedItems.removeAt(index);
-                                        });
-                                      } else {
-                                        allSucceeded = false;
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                              content: Text(
-                                                  'Failed to delete item: ${deleteResult[1]}')),
-                                        );
-                                      }
-                                    }
-
-                                    setState(() {
-                                      _selectedCards.clear();
-                                    });
-
-                                    if (allSucceeded) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                            content: Text(
-                                                'Selected line(s) deleted successfully.')),
-                                      );
-                                    }
-                                  }
-                                : null,
-
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
-                              disabledBackgroundColor: Colors.grey,
-                              padding: EdgeInsets.zero,
-                            ),
-                            child: const Text(
-                              'Delete',
-                              style: TextStyle(color: Colors.white),
-                            ),
+                          title: TextFormField(
+                            decoration:
+                                InputDecoration(labelText: 'Description'),
+                            obscureText: false,
+                            keyboardType: TextInputType.text,
+                            autocorrect: false,
+                            controller: txtDesc,
+                            enabled: false,
                           ),
                         ),
                       ),
-                      const Spacer(flex: 1),
+                      SizedBox(
+                        width: 10,
+                      ),
                     ],
                   ),
                   Row(
                     children: [
                       Expanded(
                         child: ListTile(
+                          title: TextFormField(
+                            decoration: InputDecoration(labelText: 'Quantity'),
+                            obscureText: false,
+                            keyboardType: TextInputType.text,
+                            autocorrect: false,
+                            controller: txtQty,
+                            enabled: false,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      SizedBox(
+                        width: 100,
+                        child: ListTile(
+                          title: TextFormField(
+                            decoration: InputDecoration(labelText: 'UOM'),
+                            obscureText: false,
+                            keyboardType: TextInputType.text,
+                            autocorrect: false,
+                            controller: txtUom,
+                            enabled: false,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ListTile(
+                          title: TextFormField(
+                            decoration:
+                                InputDecoration(labelText: 'Picked Quantity'),
+                            obscureText: false,
+                            keyboardType: TextInputType.text,
+                            autocorrect: false,
+                            controller: txtPickedQty,
+                            enabled: true,
+                            focusNode: _textFocusPickedQty,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      SizedBox(
+                        width: 100,
+                        child: ListTile(
+                          title: TextFormField(
+                            decoration: InputDecoration(labelText: 'UOM'),
+                            obscureText: false,
+                            keyboardType: TextInputType.text,
+                            autocorrect: false,
+                            controller: txtUom,
+                            enabled: false,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ListTile(
+                          title: TextFormField(
+                            decoration: InputDecoration(
+                                labelText: 'Remaining Quantity'),
+                            obscureText: false,
+                            keyboardType: TextInputType.text,
+                            autocorrect: false,
+                            controller: txtRemainingQty,
+                            enabled: false,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      SizedBox(
+                        width: 100,
+                        child: ListTile(
+                          title: TextFormField(
+                            decoration: InputDecoration(labelText: 'UOM'),
+                            obscureText: false,
+                            keyboardType: TextInputType.text,
+                            autocorrect: false,
+                            controller: txtUom,
+                            enabled: false,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Row(
+                  //   children: [
+                  //     Expanded(
+                  //       child: ListTile(
+                  //         title: TextFormField(
+                  //           decoration: InputDecoration(labelText: 'UOM'),
+                  //           obscureText: false,
+                  //           keyboardType: TextInputType.text,
+                  //           autocorrect: false,
+                  //           controller: txtUom,
+                  //           enabled: false,
+                  //         ),
+                  //       ),
+                  //     ),
+                  //     SizedBox(
+                  //       width: 10,
+                  //     ),
+                  //   ],
+                  // ),
+                  Row(
+                    children: [
+                      // Tax Category takes 1/3 of the space
+                      Expanded(
+                        flex: 1,
+                        child: ListTile(
+                          title: TextFormField(
+                            decoration: const InputDecoration(
+                                labelText: 'Tax Category'),
+                            obscureText: false,
+                            keyboardType: TextInputType.text,
+                            autocorrect: false,
+                            controller: txtTaxCat,
+                            enabled: false,
+                          ),
+                        ),
+                      ),
+                      // const SizedBox(width: 10), // Spacing between the fields
+                      // Exemption No. takes 2/3 of the space
+                      Expanded(
+                        flex: 2,
+                        child: ListTile(
+                          title: TextFormField(
+                            decoration: const InputDecoration(
+                                labelText: 'Exemption No.'),
+                            obscureText: false,
+                            keyboardType: TextInputType.text,
+                            autocorrect: false,
+                            controller: txtExemptionNo,
+                            enabled: false,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ListTile(
+                          title: TextFormField(
+                            decoration: InputDecoration(labelText: 'Warehouse'),
+                            obscureText: false,
+                            keyboardType: TextInputType.text,
+                            autocorrect: false,
+                            controller: txtWhse,
+                            focusNode: _textFocusWhse,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      SizedBox(
+                        width: 54,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                          ),
+                          onPressed: barcodeScanningWhse,
+                          child: Icon(Icons.camera_alt),
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Row(
+                  //   children: [
+                  //     Expanded(
+                  //       child: ListTile(
+                  //         title: TextFormField(
+                  //           decoration: InputDecoration(labelText: 'Bin'),
+                  //           obscureText: false,
+                  //           keyboardType: TextInputType.text,
+                  //           autocorrect: false,
+                  //           controller: txtBin,
+                  //         ),
+                  //       ),
+                  //     ),
+                  //     SizedBox(
+                  //       width: 10,
+                  //     ),
+                  //     SizedBox(
+                  //       width: 54,
+                  //       child: ElevatedButton(
+                  //         style: ElevatedButton.styleFrom(
+                  //           padding: EdgeInsets.zero,
+                  //         ),
+                  //         onPressed: () async {
+                  //           await scanAndSetToController(txtBin, type: 'bin');
+                  //         },
+                  //         child: Icon(Icons.camera_alt),
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: TypeAheadField<EpiGetBin>(
+                            key: ValueKey(
+                                'bins_${dropDownBins.length}_${txtWhse.text}'),
+                            controller:
+                                txtBin, // Connects directly to your global controller
+
+                            // Modern 5.x layout sizing parameters
+                            constraints: const BoxConstraints(maxHeight: 250),
+
+                            // Replaces TypeAheadModifiers to build your grey background container
+                            decorationBuilder: (context, child) {
+                              return Material(
+                                elevation: 4.0,
+                                color: Colors.grey,
+                                child: child,
+                              );
+                            },
+
+                            builder: (context, controller, focusNode) {
+                              return TextFormField(
+                                controller: controller,
+                                focusNode: focusNode,
+                                style: const TextStyle(color: Colors.black),
+                                decoration: const InputDecoration(
+                                  labelText: 'Bin',
+                                  enabledBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Color.fromARGB(137, 0, 0, 0)),
+                                  ),
+                                  focusedBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.blue),
+                                  ),
+                                ),
+                              );
+                            },
+
+                            suggestionsCallback: (search) {
+                              if (search.isEmpty) {
+                                return dropDownBins.cast<EpiGetBin>().toList();
+                              }
+                              return dropDownBins
+                                  .cast<EpiGetBin>()
+                                  .where((option) => option.binNum
+                                      .toLowerCase()
+                                      .contains(search.toLowerCase()))
+                                  .toList();
+                            },
+
+                            itemBuilder: (context, option) {
+                              return ListTile(
+                                title: Text(
+                                  option.binNum,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                                subtitle: Text(
+                                  "Qty: ${option.onHandQty}",
+                                  style: const TextStyle(color: Colors.white60),
+                                ),
+                              );
+                            },
+
+                            onSelected: (option) {
+                              setState(() {
+                                txtBin.text = option.binNum;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      SizedBox(
+                        width: 54,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero),
+                          onPressed: () async {
+                            await scanAndSetToController(txtBin, type: 'bin');
+                          },
+                          child: const Icon(Icons.camera_alt),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: TypeAheadField<EpiGetLot>(
+                            controller: txtLot,
+                            constraints: const BoxConstraints(
+                              maxHeight: 250,
+                            ),
+                            decorationBuilder: (context, child) {
+                              return Material(
+                                elevation: 4.0,
+                                color: Colors.grey,
+                                child: child,
+                              );
+                            },
+                            builder: (context, controller, focusNode) {
+                              return TextFormField(
+                                controller: controller,
+                                focusNode: focusNode,
+                                enabled: _lotEnabled,
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                ),
+                                decoration: const InputDecoration(
+                                  labelText: 'Lot Number',
+                                  enabledBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Color.fromARGB(137, 0, 0, 0),
+                                    ),
+                                  ),
+                                  focusedBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                            suggestionsCallback: (search) {
+                              if (search.isEmpty) {
+                                return [];
+                              }
+
+                              return dropDownLots
+                                  .whereType<EpiGetLot>()
+                                  .where((option) {
+                                return option.lotNum
+                                    .toLowerCase()
+                                    .contains(search.toLowerCase());
+                              }).toList();
+                            },
+                            itemBuilder: (context, option) {
+                              return ListTile(
+                                title: Text(
+                                  option.lotNum,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  "Qty On Hand: ${option.onHandQty}",
+                                  style: const TextStyle(
+                                    color: Colors.white60,
+                                  ),
+                                ),
+                              );
+                            },
+                            onSelected: (option) {
+                              setState(() {
+                                txtLot.text = option.lotNum;
+                                selectedLot = option.lotNum;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      SizedBox(
+                        width: 54,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                          ),
+                          onPressed: _lotEnabled
+                              ? () async {
+                                  await scanAndSetToController(
+                                    txtLot,
+                                    type: 'lot',
+                                  );
+                                }
+                              : null,
+                          child: const Icon(Icons.camera_alt),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: ListTile(
                           title: ElevatedButton(
-                            onPressed: pickedItems.isNotEmpty
-                                ? handlePrepareForLoading
-                                : null,
+                            onPressed: () async {
+                              Navigator.pop(context, true);
+                            },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
-                              disabledBackgroundColor: Colors.grey,
+                              backgroundColor: Colors.blue, // Button color
+                              disabledBackgroundColor:
+                                  Colors.grey, // Disabled button color
                               padding: EdgeInsets.zero,
                             ),
-                            child: const Text(
-                              'Prepare for loading',
+                            child: Text(
+                              'Cancel',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 0),
+                      Expanded(
+                        child: ListTile(
+                          title: ElevatedButton(
+                            // onPressed: () {},
+                            onPressed: () async {
+                              double remQty =
+                                  double.tryParse(txtRemainingQty.text) ?? 0.0;
+                              double pickedQty =
+                                  double.tryParse(txtPickedQty.text) ?? 0.0;
+
+                              double remaining = remQty - pickedQty;
+
+                              try {
+                                // 2. Attempt the backend submission first
+                                bool isSuccess = await submitPickerUpdate();
+
+                                // 3. If it succeeds, update the text field inside setState
+                                if (isSuccess) {
+                                  setState(() {
+                                    txtRemainingQty.text =
+                                        remaining.toInt().toString();
+                                  });
+                                }
+                              } catch (error) {
+                                // 4. Handle the error gracefully (the UI field remains untouched)
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content: Text(
+                                          'Failed to update picker: $error')),
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue, // Button color
+                              disabledBackgroundColor:
+                                  Colors.grey, // Disabled button color
+                              padding: EdgeInsets.zero,
+                            ),
+                            child: Text(
+                              'Pick',
                               textAlign: TextAlign.center,
                               style: TextStyle(color: Colors.white),
                             ),
@@ -1028,8 +967,200 @@ class _MaterialPickingState extends State<MaterialPicking> {
                       ),
                     ],
                   ),
-                ]
-              ],
+
+                  if (pickedItems.isNotEmpty) ...[
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ListTile(
+                            title: TextFormField(
+                              decoration:
+                                  InputDecoration(labelText: 'DO Legal Number'),
+                              obscureText: false,
+                              keyboardType: TextInputType.text,
+                              autocorrect: false,
+                              controller: txtLegalNum,
+                              enabled: false,
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 10,
+                        ),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      child: Row(
+                        children: [
+                          Checkbox(
+                            value: _isAllSelected,
+                            onChanged: _toggleSelectAll,
+                          ),
+                          const Text(
+                            'Select All',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxHeight: 500,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
+                        child: populateMaterialPickingList(context),
+                      ),
+                    ),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: ListTile(
+                            title: ElevatedButton(
+                              // Only enable the button if at least one card is checked
+                              onPressed: _selectedCards.values
+                                      .any((checked) => checked)
+                                  ? () async {
+                                      List<int> indexesToDelete = [];
+                                      _selectedCards
+                                          .forEach((index, isChecked) {
+                                        if (isChecked) {
+                                          indexesToDelete.add(index);
+                                        }
+                                      });
+
+                                      indexesToDelete
+                                          .sort((a, b) => b.compareTo(a));
+                                      bool allSucceeded = true;
+
+                                      for (int index in indexesToDelete) {
+                                        final item = pickedItems[index];
+
+                                        // 1. Safely handle potential null or missing values with fallback defaults
+                                        final int packNum = int.tryParse(
+                                                item['packNum']?.toString() ??
+                                                    '') ??
+                                            0;
+                                        final String packLine =
+                                            item['packLine']?.toString() ?? '';
+                                        final String legalNum =
+                                            item['legalNum']?.toString() ?? '';
+                                        final String childKey1 =
+                                            item['childKey1']?.toString() ?? '';
+
+                                        // 2. Prevent sending the request if key identifiers are completely missing
+                                        if (packNum == 0 || childKey1.isEmpty) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                                content: Text(
+                                                    'Cannot delete row: Missing reference data at item #$index.')),
+                                          );
+                                          allSucceeded = false;
+                                          continue;
+                                        }
+
+                                        // 3. Execute Delete API Request
+                                        List<dynamic> deleteResult =
+                                            await DeletePickedLine(
+                                          packNum: packNum,
+                                          packLine: packLine,
+                                          legalNum: legalNum,
+                                          childKey1: childKey1,
+                                          partNum:
+                                              widget.pickerBaq.ud100aProductC ??
+                                                  '',
+                                        );
+                                        print("DELETED RESULT: ${item}");
+                                        bool isSuccess = deleteResult[
+                                            0]; // Extract the boolean status from the response array
+
+                                        if (isSuccess) {
+                                          setState(() {
+                                            double currentRemaining =
+                                                double.tryParse(
+                                                        txtRemainingQty.text) ??
+                                                    0.0;
+                                            double itemQty = double.tryParse(
+                                                    item["qty"]?.toString() ??
+                                                        '') ??
+                                                0.0;
+
+                                            txtRemainingQty.text =
+                                                (currentRemaining + itemQty)
+                                                    .toInt()
+                                                    .toString();
+                                            pickedItems.removeAt(index);
+                                          });
+                                        } else {
+                                          allSucceeded = false;
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                                content: Text(
+                                                    'Failed to delete item: ${deleteResult[1]}')),
+                                          );
+                                        }
+                                      }
+
+                                      setState(() {
+                                        _selectedCards.clear();
+                                      });
+
+                                      if (allSucceeded) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                              content: Text(
+                                                  'Selected line(s) deleted successfully.')),
+                                        );
+                                      }
+                                    }
+                                  : null,
+
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                disabledBackgroundColor: Colors.grey,
+                                padding: EdgeInsets.zero,
+                              ),
+                              child: const Text(
+                                'Delete',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const Spacer(flex: 1),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ListTile(
+                            title: ElevatedButton(
+                              onPressed: pickedItems.isNotEmpty
+                                  ? handlePrepareForLoading
+                                  : null,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                disabledBackgroundColor: Colors.grey,
+                                padding: EdgeInsets.zero,
+                              ),
+                              child: const Text(
+                                'Prepare for loading',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ]
+                ],
+              ),
             ),
           ),
         ),
@@ -1046,6 +1177,8 @@ class _MaterialPickingState extends State<MaterialPicking> {
     final firstItem = pickedItems.first;
     String key1Value = firstItem['packNum']?.toString().trim() ?? '';
     String key3Value = firstItem['legalNum']?.toString().trim() ?? '';
+    String packLineValue = firstItem['packLine']?.toString().trim() ?? '';
+    int parsedQuantity = (double.tryParse(txtQty.text) ?? 0.0).toInt();
 
     if (key1Value.isEmpty || key3Value.isEmpty) {
       showAlertPopup(
@@ -1064,6 +1197,10 @@ class _MaterialPickingState extends State<MaterialPicking> {
       double actualRemaining = await getRemainingQty(
         key1: key1Value,
         key3: key3Value,
+        packLine: packLineValue,
+        planID: widget.pickerBaq.ud100Key1 ?? '',
+        childKey1: widget.pickerBaq.ud100aChildKey1 ?? "",
+        quantity: parsedQuantity,
       );
 
       print("Remaining QTY: $actualRemaining");
@@ -1084,25 +1221,45 @@ class _MaterialPickingState extends State<MaterialPicking> {
       } else {
         // --- SUCCESS DIALOG: Triggered when remaining quantity is exactly 0 ---
         showDialog(
-            context: context,
-            barrierDismissible:
-                false, // Prevents closing the dialog by tapping outside
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text('Success'),
-                content: const Text('Items prepared for loading.'),
-                actions: <Widget>[
-                  TextButton(
-                    child: const Text('OK'),
-                    onPressed: () {
-                      Navigator.of(context).pop(); // Dismisses the dialog
+          context: context,
+          barrierDismissible:
+              false, // Prevents closing the dialog by tapping outside
+          builder: (BuildContext context) {
+            // Check if legal number exists and is not empty
 
-                      // TODO: Add any post-success actions here (e.g., clear list, navigate away)
-                    },
-                  ),
-                ],
-              );
-            });
+            return AlertDialog(
+              title: const Text('Success'),
+              content: RichText(
+                textAlign: TextAlign.left,
+                text: TextSpan(
+                    style: const TextStyle(color: Colors.black, fontSize: 16),
+                    // Conditionally switches the content body based on legal number availability
+                    children: <TextSpan>[
+                      const TextSpan(text: 'Items prepared for loading.\n\n'),
+                      const TextSpan(text: 'Legal Number:\n'),
+                      TextSpan(
+                        text: txtLegalNum.text,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Colors
+                              .blueAccent, // Highlights the generated number
+                        ),
+                      ),
+                    ]),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('OK',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Dismisses the dialog
+                  },
+                ),
+              ],
+            );
+          },
+        );
       }
     } catch (error) {
       setState(() {
@@ -1140,32 +1297,32 @@ class _MaterialPickingState extends State<MaterialPicking> {
   }
 
   Future<bool> submitPickerUpdate() async {
-    List<dynamic> _result;
+    // List<dynamic> _result;
 
     //Create lot if Track Lot = true and Lot does not exist
-    if (txtLot.text != '' && _lotEnabled == true) {
-      setState(() {
-        _saving = true;
-      });
-      final String capturedPartNo = txtPart.text.trim();
-      final String capturedLotNo = txtLot.text.trim();
-      _result = await isPartLotExist(capturedPartNo, capturedLotNo);
+    // if (txtLot.text != '' && _lotEnabled == true) {
+    //   setState(() {
+    //     _saving = true;
+    //   });
+    //   final String capturedPartNo = txtPart.text.trim();
+    //   final String capturedLotNo = txtLot.text.trim();
+    //   _result = await isPartLotExist(capturedPartNo, capturedLotNo);
 
-      setState(() {
-        _saving = false;
-      });
+    //   setState(() {
+    //     _saving = false;
+    //   });
 
-      print("LOTNUM PICKER: ${capturedLotNo}");
-      if (_result[0] == false) {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) =>
-                    LotCreation(capturedPartNo, capturedLotNo),
-                fullscreenDialog: true));
-        return false;
-      }
-    }
+    //   print("LOTNUM PICKER: ${capturedLotNo}");
+    //   if (_result[0] == false) {
+    //     Navigator.push(
+    //         context,
+    //         MaterialPageRoute(
+    //             builder: (context) =>
+    //                 LotCreation(capturedPartNo, capturedLotNo),
+    //             fullscreenDialog: true));
+    //     return false;
+    //   }
+    // }
 
     setState(() {
       _saving = true;
@@ -1195,6 +1352,7 @@ class _MaterialPickingState extends State<MaterialPicking> {
         checkQty: response["Exists"],
         runSess: 1,
         remainingQty: txtRemainingQty.text,
+        partNum: widget.pickerBaq.ud100aProductC ?? "",
       );
 
       final innerResponse = createLine["Response"] as Map<String, dynamic>?;
@@ -1203,10 +1361,12 @@ class _MaterialPickingState extends State<MaterialPicking> {
       final valueMap = innerResponse?["Value"] as Map<String, dynamic>?;
       // 2. EXTRACT: Get the LineDesc string from the nested map
       final String? lineDesc = valueMap?["LineDesc"];
+      final bool? lotAttr = createLine["LotAttr"];
       print("response line desc: $lineDesc");
-      if (lineDesc != null && lineDesc.startsWith("INVENTORY_WARNING:")) {
+      if (lineDesc != null && lineDesc.startsWith("INVENTORY_WARNING:") ||
+          lotAttr == true) {
         bool proceed = await showInventoryWarning(
-          lineDesc.replaceFirst("INVENTORY_WARNING: ", ""),
+          lineDesc!.replaceFirst("INVENTORY_WARNING: ", ""),
         );
         if (!proceed) {
           // User clicked No
@@ -1219,20 +1379,22 @@ class _MaterialPickingState extends State<MaterialPicking> {
           _saving = true;
         });
         createLine = await createCustShipDtl(
-            packNum: response["ShipHead"]["PackNum"],
-            orderNum: int.parse(widget.pickerBaq.ud100aSoNoC ?? ""),
-            orderLine: int.parse(widget.pickerBaq.ud100aSOLineC ?? ""),
-            orderReleaseNum: int.parse(widget.pickerBaq.ud100aSOReleaseC ?? ""),
-            whse: txtWhse.text,
-            binNum: txtBin.text,
-            lotNum: txtLot.text,
-            planID: response["ShipHead"]["SD_PlanId_c"],
-            childKey1: widget.pickerBaq.ud100aChildKey1 ?? "",
-            // quantity: widget.pickerBaq.ud100aQuantityC?.toInt() ?? 0,
-            quantity: int.parse(txtPickedQty.text),
-            checkQty: false,
-            runSess: 2,
-            remainingQty: txtRemainingQty.text);
+          packNum: response["ShipHead"]["PackNum"],
+          orderNum: int.parse(widget.pickerBaq.ud100aSoNoC ?? ""),
+          orderLine: int.parse(widget.pickerBaq.ud100aSOLineC ?? ""),
+          orderReleaseNum: int.parse(widget.pickerBaq.ud100aSOReleaseC ?? ""),
+          whse: txtWhse.text,
+          binNum: txtBin.text,
+          lotNum: txtLot.text,
+          planID: response["ShipHead"]["SD_PlanId_c"],
+          childKey1: widget.pickerBaq.ud100aChildKey1 ?? "",
+          // quantity: widget.pickerBaq.ud100aQuantityC?.toInt() ?? 0,
+          quantity: int.parse(txtPickedQty.text),
+          checkQty: false,
+          runSess: 2,
+          remainingQty: txtRemainingQty.text,
+          partNum: widget.pickerBaq.ud100aProductC ?? "",
+        );
       }
 
       print("SHIPDTL PACKNUM $createLine");
@@ -1251,6 +1413,7 @@ class _MaterialPickingState extends State<MaterialPicking> {
         doLine: createLine["PackLine"].toString(),
         packNum: createLine["PackNum"],
         legalNum: widget.pickerBaq.legalNum ?? "",
+        doLegalNum: createLine["LegalNum"] ?? "",
         timeStamp: timeStamp,
       );
 
@@ -1267,7 +1430,7 @@ class _MaterialPickingState extends State<MaterialPicking> {
           'doLine': createLine["PackLine"].toString(),
           'packNum': createLine["PackNum"],
           'packLine': createLine["PackLine"].toString(),
-          'legalNum': widget.pickerBaq.legalNum,
+          'legalNum': createLine["LegalNum"].toString(),
           'childKey1': timeStamp,
         });
 

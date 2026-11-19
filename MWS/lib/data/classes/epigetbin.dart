@@ -12,11 +12,11 @@ class EpiGetBin {
     required this.onHandQty,
   });
 
-  @JsonKey(name: 'BinNum')
+  @JsonKey(name: 'PartBin_BinNum')
   final String binNum;
 
   // Handles Epicor decimal syntax formatting safely
-  @JsonKey(name: 'OnHandQty')
+  @JsonKey(name: 'Calculated_SumOnHandQty')
   final double onHandQty;
 
   factory EpiGetBin.fromJson(Map<String, dynamic> json) =>

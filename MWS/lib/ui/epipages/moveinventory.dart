@@ -25,10 +25,13 @@ class MoveInventory extends StatefulWidget {
 class MoveInventoryState extends State<MoveInventory> {
   final formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-
+  List<String> taxCategories = List<String>.empty(growable: true);
   List<UOM> _uoms = List<UOM>.empty(growable: true);
 
   String _barcodeError = "";
+  String? selectedTaxCategory;
+  List<String> _categories = [];
+  bool _isLoading = true;
   bool _saving = false;
   bool _lotEnabled = false;
 
@@ -43,6 +46,7 @@ class MoveInventoryState extends State<MoveInventory> {
   var txtToBin = new TextEditingController();
   var txtToLotNo = new TextEditingController();
   var txtRef = new TextEditingController();
+  var txtTaxRef = new TextEditingController();
   var txtNoofLable = new TextEditingController();
 
   FocusNode _textFocusPartNo = new FocusNode();
@@ -64,6 +68,7 @@ class MoveInventoryState extends State<MoveInventory> {
     txtToWhse.addListener(onChangeToWhse);
     _textFocusToWhse.addListener(onChangeToWhse);
 
+    _loadTaxCategories();
     super.initState();
 
     _uoms.add(new UOM('0', 'Not found'));
@@ -74,9 +79,7 @@ class MoveInventoryState extends State<MoveInventory> {
 
   void onChangePartNo() {
     if (!_textFocusPartNo.hasFocus && txtPartNo.text != '') {
-      print("spdspfspffps22222");
       splitPartNo(txtPartNo.text);
-      print("spdspfspffps");
 
       getMovePart();
     }
@@ -118,6 +121,21 @@ class MoveInventoryState extends State<MoveInventory> {
       setState(() {
         displaySelUOMDialog();
       });
+    }
+  }
+
+  Future<void> _loadTaxCategories() async {
+    try {
+      final data = await getTaxCategories();
+      setState(() {
+        _categories = data;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      // Handle error appropriately here
     }
   }
 
@@ -176,23 +194,16 @@ class MoveInventoryState extends State<MoveInventory> {
 
   Future<bool> splitPartNo(String txt) async {
     bool result = false;
-    var strSplit = txt.split(_globals.epibarcodeseperator);
+    final pattern = RegExp(
+        '${RegExp.escape(_globals.epibarcodeseperator)}|${RegExp.escape(_globals.epibarcodeseperator2)}');
 
-    if (strSplit.length == 2) {
+    var strSplit = txt.split(pattern);
+
+    if (strSplit.length >= 2) {
       txtPartNo.text = strSplit[0];
       txtFrLotNo.text = strSplit[1];
       txtToLotNo.text = strSplit[1];
       result = true;
-    } else {
-      var strSplit2 = txt.split(_globals.epibarcodeseperator2);
-      if (strSplit2.length == 2) {
-        txtPartNo.text = strSplit2[0];
-        txtFrLotNo.text = strSplit2[1];
-        txtToLotNo.text = strSplit2[1];
-        result = true;
-      } else {
-        txtPartNo.text = txt;
-      }
     }
 
     EpiPart _data = await getEpiPart(txtPartNo.text);
@@ -541,6 +552,68 @@ class MoveInventoryState extends State<MoveInventory> {
                       ],
                     ),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Expanded(
+                          flex: 1,
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 15),
+                            child: _isLoading
+                                ? TextFormField(
+                                    enabled: false,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Tax Category',
+                                      hintText: 'Loading...',
+                                    ),
+                                  )
+                                : DropdownButtonFormField<String>(
+                                    isExpanded:
+                                        true, // Forces dropdown items to fit inside the Expanded bounds
+                                    decoration: InputDecoration(
+                                      labelText: 'Tax Category',
+                                      hintText: _categories.isEmpty
+                                          ? 'No categories found'
+                                          : 'Select Category',
+                                    ),
+                                    value: selectedTaxCategory,
+                                    items: _categories.map((String category) {
+                                      return DropdownMenuItem<String>(
+                                        value: category,
+                                        child: Text(
+                                          category,
+                                          overflow: TextOverflow
+                                              .ellipsis, // Safely handles long text values
+                                        ),
+                                      );
+                                    }).toList(),
+                                    onChanged: (String? newValue) {
+                                      setState(() {
+                                        selectedTaxCategory = newValue;
+                                      });
+                                    },
+                                  ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal:
+                                    8.0), // Adds clean spacing between fields
+                            child: TextFormField(
+                              decoration: const InputDecoration(
+                                  labelText: 'Tax Reference'),
+                              obscureText: false,
+                              keyboardType: TextInputType.text,
+                              autocorrect: false,
+                              controller: txtTaxRef,
+                              enabled: true,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
                       children: <Widget>[
                         Expanded(
                           child: ListTile(
@@ -671,6 +744,8 @@ class MoveInventoryState extends State<MoveInventory> {
         txtToBin.text,
         txtToLotNo.text,
         txtRef.text,
+        selectedTaxCategory ?? '',
+        txtTaxRef.text,
         txtNoofLable.text);
 
     setState(() {

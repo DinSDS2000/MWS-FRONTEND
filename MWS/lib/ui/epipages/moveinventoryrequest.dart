@@ -39,6 +39,9 @@ class MoveInventoryRequestState extends State<MoveInventoryRequest> {
   List<UOM> _uoms = List<UOM>.empty(growable: true);
 
   String _barcodeError = "";
+  String? selectedTaxCategory;
+  List<String> _categories = [];
+  bool _isLoading = true;
   bool _saving = false;
   bool _lotEnabled = false;
 
@@ -52,6 +55,7 @@ class MoveInventoryRequestState extends State<MoveInventoryRequest> {
   var txtToWhse = new TextEditingController();
   var txtToBin = new TextEditingController();
   var txtToLotNo = new TextEditingController();
+  var txtTaxRef = new TextEditingController();
   var txtRef = new TextEditingController();
   var txtNoofLable = new TextEditingController();
 
@@ -92,6 +96,7 @@ class MoveInventoryRequestState extends State<MoveInventoryRequest> {
       fetchLotsOnLoad(txtFrWhse.text, txtFrBin.text);
     }
 
+    _loadTaxCategories();
     super.initState();
 
     _uoms.add(new UOM('0', 'Not found'));
@@ -232,6 +237,21 @@ class MoveInventoryRequestState extends State<MoveInventoryRequest> {
         txtToWhse.text.trim(),
         txtToBin.text.trim(),
       );
+    }
+  }
+
+  Future<void> _loadTaxCategories() async {
+    try {
+      final data = await getTaxCategories();
+      setState(() {
+        _categories = data;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      // Handle error appropriately here
     }
   }
 
@@ -840,6 +860,68 @@ class MoveInventoryRequestState extends State<MoveInventoryRequest> {
                       ],
                     ),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Expanded(
+                          flex: 1,
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 15),
+                            child: _isLoading
+                                ? TextFormField(
+                                    enabled: false,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Tax Category',
+                                      hintText: 'Loading...',
+                                    ),
+                                  )
+                                : DropdownButtonFormField<String>(
+                                    isExpanded:
+                                        true, // Forces dropdown items to fit inside the Expanded bounds
+                                    decoration: InputDecoration(
+                                      labelText: 'Tax Category',
+                                      hintText: _categories.isEmpty
+                                          ? 'No categories found'
+                                          : 'Select Category',
+                                    ),
+                                    value: selectedTaxCategory,
+                                    items: _categories.map((String category) {
+                                      return DropdownMenuItem<String>(
+                                        value: category,
+                                        child: Text(
+                                          category,
+                                          overflow: TextOverflow
+                                              .ellipsis, // Safely handles long text values
+                                        ),
+                                      );
+                                    }).toList(),
+                                    onChanged: (String? newValue) {
+                                      setState(() {
+                                        selectedTaxCategory = newValue;
+                                      });
+                                    },
+                                  ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal:
+                                    8.0), // Adds clean spacing between fields
+                            child: TextFormField(
+                              decoration: const InputDecoration(
+                                  labelText: 'Tax Reference'),
+                              obscureText: false,
+                              keyboardType: TextInputType.text,
+                              autocorrect: false,
+                              controller: txtTaxRef,
+                              enabled: true,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
                       children: <Widget>[
                         Expanded(
                           child: ListTile(
@@ -997,6 +1079,8 @@ class MoveInventoryRequestState extends State<MoveInventoryRequest> {
         txtToWhse.text,
         txtToBin.text,
         txtToLotNo.text,
+        selectedTaxCategory ?? "",
+        txtTaxRef.text,
         txtRef.text,
         txtNoofLable.text);
 

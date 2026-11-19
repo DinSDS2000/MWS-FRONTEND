@@ -603,7 +603,7 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                               ),
                               // Displays the clear text description inside the input box when selected
                               displayStringForOption: (UserCodes code) =>
-                                  code.codeDesc,
+                                  code.codeId,
 
                               optionsBuilder:
                                   (TextEditingValue textEditingValue) {
@@ -623,8 +623,8 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                               // Capture item when clicked to save properties locally
                               onSelected: (UserCodes selection) {
                                 setState(() {
-                                  txtDriverName.text = selection.codeDesc;
-                                  txtDriverIC.text = selection.codeId;
+                                  txtDriverName.text = selection.codeId;
+                                  txtDriverIC.text = selection.codeDesc;
                                 });
                               },
 
@@ -686,13 +686,13 @@ class POReceiptDtlState extends State<POReceiptDtl> {
                                               options.elementAt(index);
                                           return ListTile(
                                             title: Text(
-                                              option.codeDesc,
+                                              option.codeId,
                                               style: const TextStyle(
                                                   color: Color.fromARGB(
                                                       255, 255, 255, 255)),
                                             ),
                                             subtitle: Text(
-                                              option.codeId,
+                                              option.codeDesc,
                                               style: const TextStyle(
                                                   color: Colors.white60),
                                             ),

@@ -283,7 +283,7 @@ class _MaterialLoadingState extends State<MaterialLoading> {
                         child: Autocomplete<UserCodes>(
                           // Displays the clear text description inside the input box when selected
                           displayStringForOption: (UserCodes code) =>
-                              code.codeDesc,
+                              code.codeId,
 
                           optionsBuilder: (TextEditingValue textEditingValue) {
                             if (textEditingValue.text.isEmpty) {
@@ -301,7 +301,7 @@ class _MaterialLoadingState extends State<MaterialLoading> {
                           // Capture item when clicked to save properties locally
                           onSelected: (UserCodes selection) {
                             setState(() {
-                              txtDriver.text = selection.codeDesc;
+                              txtDriver.text = selection.codeId;
                             });
                           },
 
@@ -356,13 +356,13 @@ class _MaterialLoadingState extends State<MaterialLoading> {
                                           options.elementAt(index);
                                       return ListTile(
                                         title: Text(
-                                          option.codeDesc,
+                                          option.codeId,
                                           style: const TextStyle(
                                               color: Color.fromARGB(
                                                   255, 255, 255, 255)),
                                         ),
                                         subtitle: Text(
-                                          option.codeId,
+                                          option.codeDesc,
                                           style: const TextStyle(
                                               color: Colors.white60),
                                         ),

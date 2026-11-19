@@ -4,21 +4,22 @@ part 'epimoveinvreq.g.dart';
 
 @JsonSerializable()
 class EpiMoveInvReq {
-  EpiMoveInvReq({
-    this.token,
-    required this.reqnum,
-    required this.partnum,
-    required this.partdesc,
-    required this.dtranqty,
-    required this.frwhse,
-    required this.frbin,
-    required this.frlotnum,
-    required this.towhse,
-    required this.tobin,
-    required this.tolotnum,
-    required this.reference,
-    required this.labelcount,
-  });
+  EpiMoveInvReq(
+      {this.token,
+      required this.reqnum,
+      required this.partnum,
+      required this.partdesc,
+      required this.dtranqty,
+      required this.frwhse,
+      required this.frbin,
+      required this.frlotnum,
+      required this.towhse,
+      required this.tobin,
+      required this.tolotnum,
+      required this.reference,
+      required this.labelcount,
+      required this.taxCatID,
+      required this.taxRef});
 
   @JsonKey(name: 'ReqNum')
   final String reqnum;
@@ -49,6 +50,12 @@ class EpiMoveInvReq {
 
   @JsonKey(name: 'ToLotNum')
   final String tolotnum;
+
+  @JsonKey(name: 'taxCatID')
+  final String taxCatID;
+
+  @JsonKey(name: 'taxRef')
+  final String taxRef;
 
   @JsonKey(name: 'Reference')
   final String reference;

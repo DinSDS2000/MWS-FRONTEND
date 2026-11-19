@@ -48,14 +48,21 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
   var txtToLotNo = new TextEditingController();
   var txtRef = new TextEditingController();
   var txtNoofLable = new TextEditingController();
+  var txtDummyPart = new TextEditingController();
+  var txtTaxCatId = new TextEditingController();
+  var txtTaxRef = new TextEditingController();
 
   FocusNode _textFocusPartNo = new FocusNode();
   FocusNode _textFocusQty = new FocusNode();
   FocusNode _textFocusFrWhse = new FocusNode();
   FocusNode _textFocusToWhse = new FocusNode();
+  final FocusNode _scannerFocusNode = FocusNode();
 
   @override
   void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scannerFocusNode.requestFocus();
+    });
     txtPartNo.addListener(onChangePartNo);
     _textFocusPartNo.addListener(onChangePartNo);
 
@@ -82,8 +89,70 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
     txtToWhse.text = widget.epimoveinvreq.towhse;
     txtToBin.text = widget.epimoveinvreq.tobin;
     txtToLotNo.text = widget.epimoveinvreq.tolotnum;
+    txtTaxCatId.text = widget.epimoveinvreq.taxCatID;
+    txtTaxRef.text = widget.epimoveinvreq.taxRef;
     txtRef.text = widget.epimoveinvreq.reference;
     txtNoofLable.text = widget.epimoveinvreq.labelcount.toString();
+  }
+
+  @override
+  void dispose() {
+    _scannerFocusNode.dispose();
+    super.dispose();
+  }
+
+  bool splitDummyPart(String rawBarcode) {
+    final pattern = RegExp(
+        '${RegExp.escape(_globals.epibarcodeseperator)}|${RegExp.escape(_globals.epibarcodeseperator2)}');
+
+    var strSplit = rawBarcode.split(pattern);
+
+    if (strSplit.length >= 2) {
+      String scannedPart = strSplit[0]; // The first split value
+      String expectedPart =
+          txtPartNo.text; // The original part number in txtPart
+
+      if (scannedPart != expectedPart) {
+        txtDummyPart.clear();
+
+        // Show the Error Alert Dialog
+        showDialog(
+          context: context,
+          barrierDismissible: false, // Prevents closing by tapping outside
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Error', style: TextStyle(color: Colors.red)),
+              content: Text(
+                  'Scanned part ($scannedPart) does not match expected part ($expectedPart)!'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Dismisses the dialog
+
+                    // Re-lock focus onto the hidden field so they can scan again immediately
+                    _scannerFocusNode.requestFocus();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+
+        return false; // Stop execution here so the wrong code doesn't fill the fields
+      }
+
+      setState(() {
+        txtDummyPart.text = scannedPart; // First value stays here
+        txtToLotNo.text = strSplit[1]; // Second value goes to lot field
+      });
+
+      return true;
+    }
+
+    // If the barcode doesn't even have a valid separator format, clear it out too!
+    txtDummyPart.clear();
+    return false;
   }
 
   void onChangePartNo() {
@@ -300,486 +369,556 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
         ),
         automaticallyImplyLeading: false,
       ),
-      body: ModalProgressHUD(
-          child: SafeArea(
-            child: Container(
-                margin: const EdgeInsets.all(10.0),
-                child: ListView(
-                  children: <Widget>[
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration: InputDecoration(labelText: 'Part'),
-                              obscureText: false,
-                              keyboardType: TextInputType.text,
-                              autocorrect: false,
-                              controller: txtPartNo,
-                              focusNode: _textFocusPartNo,
-                              enabled: false,
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+
+          _scannerFocusNode.requestFocus();
+        },
+        child: ModalProgressHUD(
+            child: SafeArea(
+              child: Container(
+                  margin: const EdgeInsets.all(10.0),
+                  child: ListView(
+                    children: <Widget>[
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: ListTile(
+                              title: TextFormField(
+                                decoration: InputDecoration(labelText: 'Part'),
+                                obscureText: false,
+                                keyboardType: TextInputType.text,
+                                autocorrect: false,
+                                controller: txtPartNo,
+                                focusNode: _textFocusPartNo,
+                                enabled: false,
+                              ),
                             ),
                           ),
-                        ),
-                        SizedBox(width: 10),
-                        SizedBox(
-                          width: 54,
-/*                           child: RaisedButton(
-                            // Part
-                            child: Icon(Icons.camera_alt),
-                            onPressed: barcodeScanningPartNo,                            
+                          SizedBox(width: 10),
+                          SizedBox(
+                            width: 54,
+                            /*                           child: RaisedButton(
+                              // Part
+                              child: Icon(Icons.camera_alt),
+                              onPressed: barcodeScanningPartNo,                            
+                            ),
+         */
                           ),
- */
+                        ],
+                      ),
+                      SizedBox(
+                        width: 0,
+                        height: 0,
+                        child: TextFormField(
+                          controller: txtDummyPart,
+                          focusNode: _scannerFocusNode,
+                          autofocus: true,
+                          keyboardType: TextInputType
+                              .none, // Keeps screen keyboard hidden
+                          showCursor: false,
+                          style: const TextStyle(color: Colors.transparent),
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          onFieldSubmitted: (value) {
+                            print("Complete raw barcode received: $value");
+
+                            if (value.isNotEmpty) {
+                              // 1. Split the data safely without looping crashes
+                              splitDummyPart(value);
+                            }
+
+                            // 3. Keep the focus locked here
+                            _scannerFocusNode.requestFocus();
+                          },
                         ),
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration:
-                                  InputDecoration(labelText: 'Description'),
-                              obscureText: false,
-                              keyboardType: TextInputType.text,
-                              autocorrect: false,
-                              controller: txtPartDesc,
-                              enabled: false,
+                      ),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: ListTile(
+                              title: TextFormField(
+                                decoration:
+                                    InputDecoration(labelText: 'Description'),
+                                obscureText: false,
+                                keyboardType: TextInputType.text,
+                                autocorrect: false,
+                                controller: txtPartDesc,
+                                enabled: false,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration:
-                                  InputDecoration(labelText: 'Actual Quantity'),
-                              obscureText: false,
-                              keyboardType: TextInputType.number,
-                              autocorrect: false,
-                              controller: txtQty,
-                              enabled: true,
-                              focusNode: _textFocusQty,
+                        ],
+                      ),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: ListTile(
+                              title: TextFormField(
+                                decoration: InputDecoration(
+                                    labelText: 'Actual Quantity'),
+                                obscureText: false,
+                                keyboardType: TextInputType.number,
+                                autocorrect: false,
+                                controller: txtQty,
+                                enabled: true,
+                                focusNode: _textFocusQty,
+                              ),
                             ),
                           ),
-                        ),
-                        //SizedBox(width: 10),
-                        SizedBox(
-                          width: 100,
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration: InputDecoration(labelText: 'UOM'),
-                              obscureText: false,
-                              keyboardType: TextInputType.text,
-                              autocorrect: false,
-                              controller: txtIUM,
-                              enabled: false,
+                          //SizedBox(width: 10),
+                          SizedBox(
+                            width: 100,
+                            child: ListTile(
+                              title: TextFormField(
+                                decoration: InputDecoration(labelText: 'UOM'),
+                                obscureText: false,
+                                keyboardType: TextInputType.text,
+                                autocorrect: false,
+                                controller: txtIUM,
+                                enabled: false,
+                              ),
                             ),
                           ),
-                        ),
-                        SizedBox(
-                          width: 54,
-                          child: ElevatedButton(
-                            onPressed: () => triggerUOMDropDown(txtIUM),
-                            style: ElevatedButton.styleFrom(
-                              padding:
-                                  EdgeInsets.zero, // Removes default padding
-                            ),
-                            child: const Icon(Icons.search),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration: InputDecoration(
-                                  labelText: 'Transferred Quantity'),
-                              obscureText: false,
-                              keyboardType: TextInputType.number,
-                              autocorrect: false,
-                              controller: txtTransQty,
-                              enabled: true,
-                            ),
-                          ),
-                        ),
-                        //SizedBox(width: 10),
-                        SizedBox(
-                          width: 100,
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration: InputDecoration(labelText: 'UOM'),
-                              obscureText: false,
-                              keyboardType: TextInputType.text,
-                              autocorrect: false,
-                              controller: txtTransIum,
-                              enabled: false,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration: InputDecoration(
-                                  labelText: 'Discrepancy Quantity'),
-                              obscureText: false,
-                              keyboardType: TextInputType.number,
-                              autocorrect: false,
-                              controller: txtDiscrepQty,
-                              enabled: false,
-                            ),
-                          ),
-                        ),
-                        //SizedBox(width: 10),
-                        SizedBox(
-                          width: 100,
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration: InputDecoration(labelText: 'UOM'),
-                              obscureText: false,
-                              keyboardType: TextInputType.text,
-                              autocorrect: false,
-                              controller: txtDiscrepIum,
-                              enabled: false,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration:
-                                  InputDecoration(labelText: 'From Warehouse'),
-                              obscureText: false,
-                              keyboardType: TextInputType.text,
-                              autocorrect: false,
-                              controller: txtFrWhse,
-                              focusNode: _textFocusFrWhse,
-                              enabled: false,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 10),
-                        SizedBox(
-                          width: 54,
-/*                           child: RaisedButton(
-                            // From Warehouse
-                            child: Icon(Icons.camera_alt),
-                            onPressed: barcodeScanningFrWhse,
-                          ),
- */
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration:
-                                  InputDecoration(labelText: 'From Bin'),
-                              obscureText: false,
-                              keyboardType: TextInputType.text,
-                              autocorrect: false,
-                              controller: txtFrBin,
-                              enabled: false,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 10),
-                        SizedBox(
-                          width: 54,
-/*                           child: RaisedButton(
-                            // From Bin
-                            child: Icon(Icons.camera_alt),
-                            onPressed: barcodeScanningFrBin,
-                          ),
- */
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration:
-                                  InputDecoration(labelText: 'From Lot'),
-                              obscureText: false,
-                              keyboardType: TextInputType.text,
-                              autocorrect: false,
-                              controller: txtFrLotNo,
-                              enabled: false,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 10),
-                        SizedBox(
-                          width: 54,
-/*                           child: RaisedButton(
-                            // Lot
-                            child: Icon(Icons.camera_alt),
-                            onPressed: barcodeScanningFrLotNo,
-                          ),
- */
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration:
-                                  InputDecoration(labelText: 'To Warehouse'),
-                              obscureText: false,
-                              keyboardType: TextInputType.text,
-                              autocorrect: false,
-                              controller: txtToWhse,
-                              focusNode: _textFocusToWhse,
-                              enabled: false,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 10),
-                        SizedBox(
-                          width: 54,
-/*                           child: RaisedButton(
-                            // To Warehouse
-                            child: Icon(Icons.camera_alt),
-                            onPressed: barcodeScanningToWhse,
-                          ),
- */
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration: InputDecoration(labelText: 'To Bin'),
-                              obscureText: false,
-                              keyboardType: TextInputType.text,
-                              autocorrect: false,
-                              controller: txtToBin,
-                              enabled: true,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 10),
-                        SizedBox(
-                          width: 54,
-/*                           child: RaisedButton(
-                            // To Bin
-                            child: Icon(Icons.camera_alt),
-                            onPressed: barcodeScanningToBin,
-                          ),
- */
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration: InputDecoration(labelText: 'To Lot'),
-                              obscureText: false,
-                              keyboardType: TextInputType.text,
-                              autocorrect: false,
-                              controller: txtToLotNo,
-                              enabled: _lotEnabled,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 10),
-                        SizedBox(
-                          width: 54,
-/*                           child: RaisedButton(
-                            // Lot
-                            child: Icon(Icons.camera_alt),
-                            onPressed: barcodeScanningToLotNo,
-                          ),
- */
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration:
-                                  InputDecoration(labelText: 'Reference'),
-                              obscureText: false,
-                              keyboardType: TextInputType.text,
-                              autocorrect: false,
-                              controller: txtRef,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 10),
-                        SizedBox(
-                          width: 54,
-                          // child: ElevatedButton(
-                          //   // Lot
-                          //   child: Icon(Icons.camera_alt),
-                          //   onPressed: barcodeScanningRef,
-                          // ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: ListTile(
-                            title: TextFormField(
-                              decoration:
-                                  InputDecoration(labelText: 'No. of Label'),
-                              obscureText: false,
-                              keyboardType: TextInputType.number,
-                              autocorrect: false,
-                              controller: txtNoofLable,
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 64,
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 30),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: ListTile(
-                            title: ElevatedButton(
-                              onPressed: () async {
-                                Navigator.pop(context, 'C');
-                              },
+                          SizedBox(
+                            width: 54,
+                            child: ElevatedButton(
+                              onPressed: () => triggerUOMDropDown(txtIUM),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue, // Button color
-                                disabledForegroundColor: Colors.grey
-                                    .withOpacity(0.38), // Disabled text color
-                                disabledBackgroundColor:
-                                    Colors.grey, // Disabled button color
-                                padding:
-                                    EdgeInsets.zero, // Removes extra padding
-                              ),
-                              child: Text(
-                                'Cancel',
-                                textScaleFactor: textScaleFactor,
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: ListTile(
-                            title: ElevatedButton(
-                              onPressed: () async {
-                                submitData(false);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue, // Button color
-                                disabledBackgroundColor:
-                                    Colors.grey, // Disabled button color
-                                padding:
-                                    EdgeInsets.zero, // Removes extra padding
-                              ),
-                              child: Text(
-                                'Reject',
-                                textScaleFactor: textScaleFactor,
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: ListTile(
-                            title: ElevatedButton(
-                              onPressed: () async {
-                                submitData(true);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue, // Button color
-                                disabledBackgroundColor:
-                                    Colors.grey, // Disabled button color
                                 padding:
                                     EdgeInsets.zero, // Removes default padding
                               ),
-                              child: Text(
-                                'Approve',
-                                textScaleFactor: textScaleFactor,
-                                style: const TextStyle(color: Colors.white),
+                              child: const Icon(Icons.search),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: ListTile(
+                              title: TextFormField(
+                                decoration: InputDecoration(
+                                    labelText: 'Transferred Quantity'),
+                                obscureText: false,
+                                keyboardType: TextInputType.number,
+                                autocorrect: false,
+                                controller: txtTransQty,
+                                enabled: true,
                               ),
                             ),
                           ),
-                        )
-                        // Expanded(
-                        //   child: ListTile(
-                        //     title: NativeButton(
-                        //       child: Text(
-                        //         'Cancel',
-                        //         textScaleFactor: textScaleFactor,
-                        //         style: TextStyle(color: Colors.white),
-                        //       ),
-                        //       color: Colors.blue,
-                        //       onPressed: () async {
-                        //         Navigator.pop(context, 'C');
-                        //       },
-                        //     ),
-                        //   ),
-                        // ),
-                        // Expanded(
-                        //   child: ListTile(
-                        //     title: NativeButton(
-                        //       child: Text(
-                        //         'Reject',
-                        //         textScaleFactor: textScaleFactor,
-                        //         style: TextStyle(color: Colors.white),
-                        //       ),
-                        //       color: Colors.blue,
-                        //       onPressed: () async {
-                        //         submitData(false);
-                        //       },
-                        //     ),
-                        //   ),
-                        // ),
-                        // Expanded(
-                        //   child: ListTile(
-                        //     title: NativeButton(
-                        //       child: Text(
-                        //         'Approve',
-                        //         textScaleFactor: textScaleFactor,
-                        //         style: TextStyle(color: Colors.white),
-                        //       ),
-                        //       color: Colors.blue,
-                        //       onPressed: () async {
-                        //         submitData(true);
-                        //       },
-                        //     ),
-                        //   ),
-                        // ),
-                      ],
-                    ),
-                  ],
-                )),
-          ),
-          inAsyncCall: _saving),
+                          //SizedBox(width: 10),
+                          SizedBox(
+                            width: 100,
+                            child: ListTile(
+                              title: TextFormField(
+                                decoration: InputDecoration(labelText: 'UOM'),
+                                obscureText: false,
+                                keyboardType: TextInputType.text,
+                                autocorrect: false,
+                                controller: txtTransIum,
+                                enabled: false,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: ListTile(
+                              title: TextFormField(
+                                decoration: InputDecoration(
+                                    labelText: 'Discrepancy Quantity'),
+                                obscureText: false,
+                                keyboardType: TextInputType.number,
+                                autocorrect: false,
+                                controller: txtDiscrepQty,
+                                enabled: false,
+                              ),
+                            ),
+                          ),
+                          //SizedBox(width: 10),
+                          SizedBox(
+                            width: 100,
+                            child: ListTile(
+                              title: TextFormField(
+                                decoration: InputDecoration(labelText: 'UOM'),
+                                obscureText: false,
+                                keyboardType: TextInputType.text,
+                                autocorrect: false,
+                                controller: txtDiscrepIum,
+                                enabled: false,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: ListTile(
+                              title: TextFormField(
+                                decoration: InputDecoration(
+                                    labelText: 'From Warehouse'),
+                                obscureText: false,
+                                keyboardType: TextInputType.text,
+                                autocorrect: false,
+                                controller: txtFrWhse,
+                                focusNode: _textFocusFrWhse,
+                                enabled: false,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          SizedBox(
+                            width: 54,
+                            /*                           child: RaisedButton(
+                              // From Warehouse
+                              child: Icon(Icons.camera_alt),
+                              onPressed: barcodeScanningFrWhse,
+                            ),
+         */
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: ListTile(
+                              title: TextFormField(
+                                decoration:
+                                    InputDecoration(labelText: 'From Bin'),
+                                obscureText: false,
+                                keyboardType: TextInputType.text,
+                                autocorrect: false,
+                                controller: txtFrBin,
+                                enabled: false,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          SizedBox(
+                            width: 54,
+                            /*                           child: RaisedButton(
+                              // From Bin
+                              child: Icon(Icons.camera_alt),
+                              onPressed: barcodeScanningFrBin,
+                            ),
+         */
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: ListTile(
+                              title: TextFormField(
+                                decoration:
+                                    InputDecoration(labelText: 'From Lot'),
+                                obscureText: false,
+                                keyboardType: TextInputType.text,
+                                autocorrect: false,
+                                controller: txtFrLotNo,
+                                enabled: false,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          SizedBox(
+                            width: 54,
+                            /*                           child: RaisedButton(
+                              // Lot
+                              child: Icon(Icons.camera_alt),
+                              onPressed: barcodeScanningFrLotNo,
+                            ),
+         */
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: ListTile(
+                              title: TextFormField(
+                                decoration:
+                                    InputDecoration(labelText: 'To Warehouse'),
+                                obscureText: false,
+                                keyboardType: TextInputType.text,
+                                autocorrect: false,
+                                controller: txtToWhse,
+                                focusNode: _textFocusToWhse,
+                                enabled: false,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          SizedBox(
+                            width: 54,
+                            /*                           child: RaisedButton(
+                              // To Warehouse
+                              child: Icon(Icons.camera_alt),
+                              onPressed: barcodeScanningToWhse,
+                            ),
+         */
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: ListTile(
+                              title: TextFormField(
+                                decoration:
+                                    InputDecoration(labelText: 'To Bin'),
+                                obscureText: false,
+                                keyboardType: TextInputType.text,
+                                autocorrect: false,
+                                controller: txtToBin,
+                                enabled: true,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          SizedBox(
+                            width: 54,
+                            /*                           child: RaisedButton(
+                              // To Bin
+                              child: Icon(Icons.camera_alt),
+                              onPressed: barcodeScanningToBin,
+                            ),
+         */
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: ListTile(
+                              title: TextFormField(
+                                decoration:
+                                    InputDecoration(labelText: 'To Lot'),
+                                obscureText: false,
+                                keyboardType: TextInputType.text,
+                                autocorrect: false,
+                                controller: txtToLotNo,
+                                enabled: _lotEnabled,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          SizedBox(
+                            width: 54,
+                            /*                           child: RaisedButton(
+                              // Lot
+                              child: Icon(Icons.camera_alt),
+                              onPressed: barcodeScanningToLotNo,
+                            ),
+         */
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            flex: 1,
+                            child: ListTile(
+                              title: TextFormField(
+                                decoration:
+                                    InputDecoration(labelText: 'Tax Category'),
+                                obscureText: false,
+                                keyboardType: TextInputType.text,
+                                autocorrect: false,
+                                controller: txtTaxCatId,
+                                enabled: false,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(
+                            flex: 2,
+                            child: ListTile(
+                              title: TextFormField(
+                                decoration:
+                                    InputDecoration(labelText: 'Tax Reference'),
+                                obscureText: false,
+                                keyboardType: TextInputType.text,
+                                autocorrect: false,
+                                controller: txtTaxRef,
+                                enabled: false,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: ListTile(
+                              title: TextFormField(
+                                decoration:
+                                    InputDecoration(labelText: 'Reference'),
+                                obscureText: false,
+                                keyboardType: TextInputType.text,
+                                autocorrect: false,
+                                controller: txtRef,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          SizedBox(
+                            width: 54,
+                            // child: ElevatedButton(
+                            //   // Lot
+                            //   child: Icon(Icons.camera_alt),
+                            //   onPressed: barcodeScanningRef,
+                            // ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: ListTile(
+                              title: TextFormField(
+                                decoration:
+                                    InputDecoration(labelText: 'No. of Label'),
+                                obscureText: false,
+                                keyboardType: TextInputType.number,
+                                autocorrect: false,
+                                controller: txtNoofLable,
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 64,
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 30),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: ListTile(
+                              title: ElevatedButton(
+                                onPressed: () async {
+                                  Navigator.pop(context, 'C');
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue, // Button color
+                                  disabledForegroundColor: Colors.grey
+                                      .withOpacity(0.38), // Disabled text color
+                                  disabledBackgroundColor:
+                                      Colors.grey, // Disabled button color
+                                  padding:
+                                      EdgeInsets.zero, // Removes extra padding
+                                ),
+                                child: Text(
+                                  'Cancel',
+                                  textScaleFactor: textScaleFactor,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: ListTile(
+                              title: ElevatedButton(
+                                onPressed: () async {
+                                  submitData(false);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue, // Button color
+                                  disabledBackgroundColor:
+                                      Colors.grey, // Disabled button color
+                                  padding:
+                                      EdgeInsets.zero, // Removes extra padding
+                                ),
+                                child: Text(
+                                  'Reject',
+                                  textScaleFactor: textScaleFactor,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: ListTile(
+                              title: ElevatedButton(
+                                onPressed: () async {
+                                  submitData(true);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue, // Button color
+                                  disabledBackgroundColor:
+                                      Colors.grey, // Disabled button color
+                                  padding: EdgeInsets
+                                      .zero, // Removes default padding
+                                ),
+                                child: Text(
+                                  'Approve',
+                                  textScaleFactor: textScaleFactor,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          )
+                          // Expanded(
+                          //   child: ListTile(
+                          //     title: NativeButton(
+                          //       child: Text(
+                          //         'Cancel',
+                          //         textScaleFactor: textScaleFactor,
+                          //         style: TextStyle(color: Colors.white),
+                          //       ),
+                          //       color: Colors.blue,
+                          //       onPressed: () async {
+                          //         Navigator.pop(context, 'C');
+                          //       },
+                          //     ),
+                          //   ),
+                          // ),
+                          // Expanded(
+                          //   child: ListTile(
+                          //     title: NativeButton(
+                          //       child: Text(
+                          //         'Reject',
+                          //         textScaleFactor: textScaleFactor,
+                          //         style: TextStyle(color: Colors.white),
+                          //       ),
+                          //       color: Colors.blue,
+                          //       onPressed: () async {
+                          //         submitData(false);
+                          //       },
+                          //     ),
+                          //   ),
+                          // ),
+                          // Expanded(
+                          //   child: ListTile(
+                          //     title: NativeButton(
+                          //       child: Text(
+                          //         'Approve',
+                          //         textScaleFactor: textScaleFactor,
+                          //         style: TextStyle(color: Colors.white),
+                          //       ),
+                          //       color: Colors.blue,
+                          //       onPressed: () async {
+                          //         submitData(true);
+                          //       },
+                          //     ),
+                          //   ),
+                          // ),
+                        ],
+                      ),
+                    ],
+                  )),
+            ),
+            inAsyncCall: _saving),
+      ),
     );
   }
 
@@ -839,7 +978,7 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
         _reqStatus = '2';
         _returnData = 'R';
       }
-
+      print("QUANTIY: ${txtQty.text}");
       _result = await postMoveInventoryRequestApproval(
           _reqNum,
           _reqStatus,
@@ -848,6 +987,8 @@ class AcceptInventoryRequestState extends State<AcceptInventoryRequest> {
           txtDiscrepQty.text,
           txtTransQty.text,
           txtRef.text,
+          txtTaxCatId.text,
+          txtTaxRef.text,
           txtNoofLable.text);
       if (_result[0] == false) {
         showAlertPopup(context, 'Error',

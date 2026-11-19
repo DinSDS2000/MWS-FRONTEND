@@ -214,6 +214,7 @@ Future<Map<String, dynamic>> createCustShipDtl({
   required bool checkQty,
   required int runSess,
   required String remainingQty,
+  required String partNum,
 }) async {
   // 1. Build the base parameters map
   final Map<String, String> queryParams = {
@@ -234,6 +235,8 @@ Future<Map<String, dynamic>> createCustShipDtl({
     'checkQty': checkQty.toString(),
     'runSess': runSess.toString(),
     'remainingQty': remainingQty.toString(),
+    'pickerName': _globals.epiUsername,
+    'partNum': partNum
   };
 
   // 2. Conditionally add lotNum only if it contains a value
@@ -259,7 +262,9 @@ Future<Map<String, dynamic>> createCustShipDtl({
   print("RESPONSE SHIPDTL1 : ${response.body}");
   if (response.statusCode == 200) {
     print("RESPONSE SHIPDTL: ${response.body}");
-    return jsonDecode(response.body) as Map<String, dynamic>;
+    final Map<String, dynamic> data =
+        jsonDecode(response.body) as Map<String, dynamic>;
+    return data; // Pass the map directly up to your UI layer/State management
   } else {
     print("error creating ship dtl");
     throw Exception('Failed to create CustShipDtl: ${response.body}');
@@ -643,6 +648,8 @@ Future<List<dynamic>> postMoveInventory(
     String toBin,
     String toLotNo,
     String refNo,
+    String taxCatID,
+    String taxRef,
     String noofLabel) async {
   bool result = false;
 
@@ -680,6 +687,10 @@ Future<List<dynamic>> postMoveInventory(
       _globals.epiPrinter +
       '&printerPath=' +
       _globals.epiPrinterPath +
+      '&taxCatID=' +
+      taxCatID +
+      '&taxRef=' +
+      taxRef +
       '&iLabelCount=' +
       noofLabel;
 
@@ -845,47 +856,55 @@ Future<List<dynamic>> postMoveInventoryRequest(
     String toWhse,
     String? toBin,
     String toLotNo,
+    String? taxCatID, // Changed to nullable
+    String? taxRef, // Changed to nullable
     String refNo,
     String noofLabel) async {
   bool result = false;
-  final safeToBin = toBin ?? '';
-  String _params = '?strEnvId=' +
-      _globals.epiEnvId +
-      '&strCurCompany=' +
-      _globals.epiCompanyId +
-      '&strPartNum=' +
-      partNo +
-      '&strIUM=' +
-      ium +
-      '&dTranQty=' +
-      tranQty +
-      '&strFromWarehouseCode=' +
-      frWhse +
-      '&strFromBinNum=' +
-      frBin +
-      '&strFromLotNum=' +
-      frLotNo +
-      '&strToWarehouseCode=' +
-      toWhse +
-      '&strToBinNum=' +
-      safeToBin +
-      '&strToLotNum=' +
-      toLotNo +
-      '&strReference=' +
-      refNo +
-      '&strUID=' +
-      _globals.epiUsername +
-      '&strPass=' +
-      Uri.encodeComponent(_globals.epiPassword) +
-      '&iLabelCount=' +
-      noofLabel +
-      '&strCurPlant=' +
-      _globals.epiSiteId;
 
+  // 1. Build the base query parameters map
+  final Map<String, String> queryParameters = {
+    'strEnvId': _globals.epiEnvId,
+    'strCurCompany': _globals.epiCompanyId,
+    'strPartNum': partNo,
+    'strIUM': ium,
+    'dTranQty': tranQty,
+    'strFromWarehouseCode': frWhse,
+    'strFromBinNum': frBin,
+    'strFromLotNum': frLotNo,
+    'strToWarehouseCode': toWhse,
+    'strToBinNum': toBin ?? '', // Safely fall back to an empty string if null
+    'strToLotNum': toLotNo,
+    'strReference': refNo,
+    'strUID': _globals.epiUsername,
+    'strPass': _globals.epiPassword, // Automatic encoding handled by Uri
+    'iLabelCount': noofLabel,
+    'strCurPlant': _globals.epiSiteId,
+  };
+
+  // 2. Safe logic for taxCatID parameter mapping
+  if (taxCatID != null && taxCatID.trim().isNotEmpty) {
+    queryParameters['taxCatID'] = taxCatID;
+  } else {
+    queryParameters['taxCatID'] =
+        ''; // Fallback value expected by C# model binding
+  }
+
+  // 3. Safe logic for taxRef parameter mapping
+  if (taxRef != null && taxRef.trim().isNotEmpty) {
+    queryParameters['taxRef'] = taxRef;
+  } else {
+    queryParameters['taxRef'] = ''; // Empty text fallback value
+  }
+
+  // 4. Safely construct the final structural URL elements
+  final baseUrl = Uri.parse(_globals.epiApiBaseUrl +
+      '/api/moveinventory/PerformMoveInventoryRequest');
+  final finalUri = baseUrl.replace(queryParameters: queryParameters);
+
+  // 5. Fire HTTP execution
   http.Response response = await WebClient(User(token: '')).getHttpReponse(
-    _globals.epiApiBaseUrl +
-        '/api/moveinventory/PerformMoveInventoryRequest' +
-        _params,
+    finalUri.toString(),
     headers: {
       HttpHeaders.authorizationHeader: "Bearer ",
     },
@@ -1035,47 +1054,64 @@ Future<List<dynamic>> postNewLot(String partNo) async {
 Future<List<dynamic>> postMoveInventoryRequestApproval(
     String reqNo,
     String reqStatus,
-    String trxQty,
+    String? trxQty,
     String binNum,
     String discrepQty,
     String transQty,
     String reference,
+    String? taxCatId,
+    String? taxRef,
     String noofLabel) async {
   bool result = false;
 
-  String _params = '?strEnvId=' +
-      _globals.epiEnvId +
-      '&strCurCompany=' +
-      _globals.epiCompanyId +
-      '&strReqNum=' +
-      reqNo +
-      '&iReqStatus=' +
-      reqStatus +
-      '&strUID=' +
-      _globals.epiUsername +
-      '&strPass=' +
-      Uri.encodeComponent(_globals.epiPassword) +
-      '&path=' +
-      _globals.epiPrinter +
-      '&printerPath=' +
-      _globals.epiPrinterPath +
-      '&binNum=' +
-      binNum +
-      '&reference=' +
-      reference +
-      '&dTranQty=' +
-      trxQty +
-      '&discrepQty=' +
-      discrepQty +
-      '&transQty=' +
-      transQty +
-      '&iLabelCount=' +
-      noofLabel;
+  // 1. Base query parameters map
+  final Map<String, String> queryParameters = {
+    'strEnvId': _globals.epiEnvId,
+    'strCurCompany': _globals.epiCompanyId,
+    'strReqNum': reqNo,
+    'iReqStatus': reqStatus,
+    'strUID': _globals.epiUsername,
+    'strPass': _globals.epiPassword, // Automatic encoding handled by Uri
+    'path': _globals.epiPrinter,
+    'printerPath': _globals.epiPrinterPath,
+    'binNum': binNum,
+    'reference': reference,
+    'discrepQty': discrepQty,
+    'transQty': transQty,
+    'iLabelCount': noofLabel,
+  };
 
+  // 2. Safe validation logic for dTranQty
+  if (trxQty != null && trxQty.trim().isNotEmpty) {
+    queryParameters['dTranQty'] = trxQty;
+  } else {
+    queryParameters['dTranQty'] = '0';
+  }
+
+  // 3. Safe validation logic for taxCatID
+  if (taxCatId != null && taxCatId.trim().isNotEmpty) {
+    queryParameters['taxCatID'] = taxCatId;
+  } else {
+    queryParameters['taxCatID'] =
+        ''; // Or default fallback value expected by backend
+  }
+
+  // 4. Safe validation logic for taxRef
+  if (taxRef != null && taxRef.trim().isNotEmpty) {
+    queryParameters['taxRef'] = taxRef;
+  } else {
+    queryParameters['taxRef'] =
+        ''; // Empty text string value (NOT missing raw key element)
+  }
+
+  // 5. Safely build out URI structural elements
+  final baseUrl = Uri.parse(_globals.epiApiBaseUrl +
+      '/api/MoveInventory/PerformMoveInventoryRequestApproval');
+  final finalUri = baseUrl.replace(queryParameters: queryParameters);
+
+  // 6. Fire execution
   http.Response response = await WebClient(User(token: '')).getHttpReponse(
-    _globals.epiApiBaseUrl +
-        '/api/MoveInventory/PerformMoveInventoryRequestApproval' +
-        _params,
+    finalUri.toString(),
     headers: {
       HttpHeaders.authorizationHeader: "Bearer ",
     },
@@ -1828,6 +1864,7 @@ Future<List<dynamic>> CreatePickedTable({
   required int packNum,
   required String legalNum,
   required String timeStamp,
+  required String doLegalNum,
 }) async {
   bool result = false;
 
@@ -1852,7 +1889,7 @@ Future<List<dynamic>> CreatePickedTable({
     'Key2': packLine,
     'Key3': legalNum,
     'Key4': partNum,
-    'Key5': '',
+    'Key5': doLegalNum,
     'UD103As': [
       {
         'Company': _globals.epiCompanyId,
@@ -1860,7 +1897,7 @@ Future<List<dynamic>> CreatePickedTable({
         'Key2': packLine, // Your PackLine target assignment identification
         'Key3': legalNum,
         'Key4': partNum,
-        'Key5': '',
+        'Key5': doLegalNum,
         'ChildKey1': timeStamp,
         'Character01': whse,
         'Character02': bin,

@@ -10,6 +10,7 @@ class EpiPickedTable {
     required this.key1,
     required this.key2,
     required this.key3,
+    required this.key5,
     required this.childKey1,
     required this.character01,
     required this.character02,
@@ -30,6 +31,9 @@ class EpiPickedTable {
 
   @JsonKey(name: "UD103A_Key3")
   final String key3;
+
+  @JsonKey(name: "UD103A_Key5")
+  final String key5;
 
   @JsonKey(name: "UD103A_ChildKey1")
   final String childKey1;

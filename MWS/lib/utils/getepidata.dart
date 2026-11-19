@@ -1137,7 +1137,8 @@ Future<List<EpiGetLot>> getInventoryLot({
 }
 
 Future<List<EpiPickedTable>> getPickedTable({
-  required String key3,
+  String key1 = '',
+  String key3 = '',
   String key4 = '',
   String character01 = '',
   String character02 = '',
@@ -1153,6 +1154,8 @@ Future<List<EpiPickedTable>> getPickedTable({
       _globals.epiSiteId +
       '&envId=' +
       _globals.epiEnvId +
+      '&key1=' +
+      Uri.encodeComponent(key1) +
       '&key3=' +
       Uri.encodeComponent(key3) +
       '&key4=' +
@@ -1193,6 +1196,10 @@ Future<List<EpiPickedTable>> getPickedTable({
 Future<double> getRemainingQty({
   required String key1,
   required String key3,
+  required String packLine,
+  required String planID,
+  required String childKey1,
+  required int quantity,
 }) async {
   String _params = '?username=' +
       _globals.epiUsername +
@@ -1207,7 +1214,17 @@ Future<double> getRemainingQty({
       '&key1=' +
       Uri.encodeComponent(key1) +
       '&key3=' +
-      Uri.encodeComponent(key3);
+      Uri.encodeComponent(key3) +
+      '&packLine=' +
+      Uri.encodeComponent(packLine) +
+      '&planID=' +
+      Uri.encodeComponent(planID) +
+      '&childKey=' +
+      Uri.encodeComponent(childKey1) +
+      '&quantity=' +
+      Uri.encodeComponent(quantity.toString()) +
+      '&pickerName=' +
+      _globals.epiUsername;
 
   try {
     var _data = await WebClient(User(token: '')).get(
@@ -1225,6 +1242,44 @@ Future<double> getRemainingQty({
     throw Exception('Failed to get validation success status.');
   } catch (e) {
     print("Error fetching Remaining Qty: $e");
+    rethrow;
+  }
+}
+
+Future<List<String>> getTaxCategories() async {
+  String _params = '?username=' +
+      _globals.epiUsername +
+      '&password=' +
+      Uri.encodeComponent(_globals.epiPassword) +
+      '&company=' +
+      _globals.epiCompanyId +
+      '&plant=' +
+      _globals.epiSiteId +
+      '&envId=' +
+      _globals.epiEnvId;
+
+  try {
+    var _data = await WebClient(User(token: '')).get(
+      _globals.epiApiBaseUrl + '/api/MoveInventory/GetTaxCategories' + _params,
+    );
+
+    if (_data == null) {
+      throw Exception('No tax categories found or invalid response.');
+    }
+
+    // FIX: Look up 'Success' and 'Value' with exact matching uppercase keys
+    if (_data is Map<String, dynamic> &&
+        (_data['Success'] == true || _data['success'] == true)) {
+      var valuesList = _data['Value'] ?? _data['value'];
+      if (valuesList != null) {
+        return List<String>.from(valuesList.map((item) => item.toString()));
+      }
+      return [];
+    }
+
+    throw Exception('Failed to get tax categories status.');
+  } catch (e) {
+    print("Error fetching Tax Categories: $e");
     rethrow;
   }
 }
