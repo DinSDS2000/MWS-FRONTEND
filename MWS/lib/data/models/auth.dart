@@ -174,6 +174,8 @@ class AuthModel extends Model {
       _globals.epiisenableprodworkqueue = _newUser.epienableworkqueue;
       _globals.epiisenableusedefaultlabelqty =
           _newUser.epienabledefaultlabelqty;
+      _globals.epiPrinter = _newUser.epiprinter;
+      _globals.epiPrinterPath = _newUser.epiprinterpath;
       return _newUser;
     } catch (e) {
       errorMessage = "Could Not Load Data: $e";

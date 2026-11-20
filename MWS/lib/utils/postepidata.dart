@@ -57,6 +57,10 @@ Future<List<dynamic>> postIssueMaterial(
       lotNo +
       '&strCurPlant=' +
       _globals.epiSiteId +
+      '&path=' +
+      _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&iLabelCount=' +
       noofLabel +
       '&strReference=' +
@@ -101,6 +105,10 @@ Future<List<dynamic>> postReturnMaterial(
       _globals.epiEnvId +
       '&strCurCompany=' +
       _globals.epiCompanyId +
+      '&path=' +
+      _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&strJobNum=' +
       jobNo +
       '&iAssemblySeq=' +
@@ -376,6 +384,10 @@ Future<List<dynamic>> postIssueMiscMaterial(
       frBin +
       '&strLotNum=' +
       lotNo +
+      '&path=' +
+      _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&strReason=' +
       reason +
       '&strReference=' +
@@ -422,6 +434,10 @@ Future<List<dynamic>> postReturnMiscMaterial(
       _globals.epiEnvId +
       '&strCurCompany=' +
       _globals.epiCompanyId +
+      '&path=' +
+      _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&strPartNum=' +
       partNo +
       '&strIUM=' +
@@ -505,6 +521,10 @@ Future<List<dynamic>> postIssueAssembly(
       lotNo +
       '&strCurPlant=' +
       _globals.epiSiteId +
+      '&path=' +
+      _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&iLabelCount=' +
       noofLabel +
       '&strReference=' +
@@ -548,6 +568,10 @@ Future<List<dynamic>> postReturnAssembly(
       _globals.epiEnvId +
       '&strCurCompany=' +
       _globals.epiCompanyId +
+      '&path=' +
+      _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&strJobNum=' +
       jobNo +
       '&iAssemblySeq=' +
@@ -614,6 +638,10 @@ Future<List<dynamic>> postMoveInventory(
       _globals.epiEnvId +
       '&strCurCompany=' +
       _globals.epiCompanyId +
+      '&path=' +
+      _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&strPartNum=' +
       partNo +
       '&strIUM=' +
@@ -679,6 +707,10 @@ Future<List<dynamic>> postJobtoInventory(
       _globals.epiCompanyId +
       '&strEnvId=' +
       _globals.epiEnvId +
+      '&path=' +
+      _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&strJobNum=' +
       jobNo +
       '&iAssemblySeq=' +
@@ -744,6 +776,10 @@ Future<List<dynamic>> postJobtoSalvage(
       _globals.epiEnvId +
       '&strCurCompany=' +
       _globals.epiCompanyId +
+      '&path=' +
+      _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&strJobNum=' +
       jobNo +
 /*       '&iAssemblySeq=' +
@@ -801,6 +837,10 @@ Future<List<dynamic>> postMoveInventoryRequest(
       _globals.epiEnvId +
       '&strCurCompany=' +
       _globals.epiCompanyId +
+      '&path=' +
+      _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&strPartNum=' +
       partNo +
       '&strIUM=' +
@@ -869,6 +909,10 @@ Future<List<dynamic>> postCreateLot(
       Uri.encodeComponent(_globals.epiPassword) +
       '&strEnvId=' +
       _globals.epiEnvId +
+      '&path=' +
+      _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&strCurCompany=' +
       _globals.epiCompanyId +
       '&strPartNum=' +
@@ -984,6 +1028,10 @@ Future<List<dynamic>> postMoveInventoryRequestApproval(
       _globals.epiEnvId +
       '&strCurCompany=' +
       _globals.epiCompanyId +
+      '&path=' +
+      _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&strReqNum=' +
       reqNo +
       '&iReqStatus=' +
@@ -1040,6 +1088,10 @@ Future<List<dynamic>> postNewPOReceiptDtl(
       _globals.epiEnvId +
       '&strCurCompany=' +
       _globals.epiCompanyId +
+      '&path=' +
+      _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&strCurPlant=' +
       _globals.epiSiteId +
       '&iVendNum=' +
@@ -1185,6 +1237,10 @@ Future<List<dynamic>> postRePrintLabel(
       _globals.epiSiteId +
       '&strEnvId=' +
       _globals.epiEnvId +
+      '&path=' +
+      _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&SysDate=' +
       _sysDate +
       '&TranNum=' +
@@ -1241,6 +1297,10 @@ Future<List<dynamic>> postQtyAdjustment(
       _globals.epiEnvId +
       '&strCurCompany=' +
       _globals.epiCompanyId +
+      '&path=' +
+      _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&strPartNum=' +
       partNo +
       '&strIUM=' +
@@ -1309,6 +1369,10 @@ Future<List<dynamic>> postSplitMergeUOM(
       _globals.epiSiteId +
       '&strEnvId=' +
       _globals.epiEnvId +
+      '&path=' +
+      _globals.epiPrinter +
+      '&printerPath=' +
+      _globals.epiPrinterPath +
       '&strProc=' +
       proccode +
       '&strPartNum=' +
