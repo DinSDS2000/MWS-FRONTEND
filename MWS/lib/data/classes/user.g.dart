@@ -50,6 +50,8 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
       epienableworkqueue: json['IsEnable_WorkQueue'] as bool? ?? false,
       epienabledefaultlabelqty:
           json['IsEnable_UseDefaultLabelQty'] as bool? ?? false,
+      epiprinter: json['Printer'] as String? ?? '',
+      epiprinterpath: json['PrinterPath'] as String? ?? '',
     );
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
@@ -85,5 +87,7 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
       'IsEnable_StartEndOp': instance.epienablestartoperation,
       'IsEnable_WorkQueue': instance.epienableworkqueue,
       'IsEnable_UseDefaultLabelQty': instance.epienabledefaultlabelqty,
+      'Printer': instance.epiprinter,
+      'PrinterPath': instance.epiprinterpath,
       'token': instance.token,
     };
